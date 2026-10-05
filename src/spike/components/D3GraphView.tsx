@@ -20,7 +20,9 @@ export default function D3GraphView({ dataset }: Props) {
   // Pan and zoom transform
   const transformRef = useRef({ x: 0, y: 0, k: 1 });
   const isDraggingRef = useRef(false);
+  const pointerDownPosRef = useRef({ x: 0, y: 0 });
   const lastMousePosRef = useRef({ x: 0, y: 0 });
+  const animationFrameRef = useRef<number | null>(null);
 
   const nodesRef = useRef<D3SimulationNode[]>([]);
   const linksRef = useRef<D3SimulationLink[]>([]);
@@ -129,6 +131,8 @@ export default function D3GraphView({ dataset }: Props) {
       const isHovered = node.id === hoveredNodeId;
       const isDimmed = selectedNodeId && !isSelected && !isNeighbor;
 
+      ctx.globalAlpha = isDimmed ? 0.25 : 1.0;
+
       const radius = isSelected ? 16 : isHovered ? 14 : isNeighbor ? 13 : 11;
 
       // Glow effect for selected
@@ -181,6 +185,62 @@ export default function D3GraphView({ dataset }: Props) {
     ctx.restore();
   }, [selectedNodeId, hoveredNodeId, neighborIds]);
 
+  // Concept selection with recenter animation
+  const selectConcept = useCallback(
+    (nodeId: string | null) => {
+      setSelectedNodeId(nodeId);
+      if (!nodeId) return;
+
+      const node = nodesRef.current.find((n) => n.id === nodeId);
+      if (!node || typeof node.x !== "number" || typeof node.y !== "number") return;
+
+      const currentK = transformRef.current.k;
+      const targetX = -node.x * currentK;
+      const targetY = -node.y * currentK;
+
+      // Honor prefers-reduced-motion
+      const prefersReducedMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (prefersReducedMotion) {
+        transformRef.current.x = targetX;
+        transformRef.current.y = targetY;
+        draw();
+        return;
+      }
+
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      const startX = transformRef.current.x;
+      const startY = transformRef.current.y;
+      const startTime = performance.now();
+      const duration = 300;
+
+      const animateRecenter = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        // Ease-out cubic: 1 - (1 - progress)^3
+        const ease = 1 - Math.pow(1 - progress, 3);
+
+        transformRef.current.x = startX + (targetX - startX) * ease;
+        transformRef.current.y = startY + (targetY - startY) * ease;
+        draw();
+
+        if (progress < 1) {
+          animationFrameRef.current = requestAnimationFrame(animateRecenter);
+        } else {
+          animationFrameRef.current = null;
+        }
+      };
+
+      animationFrameRef.current = requestAnimationFrame(animateRecenter);
+    },
+    [draw]
+  );
+
   // Setup simulation and resize
   useEffect(() => {
     const { nodes, links } = createD3GraphData(dataset);
@@ -225,6 +285,9 @@ export default function D3GraphView({ dataset }: Props) {
     return () => {
       simulation.stop();
       window.removeEventListener("resize", updateDimensions);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [dataset, draw]);
 
@@ -260,7 +323,12 @@ export default function D3GraphView({ dataset }: Props) {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     isDraggingRef.current = true;
+    pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
     lastMousePosRef.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -281,17 +349,27 @@ export default function D3GraphView({ dataset }: Props) {
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
-      const dx = Math.abs(e.clientX - lastMousePosRef.current.x);
-      const dy = Math.abs(e.clientY - lastMousePosRef.current.y);
-      if (dx < 3 && dy < 3) {
+      const totalDx = e.clientX - pointerDownPosRef.current.x;
+      const totalDy = e.clientY - pointerDownPosRef.current.y;
+      const totalDist = Math.hypot(totalDx, totalDy);
+      if (totalDist < 5) {
         const hit = getNodeAtPoint(e.clientX, e.clientY);
-        setSelectedNodeId(hit ? hit.id : null);
+        selectConcept(hit ? hit.id : null);
       }
     }
   };
 
+  const handleMouseLeave = () => {
+    isDraggingRef.current = false;
+    setHoveredNodeId(null);
+  };
+
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
     const newK = Math.max(0.3, Math.min(3, transformRef.current.k * zoomFactor));
     transformRef.current.k = newK;
@@ -301,7 +379,12 @@ export default function D3GraphView({ dataset }: Props) {
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     const touch = e.touches[0];
     if (e.touches.length === 1 && touch) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
       isDraggingRef.current = true;
+      pointerDownPosRef.current = { x: touch.clientX, y: touch.clientY };
       lastMousePosRef.current = { x: touch.clientX, y: touch.clientY };
     }
   };
@@ -323,17 +406,25 @@ export default function D3GraphView({ dataset }: Props) {
       isDraggingRef.current = false;
       const touch = e.changedTouches[0];
       if (touch) {
-        const dx = Math.abs(touch.clientX - lastMousePosRef.current.x);
-        const dy = Math.abs(touch.clientY - lastMousePosRef.current.y);
-        if (dx < 5 && dy < 5) {
+        const totalDx = touch.clientX - pointerDownPosRef.current.x;
+        const totalDy = touch.clientY - pointerDownPosRef.current.y;
+        if (Math.hypot(totalDx, totalDy) < 8) {
           const hit = getNodeAtPoint(touch.clientX, touch.clientY);
-          setSelectedNodeId(hit ? hit.id : null);
+          selectConcept(hit ? hit.id : null);
         }
       }
     }
   };
 
+  const handleTouchCancel = () => {
+    isDraggingRef.current = false;
+  };
+
   const handleResetCamera = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     transformRef.current = { x: 0, y: 0, k: 1 };
     setSelectedNodeId(null);
     draw();
@@ -347,9 +438,11 @@ export default function D3GraphView({ dataset }: Props) {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
           onWheel={handleWheel}
           className={styles.canvasContainer}
         />
@@ -362,6 +455,33 @@ export default function D3GraphView({ dataset }: Props) {
       </div>
 
       <aside className={styles.detailPanel} aria-label="Selected Concept Details">
+        {/* ARIA live region announcing selection changes */}
+        <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
+          {selectedConcept
+            ? `Selected concept: ${selectedConcept.name}. ${connectedRelationships.length} connected relationships.`
+            : "No concept selected."}
+        </div>
+
+        {/* Parallel DOM concept list for keyboard navigation and screen readers */}
+        <nav className={styles.accessibilityNav} aria-label="Accessible Concept Navigator">
+          <span className={styles.navLabel}>Concept List (Keyboard Accessible):</span>
+          <div className={styles.conceptButtonGroup} role="group" aria-label="Available concepts">
+            {dataset.concepts.map((concept) => (
+              <button
+                key={concept.id}
+                type="button"
+                className={
+                  selectedNodeId === concept.id ? styles.conceptButtonActive : styles.conceptButton
+                }
+                aria-pressed={selectedNodeId === concept.id}
+                onClick={() => selectConcept(concept.id)}
+              >
+                {concept.name}
+              </button>
+            ))}
+          </div>
+        </nav>
+
         {selectedConcept ? (
           <div>
             <span className={styles.badge}>Selected Concept</span>
@@ -392,8 +512,8 @@ export default function D3GraphView({ dataset }: Props) {
         ) : (
           <div className={styles.emptyPrompt}>
             <p>
-              Click on any concept node to focus, view connected relationships, and see
-              explanations.
+              Click on any concept node or select from the list above to focus, recenter, and view
+              connected relationships.
             </p>
           </div>
         )}

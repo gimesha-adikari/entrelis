@@ -25,13 +25,14 @@ Entrelis has domain-specific interaction and visual needs that distinguish it fr
 
 ## Candidates
 
-| Candidate                    | Version Evaluated | Rendering Technology       | Core Ecosystem Packages                                            |
-| :--------------------------- | :---------------- | :------------------------- | :----------------------------------------------------------------- |
-| **Sigma.js**                 | `v3.0.3`          | WebGL 2 / WebGL            | `sigma`, `graphology` (`v0.26.0`), `graphology-layout-forceatlas2` |
-| **Cytoscape.js**             | `v3.34.3`         | Multi-layered HTML5 Canvas | `cytoscape`, `@types/cytoscape`                                    |
-| **D3-force + Custom Canvas** | `v3.0.0`          | High-DPI HTML5 Canvas (2D) | `d3-force`, `d3-zoom`, `@types/d3-force`, `@types/d3-zoom`         |
+| Candidate                    | Version Evaluated | Rendering Technology       | Core Ecosystem Packages                                            | Status on Retained Branch       |
+| :--------------------------- | :---------------- | :------------------------- | :----------------------------------------------------------------- | :------------------------------ |
+| **Sigma.js**                 | `v3.0.3`          | WebGL 2 / WebGL            | `sigma`, `graphology` (`v0.26.0`), `graphology-layout-forceatlas2` | Evaluated & pruned (Section 21) |
+| **Cytoscape.js**             | `v3.34.3`         | Multi-layered HTML5 Canvas | `cytoscape`, `@types/cytoscape`                                    | Evaluated & pruned (Section 21) |
+| **D3-force + Custom Canvas** | `v3.0.0`          | High-DPI HTML5 Canvas (2D) | `d3-force`, `@types/d3-force`                                      | **Retained (Chosen Candidate)** |
 
-_Evaluation date: October 2026._
+_Evaluation date: October 2026._  
+_Note on `d3-zoom`: Pan and zoom handling was implemented directly in the custom canvas component during this spike without importing `d3-zoom`. `d3-zoom` was pruned per Section 21 and may be reconsidered in M1 if multi-touch gesture normalization or programmatic camera constraints prove advantageous._
 
 ---
 
@@ -39,25 +40,26 @@ _Evaluation date: October 2026._
 
 Each candidate was evaluated using an isolated adapter pattern that converted `KnowledgeDataset` (`SEED_DATASET`) into renderer-specific representations without contaminating the core domain types (`Concept`, `Relationship`):
 
-- **Sigma.js Adapter (`src/spike/adapters/sigma.ts`):** Constructed a directed `graphology` instance. Concepts were mapped to nodes with geometric positions and colors; relationships were mapped to directed edges with arrow attributes. State reducers (`nodeReducer`, `edgeReducer`) adjusted size, color, and label visibility reactively.
-- **Cytoscape.js Adapter (`src/spike/adapters/cytoscape.ts`):** Generated Cytoscape element definitions (`group: "nodes"`, `group: "edges"`). Visual styling was declared via Cytoscape's CSS-like selectors (`node.selected`, `node.neighbor`, `node.dimmed`, `edge.highlighted`), driven by Cytoscape batch classes.
-- **D3-force Adapter (`src/spike/adapters/d3.ts`):** Converted concepts to `SimulationNode` objects and relationships to `SimulationLink` objects. An explicit high-DPI HTML5 2D Canvas rendering loop handled node drawing, glow halos, directional arrows, curved strokes, and label typography.
+- **Sigma.js Adapter:** Constructed a directed `graphology` instance. Concepts were mapped to nodes with geometric positions and colors; relationships were mapped to directed edges with arrow attributes. State reducers (`nodeReducer`, `edgeReducer`) adjusted size, color, and label visibility reactively.
+- **Cytoscape.js Adapter:** Generated Cytoscape element definitions (`group: "nodes"`, `group: "edges"`). Visual styling was declared via Cytoscape's CSS-like selectors (`node.selected`, `node.neighbor`, `node.dimmed`, `edge.highlighted`), driven by Cytoscape batch classes.
+- **D3-force Adapter (`src/spike/adapters/d3.ts`):** Converted concepts to `SimulationNode` objects and relationships to `SimulationLink` objects. An explicit high-DPI HTML5 2D Canvas rendering loop handles node drawing, glow halos, directional arrows, curved strokes, label typography, and custom drag-versus-click gesture detection.
 
-All three adapters strictly enforced the directional invariant:
+All adapters strictly enforced the directional invariant:  
 `Rust --uses--> Ownership --manages--> Memory --includes--> Stack & Heap --depends-on--> Operating Systems --depends-on--> CPUs --implemented-with--> Transistors`.
 
 ---
 
 ## Interaction Comparison
 
-| Interaction Feature        | Sigma.js                                                      | Cytoscape.js                                                  | D3-force + Custom Canvas                                               |
-| :------------------------- | :------------------------------------------------------------ | :------------------------------------------------------------ | :--------------------------------------------------------------------- |
-| **Pan & Zoom**             | Built-in mouse & touch camera controls.                       | Built-in multi-touch & wheel gestures.                        | Implemented via mouse/touch drag and wheel zoom with transform matrix. |
-| **Node Focus & Selection** | `clickNode` event; camera animated with `camera.animate()`.   | `tap` event; animated via `cy.animate({ center, zoom })`.     | Click/tap hit-testing via inverse transform; animated state redraw.    |
-| **Neighbor Highlighting**  | Evaluated via `nodeReducer` and `edgeReducer` on `refresh()`. | Evaluated via `node.neighborhood()` + batch class assignment. | Evaluated via Set membership lookups in 60 FPS draw pass.              |
-| **Unrelated Dimming**      | Muted node colors and blanked label strings in `nodeReducer`. | Handled via `.dimmed` CSS selector class (reduced opacity).   | Rendered with subtle alpha (`0.15` line opacity, muted border).        |
-| **Selected Node Recenter** | Native `camera.animate()` with ease and duration.             | Native `cy.animate()` targeting node element.                 | Smooth matrix interpolation to target coordinate.                      |
-| **Reset View**             | Resets camera to `(0.5, 0.5)` ratio 1.                        | `cy.animate({ fit })`.                                        | Resets transform matrix to `(0, 0)` scale 1.                           |
+| Interaction Feature          | Sigma.js                                                      | Cytoscape.js                                                  | D3-force + Custom Canvas                                                                                                                                         |
+| :--------------------------- | :------------------------------------------------------------ | :------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pan & Zoom**               | Built-in mouse & touch camera controls.                       | Built-in multi-touch & wheel gestures.                        | Custom mouse drag, touch drag, and wheel zoom with 2D transform matrix.                                                                                          |
+| **Drag vs. Click Detection** | Native event differentiation.                                 | Native event differentiation.                                 | Implemented via pointer-down anchor tracking (`Math.hypot(dx, dy) < threshold`).                                                                                 |
+| **Node Focus & Selection**   | `clickNode` event.                                            | `tap` event.                                                  | Click/tap hit-testing via inverse transform; updates shared state.                                                                                               |
+| **Neighbor Highlighting**    | Evaluated via `nodeReducer` and `edgeReducer` on `refresh()`. | Evaluated via `node.neighborhood()` + batch class assignment. | Evaluated via Set membership lookups in 60 FPS draw pass.                                                                                                        |
+| **Unrelated Dimming**        | Muted node colors and blanked label strings in `nodeReducer`. | Handled via `.dimmed` CSS selector class (reduced opacity).   | Rendered with subtle alpha (`0.15` line opacity, muted border).                                                                                                  |
+| **Selected Node Recenter**   | Native `camera.animate()`.                                    | Native `cy.animate()` targeting node element.                 | **Implemented in spike:** `requestAnimationFrame` ease-out cubic interpolation to center target node; snaps immediately when `prefers-reduced-motion` is active. |
+| **Reset View**               | Resets camera to `(0.5, 0.5)` ratio 1.                        | `cy.animate({ fit })`.                                        | Resets transform matrix to `(0, 0)` scale 1.                                                                                                                     |
 
 ---
 
@@ -88,6 +90,7 @@ A core Entrelis design principle is **spatial stability**: as a user navigates b
 - **Cytoscape.js:** Built-in layouts (`circle`, `grid`, `cose`, `concentric`). The force-directed `cose` layout is computationally heavy and produces nondeterministic positioning across runs unless initialized with saved coordinates.
 - **D3-force:**
   - Highly tunable physical forces (`forceLink`, `forceManyBody`, `forceCenter`, `forceCollide`).
+  - **Asymptotic Complexity:** D3's `forceManyBody` uses the Barnes–Hut approximation algorithm backed by an internal quadtree (`theta = 0.9` default), giving it an asymptotic time complexity of approximately **O(n log n)** per simulation step (rather than naive pairwise quadratic O(n²)).
   - Simulation can be run for a fixed tick count (e.g. 100 ticks) and frozen immediately (`simulation.stop()`).
   - Node coordinates (`x, y`) can be directly saved, stored in fixtures/databases, and reused.
   - Supports smooth coordinate interpolation when progressively revealing new neighbors, ensuring the existing graph nodes remain locked or gently ease into position without chaotic spring bouncing.
@@ -96,47 +99,52 @@ A core Entrelis design principle is **spatial stability**: as a user navigates b
 
 ## Performance Experiment
 
-### Measured Benchmark Data
+### Reproducible D3-force Benchmark (Retained Branch)
 
-Automated synthetic benchmarks were executed in `src/spike/benchmark/benchmark.test.ts` across sparse graph topologies at three scales (50, 500, and 5,000 nodes). All timings represent real node runtime measurements:
+Executed on the current branch via `npm run test` ([`src/spike/benchmark/benchmark.test.ts`](file:///home/gimesha/My_Projects/entrelis/src/spike/benchmark/benchmark.test.ts)) using synthetic sparse graph fixtures:
 
-| Nodes     | Edges | Sigma Adapter (ms) | Cytoscape Adapter (ms) | D3 Adapter (ms) | D3 Sim 100 Ticks (ms) | Sigma Neighbor Lookup (ms) | Cytoscape Neighbor Lookup (ms) | D3 Neighbor Lookup (ms) |
-| :-------- | :---- | :----------------- | :--------------------- | :-------------- | :-------------------- | :------------------------- | :----------------------------- | :---------------------- |
-| **50**    | 65    | 1.19 ms            | 0.17 ms                | 0.18 ms         | 21.86 ms              | 0.292 ms                   | 0.038 ms                       | 0.012 ms                |
-| **500**   | 665   | 2.78 ms            | 0.16 ms                | 0.16 ms         | 138.87 ms             | 0.043 ms                   | 0.069 ms                       | 0.043 ms                |
-| **5,000** | 6,665 | 18.08 ms           | 1.50 ms                | 1.46 ms         | 2,183.29 ms           | 0.049 ms                   | 0.789 ms                       | 0.610 ms                |
+| Nodes     | Edges | D3 Adapter Conversion (ms) | D3 Simulation (100 Ticks, ms) | D3 Neighbor Lookup (ms) |
+| :-------- | :---- | :------------------------- | :---------------------------- | :---------------------- |
+| **50**    | 65    | ~0.20 ms                   | ~23 ms                        | ~0.04 ms                |
+| **500**   | 665   | ~0.17 ms                   | ~155 ms                       | ~0.07 ms                |
+| **5,000** | 6,665 | ~1.30 ms                   | ~2,130 ms                     | ~0.64 ms                |
 
-### Qualitative Observations & Analysis
+_Timing values represent machine-specific runtime observations and are verified for structural correctness rather than rigid wall-clock thresholds._
 
-1. **Adapter Conversion:** Converting domain datasets to D3 and Cytoscape formats is near-instant (< 1.5 ms even at 5,000 nodes). Graphology graph instantiation has higher object allocation overhead (18.08 ms at 5,000 nodes) due to dual index structures.
-2. **Neighbor Lookups:** Graphology's indexed adjacency structure and D3's Set-based queries are both sub-millisecond across all scales.
-3. **Layout Cost:** Running 100 ticks of D3's n-body charge simulation takes 21.8 ms for 50 nodes and 138.9 ms for 500 nodes. At 5,000 nodes, unconstrained n-body charge scales quadratically (~2.18 s), indicating that for future large graphs, layout calculation must be precomputed or offloaded to a Web Worker.
-4. **Rendering Throughput:**
-   - **Sigma (WebGL):** Unmatched raw capacity for 10,000+ nodes rendered simultaneously.
-   - **Cytoscape & Canvas:** Effortlessly renders 500–1,000 nodes at a consistent 60 FPS.
-   - For Entrelis, typical active viewport displays will focus on a local neighborhood (10 to 60 nodes) within a broader network, making 2D Canvas performance optimal.
+### Historical Evaluation-Time Measurements (Prior to Pruning)
+
+> [!NOTE]
+> The measurements below were captured during the initial comparative spike before rejected candidate dependencies were pruned per Section 21. They are preserved here for historical architectural context but are no longer executable from the retained branch. The architectural decision did not depend on adapter microbenchmarks.
+
+| Nodes     | Edges | Sigma Adapter (ms) | Cytoscape Adapter (ms) | Sigma Neighbor Lookup (ms) | Cytoscape Neighbor Lookup (ms) |
+| :-------- | :---- | :----------------- | :--------------------- | :------------------------- | :----------------------------- |
+| **50**    | 65    | 1.19 ms            | 0.17 ms                | 0.292 ms                   | 0.038 ms                       |
+| **500**   | 665   | 2.78 ms            | 0.16 ms                | 0.043 ms                   | 0.069 ms                       |
+| **5,000** | 6,665 | 18.08 ms           | 1.50 ms                | 0.049 ms                   | 0.789 ms                       |
+
+### Qualitative Observations & Canvas Throughput
+
+- **Rendering Smoothness:** The 7-node Entrelis prototype was visually smooth during desktop and mobile manual testing. Larger renderer FPS was not independently measured in this spike.
+- **Simulation Cost at Scale:** Running 100 ticks of D3's Barnes–Hut simulation for 5,000 nodes took ~2.1 seconds on the test machine. This confirms that unconstrained large force simulations should not run interactively on the main thread without testing, and that precomputed spatial coordinates or offloading physics to a Web Worker remain valid strategies for future scaling.
+- **Microbenchmarks:** Adapter conversion and Set-based neighbor queries were sub-millisecond across all candidates and did not present any bottleneck.
 
 ---
 
 ## Mobile Evaluation
 
-All prototypes were tested at **375 × 812** viewport resolution using browser emulation:
+Tested at **375 × 812** viewport resolution using browser emulation:
 
 - **Layout Structure:** On desktop, the viewport and detail panel sit side-by-side (`row`). On mobile, the graph viewport occupies the upper 55vh, while the semantic detail panel scrolls naturally beneath (`column`).
-- **Touch Interaction:**
-  - With `touch-action: none` configured on the canvas wrapper, touch dragging on D3 and Cytoscape allowed responsive single-finger panning without triggering unwanted browser page scrolling.
-  - Tap target hit-testing with a 20px radius proved reliable on mobile touch screens for selecting nodes.
-  - Detail panels remained legible and accessible on narrow screens with zero overflow.
+- **Touch Interaction & Drag Separation:**
+  - With `touch-action: none` configured on the canvas wrapper, touch dragging allows responsive single-finger panning without triggering unwanted browser page scrolling.
+  - Drag-versus-tap tracking ensures that dragging across nodes does not trigger accidental selection upon release.
+  - Detail panels remained legible and accessible on narrow screens with zero horizontal overflow.
 
 ---
 
 ## Accessibility Architecture
 
-Canvas and WebGL elements are fundamentally non-semantic drawing surfaces. Attempting to inject invisible pseudo-DOM elements directly inside canvas viewports is fragile and leads to poor assistive technology support.
-
-### Recommended Dual-Representation Architecture
-
-Entrelis will maintain an accessible DOM representation synchronized with the visual graph:
+Canvas and WebGL elements are non-semantic drawing surfaces. Attempting to inject invisible pseudo-DOM elements directly inside canvas viewports is fragile and leads to poor assistive technology support. Entrelis adopts an explicit **dual-representation architecture**:
 
 ```
                   ┌────────────────────────────────────────┐
@@ -150,40 +158,47 @@ Entrelis will maintain an accessible DOM representation synchronized with the vi
 ├──────────────────────────────┤              ├──────────────────────────────┤
 │ • 2D Canvas rendering        │              │ • Concept detail panel (<aside>)
 │ • Glowing focus nodes        │ synchronized │ • Connected relationship list│
-│ • Camera transitions         │ ◄──────────► │ • Accessible headings (h3/h4)│
+│ • Camera recenter transition │ ◄──────────► │ • Accessible headings (h3/h4)│
 │ • Visual arrowheads          │  via State   │ • ARIA live region           │
-│ • Progressive reveal         │              │ • Keyboard navigation        │
+│ • Progressive reveal         │              │ • Keyboard concept buttons   │
 └──────────────────────────────┘              └──────────────────────────────┘
 ```
 
-1. **Semantic Detail Panel:** The active concept is rendered in an `<aside aria-label="Selected Concept Details">` containing semantic headings (`<h3>`, `<h4>`) and structured relationship descriptions.
-2. **Live Announcements:** An `aria-live="polite"` region announces the focused concept and its degree of connection when selection changes.
-3. **Keyboard Navigation:** Tab-accessible concept cards allow users to cycle through connected neighbors using `Tab` and `Enter`, driving both the DOM panel and the camera viewport.
-4. **Reduced Motion:** Adheres to `prefers-reduced-motion` media query by disabling camera pan/zoom animations and instantly setting the transform matrix.
+### Implemented in Spike Prototype
+
+1. **Parallel Keyboard Concept Navigation:** `<nav aria-label="Accessible Concept Navigator">` with focusable buttons for each concept in the dataset, allowing keyboard users to select concepts using `Tab` and `Enter`, updating both the DOM panel and recentering the canvas viewport.
+2. **Semantic Detail Panel:** The active concept is rendered in an `<aside aria-label="Selected Concept Details">` containing semantic headings (`<h3>`, `<h4>`) and structured relationship descriptions with directional markers.
+3. **Live Region Announcements:** An `<div aria-live="polite" aria-atomic="true">` region announces the focused concept and connected relationship count whenever selection changes.
+4. **Reduced-Motion Handling:** Respects `prefers-reduced-motion: reduce`. When active, camera recentering applies immediately without requestAnimationFrame interpolation.
+
+### Proposed for Milestone M1
+
+- Spatial arrow-key mesh navigation (navigating directly from node to connected neighbor via arrow keys).
+- Mobile bottom sheet drawer for compact relationship inspection.
 
 ---
 
 ## Next.js Integration & SSR
 
-All three candidates depend on browser-only APIs (`window`, `HTMLCanvasElement`, `WebGLRenderingContext`).
+All graph renderers depend on browser-only APIs (`window`, `HTMLCanvasElement`, `WebGLRenderingContext`).
 
 - **Client Boundary:** Graph views must be Client Components (`"use client"`). In Next.js 16 (Turbopack), `next/dynamic` with `{ ssr: false }` must be called from within a client component boundary.
 - **Server Components:** The surrounding Entrelis application (knowledge dataset loading, metadata generation, navigation shells, breadcrumbs) remains 100% Server Components.
-- **Hydration & Cleanup:** Canvas ref lifecycle cleanly mounts inside `useEffect` and terminates all simulation timers and event listeners on unmount.
+- **Hydration & Cleanup:** Canvas ref lifecycle cleanly mounts inside `useEffect` and terminates all simulation timers, requestAnimationFrame handles, and event listeners on unmount.
 
 ---
 
 ## Dependencies & Bundle Impact
 
-### Candidate Bundle Contributions
+### Qualitative Dependency Assessment
 
-| Candidate Package          | Production Bundle Contribution (Minified + Gzip) | Companion Requirements                             |
-| :------------------------- | :----------------------------------------------- | :------------------------------------------------- |
-| **`d3-force` + `d3-zoom`** | **~10 kB**                                       | Zero companion dependencies.                       |
-| **`cytoscape`**            | **~120 kB**                                      | Monolithic bundle with built-in layout algorithms. |
-| **`sigma` + `graphology`** | **~60 kB**                                       | Requires `graphology`, layout companion libraries. |
+- **D3 Modular Approach (`d3-force`):** Smallest dependency footprint of evaluated candidates. Installs only the force simulation algorithm; rendering is pure native Canvas.
+- **Cytoscape.js:** Significantly larger monolithic dependency including graph theory algorithms, internal DOM rendering pipelines, and stylesheets.
+- **Sigma.js + Graphology:** Multi-package graph stack requiring core graph data structure libraries and companion layout packages.
 
-D3-force offers a ~12x reduction in client bundle size compared to Cytoscape.js.
+### Measured Build Artifact Impact
+
+When all three candidates were initially installed, aggregate `.next/static/chunks` production output was **1.3 MB**, with Cytoscape contributing a single 425 KB uncompressed chunk. After pruning rejected dependencies per Section 21, total chunk output dropped to **656 KB** (a ~50% reduction in aggregate build chunk payload).
 
 ---
 
@@ -194,13 +209,13 @@ Each candidate was scored across key architectural criteria (1–5 scale, where 
 | Criteria                           |  Weight  | Sigma.js | Cytoscape.js | D3-force + Canvas | Notes                                                                                  |
 | :--------------------------------- | :------: | :------: | :----------: | :---------------: | :------------------------------------------------------------------------------------- |
 | **Visual Flexibility**             |   20%    |    2     |      3       |       **5**       | D3 Canvas allows glowing halos, custom arrows, and styling with zero library fighting. |
-| **Interaction & Focus Control**    |   15%    |    4     |      4       |       **4**       | All support pan/zoom/recenter; D3 allows customized easing curves.                     |
+| **Interaction & Focus Control**    |   15%    |    4     |      4       |       **4**       | All support pan/zoom/recenter; D3 offers fine-grained camera interpolation.            |
 | **Spatial Layout Stability**       |   15%    |    4     |      3       |       **5**       | D3 force coordinates can be frozen, precomputed, or gently eased.                      |
 | **Progressive Reveal Suitability** |   10%    |    3     |      3       |       **5**       | D3 enables pin-point coordinate control as new neighbors unlock.                       |
-| **Bundle & Dependency Cost**       |   10%    |    3     |      1       |       **5**       | D3 is ~10 kB gzipped vs Cytoscape's ~120 kB and Sigma's ~60 kB.                        |
+| **Bundle & Dependency Cost**       |   10%    |    3     |      1       |       **5**       | D3 introduces only `d3-force`, avoiding heavy monolithic bundles.                      |
 | **Next.js / React Integration**    |   10%    |    2     |      3       |       **5**       | Canvas ref integrates cleanly without multi-canvas DOM injection.                      |
-| **Accessibility Integration**      |   10%    |    4     |      4       |       **4**       | All cleanly decouple to a parallel semantic DOM tree.                                  |
-| **Performance Headroom**           |   10%    |  **5**   |      3       |         4         | Sigma excels at 50,000+ nodes; D3 Canvas easily handles Entrelis's scale.              |
+| **Accessibility Integration**      |   10%    |    4     |      4       |       **4**       | Decoupled parallel semantic DOM tree proved in prototype.                              |
+| **Performance Headroom**           |   10%    |  **5**   |      3       |         4         | Sigma excels at 50,000+ nodes; D3 Canvas handles Entrelis's local scale.               |
 | **Weighted Total**                 | **100%** | **3.20** |   **3.05**   |     **4.65**      |                                                                                        |
 
 ---
@@ -215,11 +230,11 @@ Entrelis should adopt a tailored **D3-force simulation driving a custom HTML5 2D
 
 1. **Uncompromised Visual Hierarchy:** Entrelis is a knowledge exploration experience, not an IT network debugger. Direct ownership of the 2D Canvas context enables glowing concept nodes, custom directional arrows, subtle link alpha gradients, and relationship strength styling without wrestling with rigid library CSS or WebGL shader boilerplate.
 2. **Spatial Stability & Progressive Reveal:** D3-force simulations can be stepped, stopped, precomputed, or locked deterministically. This guarantees that as users explore connected ideas, existing nodes maintain their mental map positions rather than chaotically jumping.
-3. **Minimal Bundle Footprint:** At ~10 kB gzipped, `d3-force` + `d3-zoom` provides an ultra-lightweight client footprint, keeping initial page load fast and avoiding the 120 kB overhead of monolithic alternatives.
+3. **Minimal Dependency Footprint:** By selecting only `d3-force`, Entrelis avoids importing monolithic runtime dependencies, keeping initial page load fast and architectural surface area small.
 
 ### Why Not Cytoscape.js?
 
-Cytoscape.js is a heavyweight graph-theory library (~120 kB gzipped) designed for desktop-style network analysis. Its declarative styling makes advanced visual effects (glows, dynamic halos, custom arrowheads) difficult to implement without writing canvas plugin extensions. Its force layouts (`cose`) are computationally heavy and lack the spatial determinism needed for Entrelis.
+Cytoscape.js is a heavyweight monolithic graph-theory library designed for desktop-style network analysis. Its declarative styling makes advanced visual effects (glows, dynamic halos, custom arrowheads) difficult to implement without writing canvas plugin extensions. Its force layouts (`cose`) are computationally heavy and lack the spatial determinism needed for Entrelis.
 
 ### Why Not Sigma.js?
 
@@ -229,6 +244,6 @@ Sigma.js is engineered for massive graph rendering (50,000+ nodes) using WebGL. 
 
 ## Risks & M1 Validation Plan
 
-1. **Self-Managed Viewport Math:** Because D3 does not provide a turnkey camera API, pan/zoom clamping, high-DPI scaling, and coordinate transformations must be cleanly encapsulated in an M1 viewport hook.
+1. **Self-Managed Viewport Math:** Because pan/zoom is implemented directly on Canvas, viewport clamping, high-DPI scaling, and coordinate transformations must be cleanly encapsulated in an M1 viewport hook. `d3-zoom` may be reconsidered if multi-touch normalization or native gesture curves are desired.
 2. **Layout Scalability for Large Datasets:** As the dataset expands beyond 1,000 concepts in later milestones, running dynamic force simulations on the main thread could cause frame drops. M1 should support precomputed layout coordinates or run force simulations in a Web Worker.
 3. **Hit-Testing Precision:** On high-density graphs, circular hit-testing must account for variable node sizes and edge click zones.
