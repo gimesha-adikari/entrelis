@@ -4,7 +4,7 @@
 
 Entrelis is an interactive map of knowledge built around **connections between ideas**, not isolated pages.
 
-Start with a concept, explore its neighboring ideas, understand *why* they connect, and keep following the path across science, technology, history, philosophy, psychology, biology, mathematics, and more.
+Start with a concept, explore its neighboring ideas, understand _why_ they connect, and keep following the path across science, technology, history, philosophy, psychology, biology, mathematics, and more.
 
 ## Vision
 
@@ -56,8 +56,27 @@ The detailed product and technical plan lives in [docs/PLAN.md](docs/PLAN.md).
 
 Project tracking: [Entrelis on Linear](https://linear.app/gimesha/project/entrelis-212445eea42f)
 
+## Getting started
+
+### Installation
+
+```bash
+npm install
+```
+
+### Scripts
+
+- `npm run dev`: start the Next.js development server
+- `npm run build`: compile the production build
+- `npm run start`: run the production server
+- `npm run test`: run automated tests with Vitest
+- `npm run lint`: run ESLint
+- `npm run typecheck`: run TypeScript compiler check
+- `npm run format`: format code with Prettier
+- `npm run format:check`: check code formatting
+
 ## Status
 
-**Planning / foundation**
+**M0.1 — Foundation initialized**
 
-Implementation has not started yet.
+Application baseline configured with Next.js App Router, strict TypeScript, design tokens, and testing.
