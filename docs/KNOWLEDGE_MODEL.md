@@ -145,7 +145,7 @@ A `Source` represents an authoritative bibliographic reference that validates a 
   tags: ["memory-management", "type-system", "borrow-checker", "lifetimes"],
   sourceIds: ["src-rust-book", "src-rust-reference"],
   reviewStatus: "reviewed",
-  aliases: ["Borrowing and Ownership"],
+  aliases: ["Rust Ownership", "Ownership Model"],
   interactiveModule: "module-rust-ownership",
 }
 ```

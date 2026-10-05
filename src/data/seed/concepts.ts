@@ -32,7 +32,7 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     tags: ["memory-management", "type-system", "borrow-checker", "lifetimes"],
     sourceIds: ["src-rust-book", "src-rust-reference"],
     reviewStatus: "reviewed",
-    aliases: ["Borrowing and Ownership"],
+    aliases: ["Rust Ownership", "Ownership Model"],
     interactiveModule: "module-rust-ownership",
   },
   {
@@ -47,7 +47,7 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     tags: ["virtual-memory", "ram", "address-space", "computer-architecture"],
     sourceIds: ["src-bryant-csapp", "src-arpaci-ostep"],
     reviewStatus: "reviewed",
-    aliases: ["Computer Memory", "Primary Storage"],
+    aliases: ["Computer Memory"],
   },
   {
     id: "concept-stack-and-heap",
@@ -75,7 +75,7 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     tags: ["kernel", "process-management", "virtualization", "system-software"],
     sourceIds: ["src-arpaci-ostep", "src-tanenbaum-mos"],
     reviewStatus: "reviewed",
-    aliases: ["OS", "Kernel"],
+    aliases: ["OS"],
   },
   {
     id: "concept-cpus",
@@ -103,6 +103,6 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     tags: ["semiconductors", "mosfet", "digital-logic", "solid-state-physics"],
     sourceIds: ["src-ieee-transistor-milestone", "src-sze-semiconductor"],
     reviewStatus: "reviewed",
-    aliases: ["Semiconductor Transistors", "MOSFETs"],
+    aliases: ["Semiconductor Transistors"],
   },
 ];

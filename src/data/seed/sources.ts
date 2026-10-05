@@ -82,10 +82,10 @@ export const SEED_SOURCES: readonly Source[] = [
     url: "https://ethw.org/Milestones:Invention_of_the_First_Transistor_at_Bell_Telephone_Laboratories,_1947",
     publisher: "IEEE / Engineering and Technology History Wiki",
     type: "reference",
-    publicationDate: "1998",
+    publicationDate: "2009-12-08",
     accessDate: "2026-10-06",
     notes:
-      "Historical milestone record dedicated in 1998 commemorating the 1947 invention of the point-contact transistor by John Bardeen, Walter Brattain, and William Shockley at Bell Labs.",
+      "Historical milestone record dedicated on 2009-12-08 commemorating the 1947 achievement of the point-contact transistor by John Bardeen, Walter Brattain, and William Shockley at Bell Labs.",
   },
   {
     id: "src-sze-semiconductor",
