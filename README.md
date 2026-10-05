@@ -58,6 +58,11 @@ Project tracking: [Entrelis on Linear](https://linear.app/gimesha/project/entrel
 
 ## Getting started
 
+### Prerequisites
+
+- Node.js 22 LTS (`.nvmrc`)
+- npm
+
 ### Installation
 
 ```bash
