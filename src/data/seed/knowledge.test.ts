@@ -84,36 +84,69 @@ describe("Entrelis Seed Knowledge Dataset", () => {
     }
   });
 
-  it("contains the complete required vertical slice path from Rust to Transistors", () => {
-    const expectedPath = [
-      "concept-rust",
-      "concept-ownership",
-      "concept-memory",
-      "concept-stack-and-heap",
-      "concept-operating-systems",
-      "concept-cpus",
-      "concept-transistors",
+  it("contains the complete required vertical slice path with corrected directional types", () => {
+    const expectedChain = [
+      {
+        sourceId: "concept-rust",
+        type: "uses",
+        targetId: "concept-ownership",
+      },
+      {
+        sourceId: "concept-ownership",
+        type: "manages",
+        targetId: "concept-memory",
+      },
+      {
+        sourceId: "concept-memory",
+        type: "includes",
+        targetId: "concept-stack-and-heap",
+      },
+      {
+        sourceId: "concept-stack-and-heap",
+        type: "depends-on",
+        targetId: "concept-operating-systems",
+      },
+      {
+        sourceId: "concept-operating-systems",
+        type: "depends-on",
+        targetId: "concept-cpus",
+      },
+      {
+        sourceId: "concept-cpus",
+        type: "implemented-with",
+        targetId: "concept-transistors",
+      },
     ] as const;
 
-    // Verify all 7 concepts exist
+    // Verify all concepts in chain exist
     const conceptMap = new Map(SEED_DATASET.concepts.map((c) => [c.id, c]));
-    for (const expectedId of expectedPath) {
-      expect(conceptMap.has(expectedId)).toBe(true);
+    for (const step of expectedChain) {
+      expect(conceptMap.has(step.sourceId)).toBe(true);
+      expect(conceptMap.has(step.targetId)).toBe(true);
     }
 
-    // Verify each step in the path has an explicit directed relationship
-    for (let i = 0; i < expectedPath.length - 1; i++) {
-      const sourceId = expectedPath[i];
-      const targetId = expectedPath[i + 1];
-
+    // Verify each step in the path has an explicit directed relationship matching expected semantics
+    for (const step of expectedChain) {
       const edge = SEED_DATASET.relationships.find(
-        (r) => r.sourceConceptId === sourceId && r.targetConceptId === targetId
+        (r) =>
+          r.sourceConceptId === step.sourceId &&
+          r.targetConceptId === step.targetId &&
+          r.type === step.type
       );
 
       expect(edge).toBeDefined();
       expect(edge?.explanation).toBeTruthy();
       expect(edge?.sourceIds.length).toBeGreaterThan(0);
-      expect(edge?.reviewStatus).toBe("verified");
+      expect(edge?.reviewStatus).toBe("reviewed");
+    }
+  });
+
+  it("marks initial seed records as reviewed pending independent verification", () => {
+    for (const concept of SEED_DATASET.concepts) {
+      expect(concept.reviewStatus).toBe("reviewed");
+    }
+    for (const rel of SEED_DATASET.relationships) {
+      expect(rel.reviewStatus).toBe("reviewed");
     }
   });
 });
@@ -153,11 +186,11 @@ describe("Knowledge Validation Guardrails", () => {
     id: "rel-1-2",
     sourceConceptId: "concept-1",
     targetConceptId: "concept-2",
-    type: "enables",
-    explanation: "Concept One enables Concept Two in test context.",
+    type: "uses",
+    explanation: "Concept One uses Concept Two in test context.",
     strength: "primary",
     sourceIds: ["src-base"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
   };
 
   const createDataset = (overrides?: Partial<KnowledgeDataset>): KnowledgeDataset => ({

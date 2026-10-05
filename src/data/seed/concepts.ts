@@ -11,13 +11,13 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "rust",
     name: "Rust",
     shortDescription:
-      "A systems programming language designed for performance and memory safety without relying on an automated garbage collector.",
+      "A systems programming language that combines low-level hardware control with compile-time safety guarantees.",
     description:
-      "Rust achieves compile-time safety through an innovative type system centered around ownership, borrowing, and strict concurrency rules. It provides fine-grained hardware control comparable to C and C++ while preventing data races and invalid memory accesses at compile time.",
+      "In Safe Rust, ownership, borrowing, and the type system prevent many classes of memory-safety and concurrency errors without requiring an automated garbage collector. Unsafe Rust permits lower-level operations whose safety invariants must be upheld manually by the programmer.",
     domains: ["programming-languages", "computer-science"],
     tags: ["systems-programming", "type-safety", "compilers", "concurrency"],
     sourceIds: ["src-rust-book"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
     aliases: ["Rust-lang"],
   },
   {
@@ -25,14 +25,14 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "ownership",
     name: "Ownership",
     shortDescription:
-      "A compile-time memory management discipline where every resource has a unique owner and an automatic lifetime.",
+      "The set of rules that governs how a Rust program manages memory and resources at compile time.",
     description:
-      "In ownership-based systems, each value is bound to a single variable binding at any given moment. When the owner goes out of scope, the associated resource is automatically deallocated. Controlled borrowing allows immutable or exclusive mutable access without transferring ownership.",
+      "Rust associates each value with an owner. Moves transfer ownership, borrowing grants temporary access without taking ownership, and owned resources are dropped when their owner's lifetime ends.",
     domains: ["programming-languages", "computer-science"],
     tags: ["memory-management", "type-system", "borrow-checker", "lifetimes"],
     sourceIds: ["src-rust-book", "src-rust-reference"],
-    reviewStatus: "verified",
-    aliases: ["Borrowing and Ownership", "Affine Types"],
+    reviewStatus: "reviewed",
+    aliases: ["Borrowing and Ownership"],
     interactiveModule: "module-rust-ownership",
   },
   {
@@ -40,13 +40,13 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "memory",
     name: "Memory",
     shortDescription:
-      "The physical and virtual storage space computers use to retain active instructions and runtime data.",
+      "The storage systems and addressable spaces computers use to retain active instructions and runtime data.",
     description:
-      "In modern computing architecture, memory is organized as a hierarchy spanning high-speed processor registers and caches down to primary RAM and virtual memory backed by storage. Operating systems provide virtual address spaces so programs can read and write data safely and predictably.",
+      "Modern computer architecture divides physical memory into a hierarchy of registers, caches, primary RAM, and persistent storage based on access speed and capacity. Operating systems and hardware memory management units additionally provide virtual memory—an address-space abstraction that translates program addresses into physical memory locations while isolating processes.",
     domains: ["computer-science", "systems-architecture"],
     tags: ["virtual-memory", "ram", "address-space", "computer-architecture"],
     sourceIds: ["src-bryant-csapp", "src-arpaci-ostep"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
     aliases: ["Computer Memory", "Primary Storage"],
   },
   {
@@ -54,13 +54,13 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "stack-and-heap",
     name: "Stack & Heap",
     shortDescription:
-      "Two fundamental memory segments in a process address space that serve different allocation lifetimes and sizing needs.",
+      "Two common memory regions in conventional process address spaces that serve different allocation lifetimes and sizing needs.",
     description:
-      "The stack is a highly efficient, contiguous memory region managed in last-in, first-out order to store local function frames and statically sized variables. The heap provides flexible, dynamic memory allocation whose size and lifetime can outlive individual function invocations.",
+      "In conventional runtime environments, the stack provides fast, last-in, first-out allocation for function call frames, parameters, and local data bound to scope lifetime. The heap provides dynamic allocation for data whose size or lifetime cannot be determined at compile time or must outlive the function that created it.",
     domains: ["computer-science", "systems-architecture"],
     tags: ["memory-allocation", "stack-frame", "dynamic-memory", "runtime"],
     sourceIds: ["src-bryant-csapp"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
     aliases: ["Call Stack and Dynamic Heap", "Stack Memory and Heap Memory"],
   },
   {
@@ -68,13 +68,13 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "operating-systems",
     name: "Operating Systems",
     shortDescription:
-      "The fundamental system software that manages hardware resources and provides execution environments for applications.",
+      "System software that manages physical hardware resources and provides execution environments for applications.",
     description:
-      "An operating system kernel virtualizes physical hardware—such as processor cores, physical memory, and peripheral devices—into coherent abstractions including processes, threads, virtual memory pages, and filesystems, while enforcing process isolation and security boundaries.",
+      "An operating system kernel virtualizes physical hardware—such as processor cores, physical memory, and storage controllers—into standard abstractions including processes, threads, virtual address spaces, and filesystems, while enforcing privilege separation and process isolation.",
     domains: ["computer-science", "systems-architecture"],
     tags: ["kernel", "process-management", "virtualization", "system-software"],
     sourceIds: ["src-arpaci-ostep", "src-tanenbaum-mos"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
     aliases: ["OS", "Kernel"],
   },
   {
@@ -82,13 +82,13 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "cpus",
     name: "CPUs",
     shortDescription:
-      "The central electronic circuitry within a computer that executes program instructions and performs fundamental arithmetic and logic.",
+      "The electronic circuitry that executes machine instructions and coordinates computation within a computer.",
     description:
-      "A central processing unit coordinates computation by sequentially fetching, decoding, and executing machine instructions. Modern processors consist of instruction decoders, arithmetic logic units (ALUs), register files, multiple cache levels, and control logic executing billions of cycles per second.",
+      "Central processing units interpret and execute the machine instruction stream. Modern microarchitectures use techniques such as instruction pipelining, superscalar execution, branch prediction, and out-of-order execution across arithmetic logic units, registers, and cache hierarchies to maximize throughput.",
     domains: ["hardware", "computer-architecture"],
     tags: ["processors", "microarchitecture", "instruction-set", "silicon"],
     sourceIds: ["src-patterson-hennessy-cod"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
     aliases: ["Central Processing Units", "Processors", "Microprocessors"],
   },
   {
@@ -96,13 +96,13 @@ export const SEED_CONCEPTS: readonly Concept[] = [
     slug: "transistors",
     name: "Transistors",
     shortDescription:
-      "Microscopic semiconductor switches that amplify electrical signals and serve as the physical building blocks of digital logic.",
+      "Semiconductor devices that switch or amplify electronic signals, serving as the physical building blocks of digital logic.",
     description:
-      "Transistors act as electronically controlled valves that regulate the flow of electrical current through semiconductor material such as silicon. By combining multiple transistors into logic gates (such as AND, OR, and NOT), digital circuits perform binary computation and store electronic state.",
+      "By regulating electrical current through semiconductor channels, transistors function as microscopic electronic switches. When interconnected into logic gates (such as AND, OR, and NOT gates) and bistable storage elements, they physically realize the binary logic and memory of digital processors.",
     domains: ["physics", "electronics", "hardware"],
     tags: ["semiconductors", "mosfet", "digital-logic", "solid-state-physics"],
     sourceIds: ["src-ieee-transistor-milestone", "src-sze-semiconductor"],
-    reviewStatus: "verified",
+    reviewStatus: "reviewed",
     aliases: ["Semiconductor Transistors", "MOSFETs"],
   },
 ];

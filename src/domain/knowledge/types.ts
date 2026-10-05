@@ -10,10 +10,24 @@ export type ReviewStatus = "draft" | "needs-review" | "reviewed" | "verified";
 
 /**
  * Controlled taxonomy of semantic relationship types between concepts.
+ *
+ * Directional invariant: Every relationship must read naturally as:
+ *   SOURCE --TYPE--> TARGET
+ *
+ * Examples:
+ *   Rust --uses--> Ownership
+ *   Ownership --manages--> Memory
+ *   Memory --includes--> Stack & Heap
+ *   Stack & Heap --depends-on--> Operating Systems
+ *   Operating Systems --depends-on--> CPUs
+ *   CPUs --implemented-with--> Transistors
+ *   Module --part-of--> System (A is part of B)
  */
 export type RelationshipType =
+  | "uses"
+  | "manages"
+  | "includes"
   | "depends-on"
-  | "enables"
   | "part-of"
   | "implemented-with"
   | "related-to"

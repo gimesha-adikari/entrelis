@@ -56,8 +56,10 @@ const VALID_REVIEW_STATUSES: ReadonlySet<ReviewStatus> = new Set([
 ]);
 
 const VALID_RELATIONSHIP_TYPES: ReadonlySet<RelationshipType> = new Set([
+  "uses",
+  "manages",
+  "includes",
   "depends-on",
-  "enables",
   "part-of",
   "implemented-with",
   "related-to",
