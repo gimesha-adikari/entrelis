@@ -235,6 +235,18 @@ export class Celestial3DController {
     }
 
     if (count === 4) {
+      if (this.activeEntries[0]?.item.category === "CONFUSION_TEST") {
+        // Single horizontal line of 4 items for direct side-by-side confusion comparison
+        const spacingX = Math.min(220, (this.width * 0.88) / 4);
+        for (let i = 0; i < 4; i++) {
+          const x = (i - 1.5) * spacingX;
+          const entry = this.activeEntries[i]!;
+          entry.basePosition.set(x, 0, 0);
+          entry.body.group.position.copy(entry.basePosition);
+        }
+        return;
+      }
+
       // Classic 2x2 presentation
       const spacingX = Math.min(220, this.width * 0.26);
       const spacingY = Math.min(160, this.height * 0.25);

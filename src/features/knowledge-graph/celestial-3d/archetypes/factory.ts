@@ -103,13 +103,13 @@ export function createCelestialObject(
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
         midColor: 0xfef08a,
-        limbColor: 0x92400e,
-        limbDarkening: 0.42,
-        intensity: 1.08,
+        limbColor: 0xb45309,
+        limbDarkening: 0.38,
+        intensity: 1.15,
         rimStrength: 0.0,
       };
       baseRotationSpeed = (2 * Math.PI) / 86; // 86s / rev (70-100s range)
-      coronaScale = 2.45;
+      coronaScale = 2.8;
       coronaPeriodX = 14.0;
       coronaPeriodY = 11.5;
       coronaVarAmp = 0.025;
@@ -118,15 +118,15 @@ export function createCelestialObject(
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
-        midColor: 0xcffafe,
-        limbColor: 0x1e3a8a,
-        limbDarkening: 0.25,
-        intensity: 1.06,
-        rimColor: 0x93c5fd,
-        rimStrength: 0.16,
+        midColor: 0xf0fdf4,
+        limbColor: 0x38bdf8,
+        limbDarkening: 0.12,
+        intensity: 1.18,
+        rimColor: 0xe0f2fe,
+        rimStrength: 0.22,
       };
       baseRotationSpeed = (2 * Math.PI) / 68; // 68s / rev (55-85s range)
-      coronaScale = 1.95; // Compact, tight corona
+      coronaScale = 2.5; // Compact, tight corona
       coronaPeriodX = 11.0;
       coronaPeriodY = 9.0;
       coronaVarAmp = 0.018;
@@ -135,15 +135,15 @@ export function createCelestialObject(
       starTex = createEmberStarTextures(seed, lod);
       shaderParams = {
         surfaceTexture: starTex.surface,
-        coreColor: 0xfed7aa,
-        midColor: 0xea580c,
-        limbColor: 0x3b0707,
-        limbDarkening: 0.52,
-        intensity: 1.15,
+        coreColor: 0xffedd5,
+        midColor: 0xf97316,
+        limbColor: 0x450a0a,
+        limbDarkening: 0.45,
+        intensity: 1.22,
         rimStrength: 0.0,
       };
       baseRotationSpeed = (2 * Math.PI) / 122; // 122s / rev (90-140s range)
-      coronaScale = 2.85; // Broad, diffuse, irregular envelope
+      coronaScale = 3.6; // Broad, diffuse, irregular envelope
       coronaPeriodX = 17.0;
       coronaPeriodY = 13.5;
       coronaVarAmp = 0.03;

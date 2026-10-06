@@ -13,6 +13,7 @@ type CategoryFilter =
   | "ALL"
   | "STARS"
   | "STARS_SCALE"
+  | "CONFUSION_TEST"
   | "GOLDEN_CLOSE"
   | "BLUE_CLOSE"
   | "EMBER_CLOSE"
@@ -59,6 +60,37 @@ const STAR_SCALE_ITEMS: readonly CatalogItemEntry[] = [
     name: "Ember (84px Node)",
     identity: { archetype: "ember-star", seed: 103 },
     radius: 42,
+  },
+];
+
+const CONFUSION_TEST_ITEMS: readonly CatalogItemEntry[] = [
+  {
+    id: "volcanic-rocky-84px",
+    name: "Volcanic Rocky (84px)",
+    identity: { archetype: "volcanic-rocky", seed: 201 },
+    radius: 42,
+    category: "CONFUSION_TEST",
+  },
+  {
+    id: "blue-star-84px",
+    name: "Blue-White Star (84px)",
+    identity: { archetype: "blue-star", seed: 102 },
+    radius: 42,
+    category: "CONFUSION_TEST",
+  },
+  {
+    id: "crystal-world-84px",
+    name: "Crystal World (84px)",
+    identity: { archetype: "crystal-world", seed: 502 },
+    radius: 42,
+    category: "CONFUSION_TEST",
+  },
+  {
+    id: "ember-star-84px",
+    name: "Ember Star (84px)",
+    identity: { archetype: "ember-star", seed: 103 },
+    radius: 42,
+    category: "CONFUSION_TEST",
   },
 ];
 
@@ -109,6 +141,7 @@ export const Celestial3DLab: React.FC = () => {
   const controllerRef = useRef<Celestial3DController | null>(null);
 
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("ALL");
+  const [showLabels, setShowLabels] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [screenPositions, setScreenPositions] = useState<readonly ItemScreenPosition[]>([]);
 
@@ -122,6 +155,9 @@ export const Celestial3DLab: React.FC = () => {
     }
     if (activeCategory === "STARS_SCALE") {
       return STAR_SCALE_ITEMS;
+    }
+    if (activeCategory === "CONFUSION_TEST") {
+      return CONFUSION_TEST_ITEMS;
     }
     if (activeCategory === "GOLDEN_CLOSE") {
       return GOLDEN_CLOSE_ITEM;
@@ -195,6 +231,7 @@ export const Celestial3DLab: React.FC = () => {
     { id: "ALL", label: "All Catalog" },
     { id: "STARS", label: "Stars" },
     { id: "STARS_SCALE", label: "Stars (84px Scale)" },
+    { id: "CONFUSION_TEST", label: "Confusion Test (84px)" },
     { id: "GOLDEN_CLOSE", label: "Golden Close" },
     { id: "BLUE_CLOSE", label: "Blue-White Close" },
     { id: "EMBER_CLOSE", label: "Ember Close" },
@@ -221,25 +258,41 @@ export const Celestial3DLab: React.FC = () => {
               {cat.label}
             </button>
           ))}
+          <button
+            type="button"
+            className={`${styles.categoryBtn} ${!showLabels ? styles.categoryBtnActive : ""}`}
+            onClick={() => setShowLabels((prev) => !prev)}
+            aria-pressed={!showLabels}
+            title="Toggle label visibility for blind evaluation"
+            style={{
+              marginLeft: "8px",
+              borderLeft: "1px solid rgba(51, 65, 85, 0.4)",
+              paddingLeft: "12px",
+            }}
+          >
+            {showLabels ? "Hide Labels" : "Show Labels"}
+          </button>
         </nav>
       </header>
 
       <canvas ref={canvasRef} className={styles.canvas} />
 
-      <div className={styles.labelsOverlay} aria-hidden="true">
-        {screenPositions.map((pos) => (
-          <div
-            key={pos.id}
-            className={`${styles.label} ${hoveredId === pos.id ? styles.labelActive : ""}`}
-            style={{
-              left: `${pos.x}px`,
-              top: `${pos.y + (pos.radius ?? 50) + 14}px`, // Positioned cleanly beneath body
-            }}
-          >
-            {pos.name}
-          </div>
-        ))}
-      </div>
+      {showLabels && (
+        <div className={styles.labelsOverlay} aria-hidden="true">
+          {screenPositions.map((pos) => (
+            <div
+              key={pos.id}
+              className={`${styles.label} ${hoveredId === pos.id ? styles.labelActive : ""}`}
+              style={{
+                left: `${pos.x}px`,
+                top: `${pos.y + (pos.radius ?? 50) + 14}px`, // Positioned cleanly beneath body
+              }}
+            >
+              {pos.name}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
