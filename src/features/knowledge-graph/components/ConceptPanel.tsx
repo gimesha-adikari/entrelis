@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function ConceptPanel({ concept, dataset, onSelectConcept }: Props) {
-  // Find all relationships connected to this concept
+  // Find all direct relationships connected to this concept (ensures 100% accessibility even if culled visually)
   const connectedRelationships = useMemo<Relationship[]>(() => {
     if (!concept) return [];
     return dataset.relationships.filter(
@@ -37,24 +37,27 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
 
   return (
     <aside className={styles.detailPanel} aria-label="Selected Concept Details">
-      {/* Live announcement region for screen readers */}
+      {/* Live announcement region for assistive technologies */}
       <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
         {`Selected concept: ${concept.name}. ${connectedRelationships.length} connected relationships.`}
       </div>
 
       <div className={styles.panelScroll}>
-        {primaryDomain && (
-          <span className={styles.categoryBadge}>{primaryDomain.replace(/-/g, " ")}</span>
-        )}
-
-        <h2 className={styles.conceptTitle}>{concept.name}</h2>
-        <p className={styles.conceptSummary}>{concept.shortDescription}</p>
+        <div className={styles.panelHeader}>
+          {primaryDomain && (
+            <span className={styles.categoryBadge}>{primaryDomain.replace(/-/g, " ")}</span>
+          )}
+          <h2 className={styles.conceptTitle}>{concept.name}</h2>
+          <p className={styles.conceptSummary}>{concept.shortDescription}</p>
+        </div>
 
         {concept.description && <p className={styles.conceptDescription}>{concept.description}</p>}
 
         {/* Semantic connection navigation */}
         <nav className={styles.connectionsNav} aria-label="Concept Connections">
-          <h3 className={styles.sectionHeading}>Connections ({connectedRelationships.length})</h3>
+          <h3 className={styles.sectionHeading}>
+            Connections <span className={styles.countBadge}>({connectedRelationships.length})</span>
+          </h3>
 
           <ul className={styles.connectionsList}>
             {connectedRelationships.map((rel) => {
@@ -65,43 +68,30 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
               if (!otherConcept) return null;
 
               return (
-                <li key={rel.id} className={styles.connectionCard}>
-                  <div className={styles.connectionHeader}>
-                    {/* Strictly maintain SOURCE → TARGET directional invariant */}
-                    <div className={styles.connectionPath}>
-                      {isSource ? (
-                        <>
-                          <span className={styles.currentConceptLabel}>{concept.name}</span>
-                          <span className={styles.arrowIcon} aria-hidden="true">
-                            →
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.connectionLink}
-                            onClick={() => onSelectConcept(otherConcept.slug)}
-                            aria-label={`Explore connected concept: ${otherConcept.name}`}
-                          >
-                            {otherConcept.name}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            className={styles.connectionLink}
-                            onClick={() => onSelectConcept(otherConcept.slug)}
-                            aria-label={`Explore connected concept: ${otherConcept.name}`}
-                          >
-                            {otherConcept.name}
-                          </button>
-                          <span className={styles.arrowIcon} aria-hidden="true">
-                            →
-                          </span>
-                          <span className={styles.currentConceptLabel}>{concept.name}</span>
-                        </>
-                      )}
-                    </div>
+                <li key={rel.id} className={styles.connectionItem}>
+                  <div className={styles.connectionRow}>
+                    <button
+                      type="button"
+                      className={styles.connectionLink}
+                      onClick={() => onSelectConcept(otherConcept.slug)}
+                      aria-label={`Explore connected concept: ${otherConcept.name}`}
+                    >
+                      {otherConcept.name}
+                    </button>
                     <span className={styles.typePill}>{rel.type}</span>
+                  </div>
+
+                  {/* Strictly maintain SOURCE → TARGET directional invariant */}
+                  <div className={styles.connectionPath}>
+                    <span className={styles.pathNode}>
+                      {isSource ? concept.name : otherConcept.name}
+                    </span>
+                    <span className={styles.arrowIcon} aria-hidden="true">
+                      →
+                    </span>
+                    <span className={styles.pathNode}>
+                      {isSource ? otherConcept.name : concept.name}
+                    </span>
                   </div>
 
                   <p className={styles.connectionExplanation}>{rel.explanation}</p>

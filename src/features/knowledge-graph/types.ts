@@ -1,10 +1,11 @@
-import type { SimulationNodeDatum, SimulationLinkDatum } from "d3-force";
 import type { Concept, Relationship } from "@/domain/knowledge/types";
 
+export * from "./scene/types";
+
 /**
- * Production simulation node representing a Concept in the force simulation.
+ * 2D node representation in the knowledge graph.
  */
-export interface GraphNode extends SimulationNodeDatum {
+export interface GraphNode {
   readonly id: string;
   readonly slug: string;
   readonly name: string;
@@ -16,10 +17,10 @@ export interface GraphNode extends SimulationNodeDatum {
 }
 
 /**
- * Production simulation link representing a directed Relationship between Concepts.
+ * Directed link representing a Relationship between Concepts.
  * Directional invariant strictly maintained: SOURCE --TYPE--> TARGET.
  */
-export interface GraphLink extends SimulationLinkDatum<GraphNode> {
+export interface GraphLink {
   readonly id: string;
   readonly source: string | GraphNode;
   readonly target: string | GraphNode;
@@ -30,7 +31,7 @@ export interface GraphLink extends SimulationLinkDatum<GraphNode> {
 }
 
 /**
- * Container for graph elements processed by adapters and engine.
+ * Container for graph elements.
  */
 export interface GraphData {
   readonly nodes: GraphNode[];

@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { KnowledgeDataset } from "@/domain/knowledge/types";
-import type { GraphNode, GraphLink, ViewportTransform } from "../types";
-import { createGraphData } from "../adapters/graph-adapter";
-import { createGraphSimulation } from "../engine/simulation";
-import { renderGraphCanvas } from "../rendering/canvas-renderer";
-import { hitTestNode } from "../rendering/hit-test";
+import type { ViewportTransform } from "../types";
+import type { UniverseScene, UniverseNode } from "../scene/types";
+import { buildLocalUniverseScene } from "../scene/build-local-scene";
+import { layoutLocalUniverseScene } from "../scene/layout-local-scene";
+import { interpolateScenes, SCENE_TRANSITION_DURATION_MS } from "../scene/transition-scene";
+import { renderUniverseScene } from "../rendering/universe-renderer";
+import { hitTestUniverseNode } from "../rendering/hit-test";
 import styles from "./KnowledgeGraph.module.css";
 
 interface Props {
@@ -27,7 +29,7 @@ export default function GraphCanvas({
 
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
-  // Pan and zoom camera transform
+  // Camera transform state (pan offset x, y, and scale k)
   const transformRef = useRef<ViewportTransform>({ x: 0, y: 0, k: 1 });
   const isDraggingRef = useRef(false);
   const isPinchingRef = useRef(false);
@@ -36,69 +38,51 @@ export default function GraphCanvas({
   const lastPointerPosRef = useRef({ x: 0, y: 0 });
   const lastPinchDistRef = useRef(0);
   const lastPinchMidpointRef = useRef({ x: 0, y: 0 });
+
+  // Animation frame reference strictly for bounded transitions (zero idle loop)
   const animationFrameRef = useRef<number | null>(null);
   const isInitialMountRef = useRef(true);
 
-  const nodesRef = useRef<GraphNode[]>([]);
-  const linksRef = useRef<GraphLink[]>([]);
-  // Find currently selected concept ID directly from dataset props without reading refs during render
-  const selectedNodeId = useMemo<string | null>(() => {
-    if (!selectedConceptSlug) return null;
-    const found = dataset.concepts.find((c) => c.slug === selectedConceptSlug);
-    return found ? found.id : null;
-  }, [dataset.concepts, selectedConceptSlug]);
+  // Currently displayed universe scene on the canvas
+  const currentSceneRef = useRef<UniverseScene | null>(null);
 
-  // Compute 1st-degree neighbors of selected concept
-  const neighborIds = useMemo<Set<string>>(() => {
-    if (!selectedNodeId) return new Set();
-    const set = new Set<string>();
-    dataset.relationships.forEach((r) => {
-      if (r.sourceConceptId === selectedNodeId) set.add(r.targetConceptId);
-      if (r.targetConceptId === selectedNodeId) set.add(r.sourceConceptId);
+  // Compute mobile viewport state
+  const isMobile = typeof window !== "undefined" ? window.innerWidth <= 768 : false;
+
+  // Build and lay out target scene for currently selected concept
+  const targetScene = useMemo<UniverseScene>(() => {
+    const rawScene = buildLocalUniverseScene({
+      dataset,
+      focusSlug: selectedConceptSlug ?? "rust",
+      isMobile,
     });
-    return set;
-  }, [selectedNodeId, dataset.relationships]);
+    return layoutLocalUniverseScene(rawScene, { isMobile });
+  }, [dataset, selectedConceptSlug, isMobile]);
 
-  // Canvas drawing pass
+  // Single-pass canvas drawing function
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const scene = currentSceneRef.current ?? targetScene;
     const width = canvas.width;
     const height = canvas.height;
-    const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
 
-    renderGraphCanvas(
-      ctx,
-      width,
-      height,
-      transformRef.current,
-      { nodes: nodesRef.current, links: linksRef.current },
-      {
-        selectedNodeId,
-        hoveredNodeId,
-        neighborIds,
-        isMobile,
-      }
-    );
-  }, [selectedNodeId, hoveredNodeId, neighborIds]);
+    renderUniverseScene(ctx, width, height, transformRef.current, scene, {
+      hoveredNodeId,
+      isMobile,
+    });
+  }, [targetScene, hoveredNodeId, isMobile]);
 
-  // Keep stable reference to latest draw callback
   const drawRef = useRef(draw);
   useEffect(() => {
     drawRef.current = draw;
   }, [draw]);
 
-  // Recenter camera onto target node coordinates
-  const recenterOnNode = useCallback((node: GraphNode) => {
-    if (typeof node.x !== "number" || typeof node.y !== "number") return;
-
-    const currentK = transformRef.current.k;
-    const targetX = -node.x * currentK;
-    const targetY = -node.y * currentK;
-
+  // Handle scene transition or initial render
+  useEffect(() => {
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       typeof window.matchMedia === "function" &&
@@ -106,63 +90,77 @@ export default function GraphCanvas({
 
     if (isInitialMountRef.current || prefersReducedMotion) {
       isInitialMountRef.current = false;
-      transformRef.current.x = targetX;
-      transformRef.current.y = targetY;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      currentSceneRef.current = targetScene;
       drawRef.current();
       return;
     }
 
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
+    const fromScene = currentSceneRef.current ?? targetScene;
+    const toScene = targetScene;
+
+    // If already displaying this exact focus concept, just update scene and redraw
+    if (fromScene.focus.slug === toScene.focus.slug) {
+      currentSceneRef.current = toScene;
+      drawRef.current();
+      return;
     }
 
-    const startX = transformRef.current.x;
-    const startY = transformRef.current.y;
-    const startTime = performance.now();
-    const duration = 300;
+    // Cancel any in-flight animation
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
 
-    const animateRecenter = (now: number) => {
+    const startTime = performance.now();
+    const duration = SCENE_TRANSITION_DURATION_MS;
+
+    const animateTransition = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
-      // Ease-out cubic: 1 - (1 - progress)^3
-      const ease = 1 - Math.pow(1 - progress, 3);
 
-      transformRef.current.x = startX + (targetX - startX) * ease;
-      transformRef.current.y = startY + (targetY - startY) * ease;
+      currentSceneRef.current = interpolateScenes(fromScene, toScene, progress);
       drawRef.current();
 
       if (progress < 1) {
-        animationFrameRef.current = requestAnimationFrame(animateRecenter);
+        animationFrameRef.current = requestAnimationFrame(animateTransition);
       } else {
+        // Transition finished: stop RAF completely, ensure scene is static, CPU idle
         animationFrameRef.current = null;
+        currentSceneRef.current = toScene;
+        drawRef.current();
       }
     };
 
-    animationFrameRef.current = requestAnimationFrame(animateRecenter);
-  }, []);
+    animationFrameRef.current = requestAnimationFrame(animateTransition);
 
-  // Synchronously settle coordinates before initial interactive display.
-  // Interaction state must not recreate the force simulation; selection and hover only redraw the existing coordinates.
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [targetScene]);
+
+  // Handle resize and DPI scaling
   useEffect(() => {
-    const { nodes, links } = createGraphData(dataset);
-    nodesRef.current = nodes;
-    linksRef.current = links;
-
-    const simulation = createGraphSimulation(nodes, links, {
-      settleTicks: 250,
-    });
-
     const updateDimensions = () => {
       const canvas = canvasRef.current;
       const container = containerRef.current;
       if (!canvas || !container) return;
 
-      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const effectiveDpr = Math.min(
+        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+        2
+      );
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
+      canvas.width = width * effectiveDpr;
+      canvas.height = height * effectiveDpr;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
@@ -173,35 +171,26 @@ export default function GraphCanvas({
     window.addEventListener("resize", updateDimensions);
 
     return () => {
-      simulation.stop();
       window.removeEventListener("resize", updateDimensions);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
     };
-  }, [dataset]);
+  }, []);
 
-  // When selected concept changes, recenter camera smoothly
-  useEffect(() => {
-    if (!selectedConceptSlug) return;
-    const node = nodesRef.current.find((n) => n.slug === selectedConceptSlug);
-    if (node) {
-      recenterOnNode(node);
-    }
-  }, [selectedConceptSlug, recenterOnNode]);
-
-  // Redraw canvas when selection or hover state changes without touching physics
+  // Redraw when hover changes
   useEffect(() => {
     draw();
   }, [draw]);
 
-  // Hit test helper
-  const getNodeAtPoint = (clientX: number, clientY: number): GraphNode | null => {
+  // Hit test helper restricted strictly to visible universe scene
+  const getNodeAtPoint = (clientX: number, clientY: number): UniverseNode | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
+    const scene = currentSceneRef.current ?? targetScene;
     const rect = canvas.getBoundingClientRect();
-    return hitTestNode(nodesRef.current, clientX, clientY, rect, transformRef.current);
+    return hitTestUniverseNode(scene, clientX, clientY, rect, transformRef.current);
   };
 
   // Pointer event handlers (Desktop mouse)
@@ -262,7 +251,7 @@ export default function GraphCanvas({
     const cx = e.clientX - rect.left - rect.width / 2;
     const cy = e.clientY - rect.top - rect.height / 2;
 
-    const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
     const oldK = transformRef.current.k;
     const newK = Math.max(0.3, Math.min(3, oldK * zoomFactor));
 
@@ -272,7 +261,7 @@ export default function GraphCanvas({
     draw();
   };
 
-  // Touch event handlers for mobile: one-finger pan/tap, two-finger pinch zoom
+  // Touch event handlers for mobile
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -339,11 +328,8 @@ export default function GraphCanvas({
         const oldK = transformRef.current.k;
         const newK = Math.max(0.3, Math.min(3, oldK * zoomFactor));
 
-        // Preserve midpoint between fingers
         transformRef.current.x = cx - (cx - transformRef.current.x) * (newK / oldK);
         transformRef.current.y = cy - (cy - transformRef.current.y) * (newK / oldK);
-
-        // Apply two-finger pan displacement
         transformRef.current.x += currentMidpoint.x - lastPinchMidpointRef.current.x;
         transformRef.current.y += currentMidpoint.y - lastPinchMidpointRef.current.y;
 
@@ -390,11 +376,13 @@ export default function GraphCanvas({
     wasPinchingRef.current = false;
   };
 
-  const handleReturnToRust = () => {
+  const handleReturnHome = () => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    // Reset camera transform
+    transformRef.current = { x: 0, y: 0, k: 1 };
     if (onResetCamera) {
       onResetCamera();
     } else {
@@ -416,16 +404,30 @@ export default function GraphCanvas({
         onTouchCancel={handleTouchCancel}
         onWheel={handleWheel}
         className={styles.canvas}
-        aria-label="Interactive 2D knowledge graph canvas"
+        aria-label="Interactive 2D knowledge universe canvas"
       />
       <div className={styles.controls}>
         <button
-          onClick={handleReturnToRust}
+          onClick={handleReturnHome}
           className={styles.controlButton}
           type="button"
           aria-label="Return to Rust"
+          title="Return to Rust"
         >
-          Return to Rust
+          <svg
+            className={styles.homeIcon}
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 9.5L10 3l7 6.5V17a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 17V9.5z" />
+            <path d="M7.5 18.5V11h5v7.5" />
+          </svg>
+          <span className={styles.controlLabel}>Home</span>
         </button>
       </div>
     </div>

@@ -23,6 +23,7 @@
 *.pem
 AGENTS.md
 CLAUDE.md
+.idea/
 
 # debug
 npm-debug.log*

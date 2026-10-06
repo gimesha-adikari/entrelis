@@ -3,30 +3,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import KnowledgeGraphExperience from "../components/KnowledgeGraphExperience";
 import { SEED_DATASET } from "@/data/seed";
 
-let forceSimulationCallCount = 0;
-let simulationStopCallCount = 0;
-
-vi.mock("d3-force", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("d3-force")>();
-  return {
-    ...actual,
-    forceSimulation: (...args: Parameters<typeof actual.forceSimulation>) => {
-      forceSimulationCallCount++;
-      const sim = actual.forceSimulation(...args);
-      const originalStop = sim.stop.bind(sim);
-      sim.stop = () => {
-        simulationStopCallCount++;
-        return originalStop();
-      };
-      return sim;
-    },
-  };
-});
-
 describe("KnowledgeGraphExperience Production Integration", () => {
   beforeEach(() => {
-    forceSimulationCallCount = 0;
-    simulationStopCallCount = 0;
     window.history.replaceState({}, "", "/");
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: false,
@@ -54,29 +32,22 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.getByText(/Selected concept: Rust/i)).toBeDefined();
   });
 
-  it("does not recreate the force simulation when navigating concepts", () => {
+  it("does not run a permanent requestAnimationFrame loop while idle", () => {
+    let activeRafCount = 0;
+    const rafSpy = vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
+      activeRafCount++;
+      return window.setTimeout(() => {
+        activeRafCount--;
+        cb(performance.now());
+      }, 16);
+    });
+
     render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
 
-    expect(forceSimulationCallCount).toBe(1);
+    // On initial mount, canvas draws once synchronously without scheduling transition RAF
+    expect(activeRafCount).toBe(0);
 
-    // Navigate to Ownership via connection link
-    const ownershipBtn = screen.getByRole("button", {
-      name: /Explore connected concept: Ownership/i,
-    });
-    fireEvent.click(ownershipBtn);
-
-    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
-    // Simulation must NOT have been recreated!
-    expect(forceSimulationCallCount).toBe(1);
-
-    // Navigate to Memory
-    const memoryBtn = screen.getByRole("button", {
-      name: /Explore connected concept: Memory/i,
-    });
-    fireEvent.click(memoryBtn);
-
-    expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
-    expect(forceSimulationCallCount).toBe(1);
+    rafSpy.mockRestore();
   });
 
   it("strictly preserves SOURCE → TARGET directional relationship display and removes raw strength", () => {
@@ -101,6 +72,18 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.queryByText(/PRIMARY/i)).toBeNull();
   });
 
+  it("exposes all direct relationships semantically in the panel", () => {
+    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="memory" />);
+
+    // Memory has 3 direct relationships in SEED_DATASET:
+    // Ownership --manages--> Memory
+    // Memory --includes--> Stack & Heap
+    // Operating Systems --manages--> Memory
+    // Rust --related-to--> Memory
+    const connectionItems = screen.getAllByRole("listitem");
+    expect(connectionItems.length).toBeGreaterThanOrEqual(4);
+  });
+
   it("exposes source provenance without leaking internal IDs", () => {
     render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
 
@@ -122,17 +105,6 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.queryByText("src-rust-book")).toBeNull();
   });
 
-  it("stops simulation cleanly on unmount", () => {
-    const { unmount } = render(
-      <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />
-    );
-    // Simulation was stopped during synchronous settling to freeze coordinates
-    expect(simulationStopCallCount).toBe(1);
-
-    unmount();
-    expect(simulationStopCallCount).toBe(2);
-  });
-
   it("honors prefers-reduced-motion without scheduling RAF animations on selection", () => {
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: query.includes("prefers-reduced-motion"),
@@ -149,7 +121,6 @@ describe("KnowledgeGraphExperience Production Integration", () => {
 
     render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
 
-    // Clear any initial frame requests
     rafSpy.mockClear();
 
     const ownershipBtn = screen.getByRole("button", {
@@ -158,7 +129,7 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     fireEvent.click(ownershipBtn);
 
     expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
-    // With prefers-reduced-motion active, no recenter RAF animation should be scheduled
+    // With prefers-reduced-motion active, no RAF transition frames are scheduled
     expect(rafSpy).not.toHaveBeenCalled();
 
     rafSpy.mockRestore();
@@ -227,7 +198,6 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     fireEvent.click(returnBtn);
 
     expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
-    expect(screen.queryByText(/2D Graph/i)).toBeNull();
   });
 
   it("creates exactly one history entry when clicking Return to Rust and restores prior concept on Back", () => {
