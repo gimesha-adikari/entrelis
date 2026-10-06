@@ -1,10 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   getConceptCelestialIdentity,
-  ENTRELIS_CONCEPT_IDENTITIES,
   CATALOG_ARCHETYPES,
   type CelestialArchetype,
-  type CelestialIdentity,
 } from "./identity";
 
 describe("Celestial 3D Identity Mapping", () => {

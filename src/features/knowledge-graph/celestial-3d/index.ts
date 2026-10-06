@@ -1,10 +1,12 @@
 export { Celestial3DController } from "./controller";
-export type { Celestial3DConfig, CelestialMeshInfo } from "./controller";
+export type { Celestial3DConfig, CatalogItemEntry, ItemScreenPosition } from "./controller";
 export { Celestial3DLab } from "./Celestial3DLab";
-export {
-  createRockyTextures,
-  createGasTexture,
-  createIceTextures,
-  createStarTextures,
-  disposeAllCelestialTextures,
-} from "./textures";
+export * from "./identity";
+export * from "./archetypes/factory";
+export * from "./attachments/rings";
+export * from "./attachments/moons";
+export * from "./attachments/debris";
+export * from "./procedural/textures";
+export * from "./procedural/noise3d";
+export * from "./shaders/atmosphere";
+export * from "./shaders/star";

@@ -6,11 +6,7 @@ import { createNoise3D, fbm3D } from "../procedural/noise3d";
  * asymmetrical elongation, low-frequency lumpiness, and impact craters.
  * Guaranteed to produce an irregular 3D silhouette rather than a sphere.
  */
-export function deformAsteroidGeometry(
-  radius = 50,
-  seed = 42,
-  detail = 2
-): THREE.BufferGeometry {
+export function deformAsteroidGeometry(radius = 50, seed = 42, detail = 2): THREE.BufferGeometry {
   const geometry = new THREE.IcosahedronGeometry(radius, detail);
   const positionAttribute = geometry.attributes["position"] as THREE.BufferAttribute;
 
@@ -52,14 +48,14 @@ export function deformAsteroidGeometry(
         // Raised rim at edge, depression at center
         const bowl = (1.0 - t * t) * c.depth;
         const rim = Math.sin(t * Math.PI) * 0.08;
-        craterOffset -= (bowl - rim);
+        craterOffset -= bowl - rim;
       }
     }
 
     // 4. Fine regolith micro-roughness
     const micro = fbm3D(craterNoise, nx * 6.0, ny * 6.0, nz * 6.0, 2) * 0.06;
 
-    const totalScale = (elongation + lump + craterOffset + micro);
+    const totalScale = elongation + lump + craterOffset + micro;
     const newRadius = radius * totalScale;
 
     positionAttribute.setXYZ(i, nx * newRadius, ny * newRadius, nz * newRadius);

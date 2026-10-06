@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import * as THREE from "three";
 import {
   createGoldenStarTextures,
   createBlueStarTextures,

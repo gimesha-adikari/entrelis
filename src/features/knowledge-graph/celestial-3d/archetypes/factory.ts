@@ -64,7 +64,8 @@ export function createCelestialObject(
   const moonInstances: MoonInstance[] = [];
   const debrisInstances: DebrisInstance[] = [];
 
-  const sphereSegments = lod === "context" ? { w: 16, h: 12 } : lod === "primary" ? { w: 32, h: 24 } : { w: 48, h: 36 };
+  const sphereSegments =
+    lod === "context" ? { w: 16, h: 12 } : lod === "primary" ? { w: 32, h: 24 } : { w: 48, h: 36 };
 
   let primaryMesh: THREE.Mesh;
   let baseRotationSpeed = 0.05;
@@ -422,7 +423,13 @@ export function createCelestialObject(
       } else {
         const mat = primaryMesh.material as THREE.MeshStandardMaterial;
         if (mat && typeof mat.emissiveIntensity === "number") {
-          const targetEmissive = isHovered ? (identity.archetype === "volcanic-rocky" ? 1.2 : 0.08) : (identity.archetype === "volcanic-rocky" ? 0.85 : 0.0);
+          const targetEmissive = isHovered
+            ? identity.archetype === "volcanic-rocky"
+              ? 1.2
+              : 0.08
+            : identity.archetype === "volcanic-rocky"
+              ? 0.85
+              : 0.0;
           mat.emissiveIntensity += (targetEmissive - mat.emissiveIntensity) * 0.15;
         }
       }

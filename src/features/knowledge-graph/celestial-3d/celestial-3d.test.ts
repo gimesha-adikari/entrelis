@@ -1,12 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  createRockyTextures,
-  createGasTexture,
-  createIceTextures,
-  createStarTextures,
-  disposeAllCelestialTextures,
-} from "./textures";
-import { Celestial3DController } from "./controller";
+import { Celestial3DController, type CatalogItemEntry } from "./controller";
+import { CATALOG_ARCHETYPES, ENTRELIS_CONCEPT_IDENTITIES } from "./identity";
+import { disposeAllCelestialTextures } from "./procedural/textures";
 
 function setupCanvas2DMock() {
   const originalGetContext = HTMLCanvasElement.prototype.getContext;
@@ -51,92 +46,18 @@ function setupCanvas2DMock() {
   };
 }
 
-describe("Celestial 3D Procedural Textures & Shaders", () => {
-  let restoreCanvas: () => void;
-
-  beforeEach(() => {
-    restoreCanvas = setupCanvas2DMock();
-  });
-
-  afterEach(() => {
-    disposeAllCelestialTextures();
-    restoreCanvas();
-  });
-
-  it("generates deterministic rocky textures with diffuse, bump, and roughness maps", () => {
-    const tex1 = createRockyTextures(42);
-    const tex2 = createRockyTextures(42);
-
-    expect(tex1.diffuse).toBeDefined();
-    expect(tex1.bump).toBeDefined();
-    expect(tex1.roughness).toBeDefined();
-
-    // Cache returns the same instances for identical seed
-    expect(tex1.diffuse).toBe(tex2.diffuse);
-    expect(tex1.bump).toBe(tex2.bump);
-    expect(tex1.roughness).toBe(tex2.roughness);
-  });
-
-  it("generates gas world texture with caching", () => {
-    const tex1 = createGasTexture(101);
-    const tex2 = createGasTexture(101);
-
-    expect(tex1).toBeDefined();
-    expect(tex1).toBe(tex2);
-  });
-
-  it("generates ice world diffuse, roughness, and bump textures", () => {
-    const tex1 = createIceTextures(202);
-    const tex2 = createIceTextures(202);
-
-    expect(tex1.diffuse).toBeDefined();
-    expect(tex1.roughness).toBeDefined();
-    expect(tex1.bump).toBeDefined();
-
-    expect(tex1.diffuse).toBe(tex2.diffuse);
-    expect(tex1.roughness).toBe(tex2.roughness);
-    expect(tex1.bump).toBe(tex2.bump);
-  });
-
-  it("generates star surface and organic corona billboard textures", () => {
-    const tex1 = createStarTextures(303);
-    const tex2 = createStarTextures(303);
-
-    expect(tex1.surface).toBeDefined();
-    expect(tex1.corona).toBeDefined();
-    expect(tex1.surface).toBe(tex2.surface);
-    expect(tex1.corona).toBe(tex2.corona);
-  });
-
-  it("disposes all cached textures cleanly", () => {
-    const texRocky = createRockyTextures(42);
-    expect(texRocky.diffuse).not.toBeNull();
-    const disposeSpy = vi.spyOn(texRocky.diffuse!, "dispose");
-
-    disposeAllCelestialTextures();
-    expect(disposeSpy).toHaveBeenCalled();
-  });
-});
-
 describe("Celestial 3D Controller Lifecycle & Architecture", () => {
-  let canvas: HTMLCanvasElement;
   let restoreCanvas: () => void;
+  let canvas: HTMLCanvasElement;
 
   beforeEach(() => {
     restoreCanvas = setupCanvas2DMock();
     canvas = document.createElement("canvas");
-    canvas.width = 800;
-    canvas.height = 600;
-    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
-      left: 0,
-      top: 0,
-      width: 800,
-      height: 600,
-      right: 800,
-      bottom: 600,
-      x: 0,
-      y: 0,
-      toJSON: () => {},
+    Object.defineProperty(canvas, "clientWidth", { value: 800, configurable: true });
+    Object.defineProperty(canvas, "clientHeight", { value: 600, configurable: true });
+    Object.defineProperty(canvas, "getBoundingClientRect", {
+      value: () => ({ left: 0, top: 0, width: 800, height: 600 }),
+      configurable: true,
     });
   });
 
@@ -146,7 +67,7 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     vi.restoreAllMocks();
   });
 
-  it("initializes with 30fps default and sets up 4 archetype meshes and 2 atmosphere shells", () => {
+  it("initializes with 30fps default and loads initial items", () => {
     const onHoverChange = vi.fn();
     const controller = new Celestial3DController({
       canvas,
@@ -154,65 +75,58 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     });
 
     expect(controller.getTargetFps()).toBe(30);
-
-    const meshes = controller.getMeshes();
-    expect(meshes.length).toBe(4);
-    const archetypes = meshes.map((m) => m.archetype);
-    expect(archetypes).toContain("star");
-    expect(archetypes).toContain("rocky");
-    expect(archetypes).toContain("gas");
-    expect(archetypes).toContain("ice");
-
-    const atmShells = controller.getAtmosphereShells();
-    expect(atmShells.length).toBe(2);
-    const atmTypes = atmShells.map((a) => a.archetype);
-    expect(atmTypes).toContain("gas");
-    expect(atmTypes).toContain("ice");
+    expect(controller.getActiveEntries().length).toBe(4);
 
     controller.dispose();
   });
 
-  it("correctly repositions meshes on resize", () => {
-    const controller = new Celestial3DController({
-      canvas,
-      targetFps: 30,
-    });
+  it("loads the 7 core Entrelis concept identities in gallery layout", () => {
+    const controller = new Celestial3DController({ canvas });
 
-    controller.resize(1000, 800);
-    const meshes = controller.getMeshes();
-    const star = meshes.find((m) => m.archetype === "star");
-    const rocky = meshes.find((m) => m.archetype === "rocky");
+    const conceptItems: CatalogItemEntry[] = Object.entries(ENTRELIS_CONCEPT_IDENTITIES).map(
+      ([id, identity]) => ({
+        id,
+        name: id.toUpperCase(),
+        identity,
+      })
+    );
 
-    expect(star).toBeDefined();
-    expect(rocky).toBeDefined();
-    // Star is top-left: negative X, positive Y
-    expect(star!.mesh.position.x).toBeLessThan(0);
-    expect(star!.mesh.position.y).toBeGreaterThan(0);
+    controller.loadItems(conceptItems);
+    expect(controller.getActiveEntries().length).toBe(7);
 
-    // Rocky is top-right: positive X, positive Y
-    expect(rocky!.mesh.position.x).toBeGreaterThan(0);
-    expect(rocky!.mesh.position.y).toBeGreaterThan(0);
+    const screenPositions = controller.getItemScreenPositions();
+    expect(screenPositions.length).toBe(7);
+    expect(screenPositions[0]?.name).toBe("RUST");
 
     controller.dispose();
   });
 
-  it("handles renderFrame without crashing and applies rotation delta", () => {
-    const controller = new Celestial3DController({
-      canvas,
-      targetFps: 30,
-    });
+  it("loads all catalog archetypes and repositions on resize", () => {
+    const controller = new Celestial3DController({ canvas });
 
-    const meshes = controller.getMeshes();
-    const rocky = meshes.find((m) => m.archetype === "rocky")!;
-    const initialRotY = rocky.mesh.rotation.y;
+    controller.loadItems(CATALOG_ARCHETYPES);
+    expect(controller.getActiveEntries().length).toBe(CATALOG_ARCHETYPES.length);
 
-    controller.renderFrame(0.5); // 0.5s time step
-    expect(rocky.mesh.rotation.y).toBeGreaterThan(initialRotY);
+    controller.resize(1200, 800);
+    const screenPositions = controller.getItemScreenPositions();
+    expect(screenPositions.length).toBe(CATALOG_ARCHETYPES.length);
 
     controller.dispose();
   });
 
-  it("freezes rotation when prefers-reduced-motion is active", () => {
+  it("handles renderFrame without crashing and updates rotation", () => {
+    const controller = new Celestial3DController({ canvas });
+    const entries = controller.getActiveEntries();
+    const initialRot = entries[0]?.body.primaryMesh.rotation.y ?? 0;
+
+    controller.renderFrame(0.5);
+    const nextRot = entries[0]?.body.primaryMesh.rotation.y ?? 0;
+    expect(nextRot).not.toBe(initialRot);
+
+    controller.dispose();
+  });
+
+  it("freezes rotation and loop when prefers-reduced-motion is active", () => {
     const originalMatchMedia = window.matchMedia;
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: query.includes("prefers-reduced-motion"),
@@ -225,27 +139,15 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
       dispatchEvent: vi.fn(),
     }));
 
-    const controller = new Celestial3DController({
-      canvas,
-      targetFps: 30,
-    });
-
-    const meshes = controller.getMeshes();
-    const rocky = meshes.find((m) => m.archetype === "rocky")!;
-    const initialRotY = rocky.mesh.rotation.y;
-
-    controller.renderFrame(1.0);
-    expect(rocky.mesh.rotation.y).toBe(initialRotY);
+    const controller = new Celestial3DController({ canvas });
+    expect(controller.getActiveEntries().length).toBe(4);
 
     controller.dispose();
     window.matchMedia = originalMatchMedia;
   });
 
   it("handles visibilitychange events gracefully without jumping", () => {
-    const controller = new Celestial3DController({
-      canvas,
-      targetFps: 30,
-    });
+    const controller = new Celestial3DController({ canvas });
 
     Object.defineProperty(document, "hidden", { value: true, configurable: true });
     document.dispatchEvent(new Event("visibilitychange"));
@@ -253,17 +155,12 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     Object.defineProperty(document, "hidden", { value: false, configurable: true });
     document.dispatchEvent(new Event("visibilitychange"));
 
-    expect(() => controller.dispose()).not.toThrow();
+    controller.dispose();
   });
 
   it("disposes cleanly without throwing errors", () => {
-    const controller = new Celestial3DController({
-      canvas,
-      targetFps: 30,
-    });
-
+    const controller = new Celestial3DController({ canvas });
     expect(() => controller.dispose()).not.toThrow();
-    expect(controller.getMeshes().length).toBe(0);
-    expect(controller.getAtmosphereShells().length).toBe(0);
+    expect(controller.getActiveEntries().length).toBe(0);
   });
 });

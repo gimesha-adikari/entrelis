@@ -140,7 +140,8 @@ export const ENTRELIS_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdent
 export interface CatalogItem {
   readonly id: string;
   readonly name: string;
-  readonly category: "STARS" | "ROCKY" | "BIOLOGICAL" | "ATMOSPHERIC" | "STRUCTURAL" | "SMALL BODIES";
+  readonly category:
+    "STARS" | "ROCKY" | "BIOLOGICAL" | "ATMOSPHERIC" | "STRUCTURAL" | "SMALL BODIES";
   readonly identity: CelestialIdentity;
 }
 

@@ -279,9 +279,27 @@ export function domainWarp3D(
   const qy = fbm3D(noise, x + 5.2, y + 1.3, z + 2.8, 3);
   const qz = fbm3D(noise, x + 1.7, y + 9.2, z + 3.4, 3);
 
-  const rx = fbm3D(noise, x + warpScale * qx + 1.7, y + warpScale * qy + 9.2, z + warpScale * qz + 0.5, 3);
-  const ry = fbm3D(noise, x + warpScale * qx + 8.3, y + warpScale * qy + 2.8, z + warpScale * qz + 1.9, 3);
-  const rz = fbm3D(noise, x + warpScale * qx + 2.1, y + warpScale * qy + 4.7, z + warpScale * qz + 6.3, 3);
+  const rx = fbm3D(
+    noise,
+    x + warpScale * qx + 1.7,
+    y + warpScale * qy + 9.2,
+    z + warpScale * qz + 0.5,
+    3
+  );
+  const ry = fbm3D(
+    noise,
+    x + warpScale * qx + 8.3,
+    y + warpScale * qy + 2.8,
+    z + warpScale * qz + 1.9,
+    3
+  );
+  const rz = fbm3D(
+    noise,
+    x + warpScale * qx + 2.1,
+    y + warpScale * qy + 4.7,
+    z + warpScale * qz + 6.3,
+    3
+  );
 
   return fbm3D(noise, x + warpScale * rx, y + warpScale * ry, z + warpScale * rz, 4);
 }

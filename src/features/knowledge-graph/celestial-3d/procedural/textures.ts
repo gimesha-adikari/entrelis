@@ -126,7 +126,8 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
 
           const angle = Math.atan2(dy, dx);
           // 5-lobe organic solar flare modulation
-          const lobe = 1.0 + 0.14 * Math.sin(angle * 5 + seed * 0.1) + 0.08 * Math.cos(angle * 3 - seed * 0.2);
+          const lobe =
+            1.0 + 0.14 * Math.sin(angle * 5 + seed * 0.1) + 0.08 * Math.cos(angle * 3 - seed * 0.2);
           const normR = r / lobe;
           if (normR >= 1.0) continue;
 
@@ -349,7 +350,10 @@ export interface RockyTextures {
   readonly emissive?: THREE.CanvasTexture;
 }
 
-export function createVolcanicRockyTextures(seed: number, lod: GeometryLOD = "focus"): RockyTextures {
+export function createVolcanicRockyTextures(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): RockyTextures {
   const diffKey = `rocky:volcanic:diff:${seed}:${lod}`;
   const bumpKey = `rocky:volcanic:bump:${seed}:${lod}`;
   const roughKey = `rocky:volcanic:rough:${seed}:${lod}`;
@@ -485,7 +489,10 @@ export function createVolcanicRockyTextures(seed: number, lod: GeometryLOD = "fo
   return { diffuse, bump, roughness, emissive };
 }
 
-export function createMineralDesertTextures(seed: number, lod: GeometryLOD = "focus"): RockyTextures {
+export function createMineralDesertTextures(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): RockyTextures {
   const diffKey = `rocky:desert:diff:${seed}:${lod}`;
   const bumpKey = `rocky:desert:bump:${seed}:${lod}`;
   const roughKey = `rocky:desert:rough:${seed}:${lod}`;
@@ -600,7 +607,10 @@ export interface LifeWorldTextures {
   readonly roughness: THREE.CanvasTexture;
 }
 
-export function createLifeWorldTextures(seed: number, lod: GeometryLOD = "focus"): LifeWorldTextures {
+export function createLifeWorldTextures(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): LifeWorldTextures {
   const surfKey = `life:surface:${seed}:${lod}`;
   const cloudKey = `life:clouds:${seed}:${lod}`;
   const roughKey = `life:rough:${seed}:${lod}`;
@@ -739,7 +749,10 @@ function smoothstep(min: number, max: number, value: number): number {
  * -------------------------------------------------------------
  */
 
-export function createBlueAtmosphericTexture(seed: number, lod: GeometryLOD = "focus"): THREE.CanvasTexture {
+export function createBlueAtmosphericTexture(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): THREE.CanvasTexture {
   const key = `gas:blue:${seed}:${lod}`;
   let texture = textureCache.get(key);
   if (texture) return texture;
@@ -794,7 +807,10 @@ export function createBlueAtmosphericTexture(seed: number, lod: GeometryLOD = "f
   return texture;
 }
 
-export function createStormGiantTexture(seed: number, lod: GeometryLOD = "focus"): THREE.CanvasTexture {
+export function createStormGiantTexture(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): THREE.CanvasTexture {
   const key = `gas:storm:${seed}:${lod}`;
   let texture = textureCache.get(key);
   if (texture) return texture;
@@ -865,7 +881,10 @@ export interface MetallicTextures {
   readonly bump: THREE.CanvasTexture;
 }
 
-export function createMetallicWorldTextures(seed: number, lod: GeometryLOD = "focus"): MetallicTextures {
+export function createMetallicWorldTextures(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): MetallicTextures {
   const diffKey = `metallic:diff:${seed}:${lod}`;
   const roughKey = `metallic:rough:${seed}:${lod}`;
   const metalKey = `metallic:metal:${seed}:${lod}`;
@@ -1001,7 +1020,10 @@ export interface CrystalTextures {
   readonly bump: THREE.CanvasTexture;
 }
 
-export function createCrystalWorldTextures(seed: number, lod: GeometryLOD = "focus"): CrystalTextures {
+export function createCrystalWorldTextures(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): CrystalTextures {
   const diffKey = `crystal:diff:${seed}:${lod}`;
   const roughKey = `crystal:rough:${seed}:${lod}`;
   const bumpKey = `crystal:bump:${seed}:${lod}`;
@@ -1051,9 +1073,9 @@ export function createCrystalWorldTextures(seed: number, lod: GeometryLOD = "foc
         const frost = fbm3D(iceNoise, px * 8.0, py * 8.0, pz * 8.0, 3) * 0.2;
 
         // Sapphire fissure trenches (0x0284c7) to radiant firn snowpack (0xf0fdfa)
-        let r = lerp(2, 240, crack);
-        let g = lerp(132, 253, crack);
-        let b = lerp(199, 250, crack);
+        const r = lerp(2, 240, crack);
+        const g = lerp(132, 253, crack);
+        const b = lerp(199, 250, crack);
 
         const idx = (y * width + x) * 4;
         diffImg.data[idx] = Math.floor(r);
