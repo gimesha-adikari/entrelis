@@ -9,6 +9,7 @@ import { layoutLocalUniverseScene } from "../scene/layout-local-scene";
 import { interpolateScenes, SCENE_TRANSITION_DURATION_MS } from "../scene/transition-scene";
 import { renderUniverseScene } from "../rendering/universe-renderer";
 import { hitTestUniverseNode } from "../rendering/hit-test";
+import { CelestialNode } from "../celestial";
 import styles from "./KnowledgeGraph.module.css";
 
 import type { KnowledgeGraphIndex } from "../knowledge-index";
@@ -30,6 +31,7 @@ export default function GraphCanvas({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
 
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
@@ -87,13 +89,36 @@ export default function GraphCanvas({
     renderUniverseScene(ctx, width, height, transformRef.current, scene, {
       hoveredNodeId,
       isMobile,
+      skipNodeRendering: true,
     });
-  }, [targetScene, hoveredNodeId, isMobile]);
+
+    if (layerRef.current) {
+      layerRef.current.style.transformOrigin = `${dimensions.width / 2}px ${dimensions.height / 2}px`;
+      layerRef.current.style.transform = `translate(${transformRef.current.x}px, ${transformRef.current.y}px) scale(${transformRef.current.k})`;
+    }
+  }, [targetScene, hoveredNodeId, isMobile, dimensions.width, dimensions.height]);
 
   const drawRef = useRef(draw);
   useEffect(() => {
     drawRef.current = draw;
   }, [draw]);
+
+  // Page visibility listener to pause compositor animations when tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (typeof document !== "undefined") {
+        if (document.hidden) {
+          document.documentElement.setAttribute("data-visibility", "hidden");
+        } else {
+          document.documentElement.removeAttribute("data-visibility");
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   // Handle scene transition or initial render
   useEffect(() => {
@@ -420,6 +445,9 @@ export default function GraphCanvas({
     }
     // Reset camera transform
     transformRef.current = { x: 0, y: 0, k: 1 };
+    if (layerRef.current) {
+      layerRef.current.style.transform = "none";
+    }
     if (onResetCamera) {
       onResetCamera();
     } else {
@@ -443,6 +471,31 @@ export default function GraphCanvas({
         className={styles.canvas}
         aria-hidden="true"
       />
+
+      {/* Hybrid DOM/SVG Celestial Node Layer */}
+      <div ref={layerRef} className={styles.celestialLayer}>
+        {targetScene.allNodes.map((node) => {
+          const screenX = dimensions.width / 2 + (node.x ?? 0);
+          const screenY = dimensions.height / 2 + (node.y ?? 0);
+
+          return (
+            <CelestialNode
+              key={node.id}
+              id={node.id}
+              name={node.concept.name}
+              slug={node.concept.slug}
+              role={node.role}
+              x={screenX}
+              y={screenY}
+              isSelected={node.id === targetScene.focus.id}
+              isHovered={node.id === hoveredNodeId}
+              isMobile={isMobile}
+              onClick={() => onSelectConcept(node.slug)}
+              onHover={(hoverId) => setHoveredNodeId(hoverId)}
+            />
+          );
+        })}
+      </div>
       <div className={styles.controls}>
         <button
           onClick={handleReturnHome}

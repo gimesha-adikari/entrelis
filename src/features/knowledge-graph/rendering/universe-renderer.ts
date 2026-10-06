@@ -10,6 +10,7 @@ import {
 export interface UniverseRenderOptions {
   hoveredNodeId?: string | null;
   isMobile?: boolean;
+  skipNodeRendering?: boolean;
 }
 
 interface StarPoint {
@@ -193,7 +194,12 @@ export function renderUniverseScene(
     ctx.restore();
   }
 
-  // 3. Render Celestial Bodies
+  // 3. Render Celestial Bodies (unless delegated to hybrid DOM/SVG layer)
+  if (options.skipNodeRendering) {
+    ctx.restore();
+    return;
+  }
+
   // Draw order: context nodes (background) -> primary nodes (midground) -> focus node (foreground)
   const orderedNodes = [...scene.contextNodes, ...scene.primaryNodes, scene.focus];
   const focusGlow = getFocusGlowSprite();
