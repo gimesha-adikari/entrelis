@@ -182,11 +182,11 @@ export function createCelestialObject(
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         bumpMap: tex.bump,
-        bumpScale: 1.8,
+        bumpScale: 2.2,
         roughnessMap: tex.roughness,
         emissiveMap: tex.emissive,
         emissive: new THREE.Color(0xffffff),
-        emissiveIntensity: 0.85,
+        emissiveIntensity: 1.0,
         metalness: 0.1,
       });
       materialsToDispose.push(mat);
@@ -199,7 +199,7 @@ export function createCelestialObject(
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         bumpMap: tex.bump,
-        bumpScale: 1.3,
+        bumpScale: 1.8,
         roughnessMap: tex.roughness,
         metalness: 0.05,
       });
@@ -220,38 +220,41 @@ export function createCelestialObject(
     const tex = createLifeWorldTextures(seed, lod);
     const mat = new THREE.MeshStandardMaterial({
       map: tex.surface,
+      bumpMap: tex.bump,
+      bumpScale: 0.9,
       roughnessMap: tex.roughness,
       metalness: 0.05,
     });
     materialsToDispose.push(mat);
     primaryMesh = new THREE.Mesh(geo, mat);
     tiltZ = 0.41; // 23.5°
-    baseRotationSpeed = (2 * Math.PI) / 50;
+    baseRotationSpeed = (2 * Math.PI) / 52;
     primaryMesh.rotation.z = tiltZ;
     group.add(primaryMesh);
 
     // Cloud Shell
-    const cloudGeo = new THREE.SphereGeometry(radius * 1.012, sphereSegments.w, sphereSegments.h);
+    const cloudGeo = new THREE.SphereGeometry(radius * 1.015, sphereSegments.w, sphereSegments.h);
     geometriesToDispose.push(cloudGeo);
     const cloudMat = new THREE.MeshStandardMaterial({
       map: tex.clouds,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.95,
+      roughness: 0.85,
       depthWrite: false,
     });
     materialsToDispose.push(cloudMat);
     cloudShell = new THREE.Mesh(cloudGeo, cloudMat);
     cloudShell.rotation.z = tiltZ;
-    cloudRotationSpeed = (2 * Math.PI) / 42; // slightly faster than surface
+    cloudRotationSpeed = (2 * Math.PI) / 40; // slightly faster than surface
     group.add(cloudShell);
 
     // Atmosphere Shell
-    const atmGeo = new THREE.SphereGeometry(radius * 1.028, sphereSegments.w, sphereSegments.h);
+    const atmGeo = new THREE.SphereGeometry(radius * 1.03, sphereSegments.w, sphereSegments.h);
     geometriesToDispose.push(atmGeo);
     atmosphereMaterial = createAtmosphereMaterial({
-      color: 0x38bdf8,
-      fresnelPower: 3.2,
-      intensity: 1.15,
+      color: 0x60a5fa,
+      fresnelPower: 3.5,
+      intensity: 0.72,
     });
     materialsToDispose.push(atmosphereMaterial);
     atmosphereShell = new THREE.Mesh(atmGeo, atmosphereMaterial);

@@ -18,6 +18,13 @@ type CategoryFilter =
   | "GOLDEN_CLOSE"
   | "BLUE_CLOSE"
   | "EMBER_CLOSE"
+  | "VOLCANIC_CLOSE"
+  | "MINERAL_CLOSE"
+  | "LIFE_CLOSE"
+  | "ROCKY_LIFE_84PX"
+  | "CONFUSION_ROW_84PX"
+  | "VOLCANIC_ROT"
+  | "LIFE_ROT"
   | "ROCKY"
   | "BIOLOGICAL"
   | "ATMOSPHERIC"
@@ -143,6 +150,105 @@ const EMBER_CLOSE_ITEM: readonly CatalogItemEntry[] = [
   },
 ];
 
+const VOLCANIC_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "volcanic-rocky-close",
+    name: "Volcanic Rocky World (Close-Up)",
+    identity: { archetype: "volcanic-rocky", seed: 201 },
+    radius: 110,
+  },
+];
+
+const MINERAL_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "mineral-rocky-close",
+    name: "Mineral / Desert World (Close-Up)",
+    identity: { archetype: "mineral-rocky", seed: 202 },
+    radius: 110,
+  },
+];
+
+const LIFE_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "life-world-close",
+    name: "Life World (Close-Up)",
+    identity: { archetype: "life-world", seed: 301 },
+    radius: 110,
+  },
+];
+
+const ROCKY_LIFE_84PX_ITEMS: readonly CatalogItemEntry[] = [
+  {
+    id: "volcanic-84px",
+    name: "Volcanic Rocky (84px)",
+    identity: { archetype: "volcanic-rocky", seed: 201 },
+    radius: 42,
+  },
+  {
+    id: "mineral-84px",
+    name: "Mineral / Desert (84px)",
+    identity: { archetype: "mineral-rocky", seed: 202 },
+    radius: 42,
+  },
+  {
+    id: "life-84px",
+    name: "Life World (84px)",
+    identity: { archetype: "life-world", seed: 301 },
+    radius: 42,
+  },
+];
+
+const CONFUSION_ROW_84PX_ITEMS: readonly CatalogItemEntry[] = [
+  {
+    id: "ember-star-conf",
+    name: "Ember Star (84px)",
+    identity: { archetype: "ember-star", seed: 103 },
+    radius: 42,
+  },
+  {
+    id: "volcanic-rocky-conf",
+    name: "Volcanic Rocky (84px)",
+    identity: { archetype: "volcanic-rocky", seed: 201 },
+    radius: 42,
+  },
+  {
+    id: "mineral-rocky-conf",
+    name: "Mineral Desert (84px)",
+    identity: { archetype: "mineral-rocky", seed: 202 },
+    radius: 42,
+  },
+  {
+    id: "life-world-conf",
+    name: "Life World (84px)",
+    identity: { archetype: "life-world", seed: 301 },
+    radius: 42,
+  },
+  {
+    id: "blue-atm-conf",
+    name: "Blue Atmospheric (84px)",
+    identity: { archetype: "blue-atmospheric", seed: 401 },
+    radius: 42,
+  },
+];
+
+const VOLCANIC_ROT_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "volcanic-rocky-rot",
+    name: "Volcanic Rocky World (Rotation)",
+    identity: { archetype: "volcanic-rocky", seed: 201 },
+    radius: 90,
+  },
+];
+
+const LIFE_ROT_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "life-world-rot",
+    name: "Life World (Rotation)",
+    identity: { archetype: "life-world", seed: 301 },
+    radius: 90,
+  },
+];
+
 const CONCEPT_ITEMS: readonly CatalogItemEntry[] = [
   { id: "rust", name: "Rust", identity: ENTRELIS_CONCEPT_IDENTITIES["rust"]! },
   { id: "ownership", name: "Ownership", identity: ENTRELIS_CONCEPT_IDENTITIES["ownership"]! },
@@ -192,6 +298,27 @@ export const Celestial3DLab: React.FC = () => {
     }
     if (activeCategory === "EMBER_CLOSE") {
       return EMBER_CLOSE_ITEM;
+    }
+    if (activeCategory === "VOLCANIC_CLOSE") {
+      return VOLCANIC_CLOSE_ITEM;
+    }
+    if (activeCategory === "MINERAL_CLOSE") {
+      return MINERAL_CLOSE_ITEM;
+    }
+    if (activeCategory === "LIFE_CLOSE") {
+      return LIFE_CLOSE_ITEM;
+    }
+    if (activeCategory === "ROCKY_LIFE_84PX") {
+      return ROCKY_LIFE_84PX_ITEMS;
+    }
+    if (activeCategory === "CONFUSION_ROW_84PX") {
+      return CONFUSION_ROW_84PX_ITEMS;
+    }
+    if (activeCategory === "VOLCANIC_ROT") {
+      return VOLCANIC_ROT_ITEM;
+    }
+    if (activeCategory === "LIFE_ROT") {
+      return LIFE_ROT_ITEM;
     }
     return CATALOG_ARCHETYPES.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
@@ -254,10 +381,16 @@ export const Celestial3DLab: React.FC = () => {
 
   const categories: readonly { id: CategoryFilter; label: string }[] = [
     { id: "ALL", label: "All Catalog" },
+    { id: "VOLCANIC_CLOSE", label: "Volcanic Close" },
+    { id: "MINERAL_CLOSE", label: "Mineral Desert Close" },
+    { id: "LIFE_CLOSE", label: "Life World Close" },
+    { id: "ROCKY_LIFE_84PX", label: "Rocky & Life (84px)" },
+    { id: "CONFUSION_ROW_84PX", label: "Confusion Row (84px)" },
+    { id: "VOLCANIC_ROT", label: "Volcanic Rot" },
+    { id: "LIFE_ROT", label: "Life Rot" },
     { id: "STARS", label: "Stars" },
     { id: "STARS_84PX", label: "Stars (84px)" },
-    { id: "STARS_SCALE", label: "Stars (Scale)" },
-    { id: "CONFUSION_TEST", label: "Confusion Test (84px)" },
+    { id: "CONFUSION_TEST", label: "Stars Confusion (84px)" },
     { id: "GOLDEN_CLOSE", label: "Golden Close" },
     { id: "BLUE_CLOSE", label: "Blue-White Close" },
     { id: "EMBER_CLOSE", label: "Ember Close" },

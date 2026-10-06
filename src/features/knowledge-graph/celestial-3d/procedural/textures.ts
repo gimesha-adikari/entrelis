@@ -43,6 +43,18 @@ function lerp(a: number, b: number, t: number): number {
   return a + t * (b - a);
 }
 
+function fbm01(
+  noise: (x: number, y: number, z: number) => number,
+  x: number,
+  y: number,
+  z: number,
+  octaves = 4,
+  lacunarity = 2.0,
+  gain = 0.5
+): number {
+  return clamp(fbm3D(noise, x, y, z, octaves, lacunarity, gain) * 0.5 + 0.5, 0.0, 1.0);
+}
+
 /**
  * -------------------------------------------------------------
  * 1. STARS: Golden, Blue-White, and Ember
@@ -685,9 +697,12 @@ export function createVolcanicRockyTextures(
     const emissCtx = emissCanvas.getContext("2d")!;
     const emissImg = emissCtx.createImageData(width, height);
 
-    const noiseMacro = createNoise3D(seed);
-    const noiseMeso = createNoise3D(seed + 101);
-    const noiseMicro = createNoise3D(seed + 202);
+    const macroN = createNoise3D(seed);
+    const plateN = createNoise3D(seed + 89);
+    const ridgeN = createNoise3D(seed + 173);
+    const hotspotN = createNoise3D(seed + 269);
+    const fissureN = createNoise3D(seed + 353);
+    const microN = createNoise3D(seed + 439);
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
@@ -700,25 +715,98 @@ export function createVolcanicRockyTextures(
         const py = cosPhi;
         const pz = sinPhi * Math.sin(theta);
 
-        // Volcanic terrain: dark basalt plateaus + copper ridges + lava fissure veins
-        const macro = fbm3D(noiseMacro, px * 1.6, py * 1.6, pz * 1.6, 3);
-        const meso = ridgedFbm3D(noiseMeso, px * 5.0, py * 5.0, pz * 5.0, 3);
-        const micro = fbm3D(noiseMicro, px * 16.0, py * 16.0, pz * 16.0, 3) * 0.15;
+        // 1. MACRO: Basalt provinces vs highland tectonic shields
+        const plate = fbm01(plateN, px * 1.5, py * 1.5, pz * 1.5, 3);
+        const shield = fbm01(macroN, px * 2.2, py * 2.2, pz * 2.2, 4);
 
-        const elevation = clamp(macro * 0.5 + meso * 0.4 + micro, 0, 1);
+        // 2. MESO: Tectonic fault scarps & crater rims
+        const scarps = ridgedFbm3D(ridgeN, px * 5.2, py * 5.2, pz * 5.2, 3) * 0.28;
+        const plains = fbm01(macroN, px * 7.5, py * 7.5, pz * 7.5, 2) * 0.12;
+        const craterField = ridgedFbm3D(ridgeN, px * 3.6, py * 3.6, pz * 3.6, 2);
+        const craterRims = smoothstep(0.68, 0.85, craterField) * 0.22;
 
-        // Diffuse: Basalt (dark charcoal) to Copper/Terra
-        let r = lerp(32, 180, elevation);
-        let g = lerp(28, 85, elevation);
-        let b = lerp(26, 40, elevation);
+        // 3. MICRO: Regolith roughness noise
+        const micro = fbm01(microN, px * 18.0, py * 18.0, pz * 18.0, 2) * 0.05;
 
-        // Sparse glowing volcanic fissures in deep tectonic cracks
-        let emissiveIntensity = 0;
-        if (macro < 0.28 && meso > 0.65) {
-          emissiveIntensity = clamp((0.28 - macro) * 4.0 * (meso - 0.65) * 3.0, 0, 1);
-          r = lerp(r, 255, emissiveIntensity);
-          g = lerp(g, 90, emissiveIntensity);
-          b = lerp(b, 20, emissiveIntensity);
+        // Total elevation (mostly basalt lowlands and rugged highland shields)
+        const elevation = clamp(
+          plate * 0.4 + shield * 0.26 + scarps + craterRims + plains + micro,
+          0.0,
+          1.0
+        );
+
+        // 4. LAVA AS ACCENT: Sparse active volcanic hotspot provinces (15-25% coverage)
+        const hotspot = fbm01(hotspotN, px * 1.6, py * 1.6, pz * 1.6, 3);
+        // Activity strictly confined to isolated regional hotspots
+        const isHotProvince = smoothstep(0.58, 0.76, hotspot);
+
+        let lavaHeat = 0;
+        if (isHotProvince > 0.01) {
+          // Sharp, narrow fault fissures
+          const rawFissure = ridgedFbm3D(fissureN, px * 9.0, py * 9.0, pz * 9.0, 3);
+          const fissure = Math.pow(smoothstep(0.55, 0.88, rawFissure), 3.0);
+
+          // Deep caldera vents
+          const calderaVent = smoothstep(0.68, 0.88, craterField);
+
+          lavaHeat = clamp((fissure * 2.2 + calderaVent * 1.0) * isHotProvince, 0.0, 1.0);
+        }
+
+        // 5. COLORS: Predominantly dark matte basalt (75-85% quiet rock)
+        // Deep basalt mare / sinks:
+        const basaltR = 42,
+          basaltG = 44,
+          basaltB = 50;
+        // Weathered volcanic plain midtone:
+        const plainR = 72,
+          plainG = 66,
+          plainB = 62;
+        // Ancient volcanic highland / muted copper-brown rock:
+        const highR = 120,
+          highG = 96,
+          highB = 80;
+
+        let r = 0,
+          g = 0,
+          b = 0;
+        if (elevation < 0.45) {
+          const t = elevation / 0.45;
+          r = lerp(basaltR, plainR, t);
+          g = lerp(basaltG, plainG, t);
+          b = lerp(basaltB, plainB, t);
+        } else {
+          const t = (elevation - 0.45) / 0.55;
+          r = lerp(plainR, highR, t);
+          g = lerp(plainG, highG, t);
+          b = lerp(plainB, highB, t);
+        }
+
+        // Lava accent overlay
+        if (lavaHeat > 0.03) {
+          // Rim: dark cooling garnet crust
+          // Mid: burning volcanic red-orange
+          // Peak: incandescent molten white-gold core
+          const crustR = 175,
+            crustG = 42,
+            crustB = 18;
+          const magmaR = 255,
+            magmaG = 125,
+            magmaB = 24;
+          const coreR = 255,
+            coreG = 230,
+            coreB = 140;
+
+          if (lavaHeat < 0.5) {
+            const t = lavaHeat / 0.5;
+            r = lerp(r, lerp(crustR, magmaR, t), smoothstep(0.03, 0.35, lavaHeat));
+            g = lerp(g, lerp(crustG, magmaG, t), smoothstep(0.03, 0.35, lavaHeat));
+            b = lerp(b, lerp(crustB, magmaB, t), smoothstep(0.03, 0.35, lavaHeat));
+          } else {
+            const t = (lavaHeat - 0.5) / 0.5;
+            r = lerp(magmaR, coreR, t);
+            g = lerp(magmaG, coreG, t);
+            b = lerp(magmaB, coreB, t);
+          }
         }
 
         const idx = (y * width + x) * 4;
@@ -727,25 +815,35 @@ export function createVolcanicRockyTextures(
         diffImg.data[idx + 2] = Math.floor(b);
         diffImg.data[idx + 3] = 255;
 
-        // Bump map
+        // Bump map: rugged basalt relief
         const bumpVal = Math.floor(elevation * 255);
         bumpImg.data[idx] = bumpVal;
         bumpImg.data[idx + 1] = bumpVal;
         bumpImg.data[idx + 2] = bumpVal;
         bumpImg.data[idx + 3] = 255;
 
-        // Roughness: Basalt is high matte (0.88), copper deposits lower (0.55)
-        const roughVal = Math.floor(lerp(225, 140, elevation));
-        roughImg.data[idx] = roughVal;
-        roughImg.data[idx + 1] = roughVal;
-        roughImg.data[idx + 2] = roughVal;
+        // Roughness: mostly high matte basalt rock (0.86-0.95), lower on molten lava
+        const rockRough = lerp(225, 242, elevation);
+        const finalRough = lerp(rockRough, 95, lavaHeat);
+        roughImg.data[idx] = Math.floor(finalRough);
+        roughImg.data[idx + 1] = Math.floor(finalRough);
+        roughImg.data[idx + 2] = Math.floor(finalRough);
         roughImg.data[idx + 3] = 255;
 
-        // Emissive map
-        const emVal = Math.floor(emissiveIntensity * 255);
-        emissImg.data[idx] = Math.floor(emVal);
-        emissImg.data[idx + 1] = Math.floor(emVal * 0.35);
-        emissImg.data[idx + 2] = 0;
+        // Emissive map: strictly hot geological features
+        if (lavaHeat > 0.05) {
+          const emT = (lavaHeat - 0.05) / 0.95;
+          const emR = lerp(210, 255, emT);
+          const emG = lerp(55, 230, Math.pow(emT, 1.3));
+          const emB = lerp(15, 130, Math.pow(emT, 2.0));
+          emissImg.data[idx] = Math.floor(emR);
+          emissImg.data[idx + 1] = Math.floor(emG);
+          emissImg.data[idx + 2] = Math.floor(emB);
+        } else {
+          emissImg.data[idx] = 0;
+          emissImg.data[idx + 1] = 0;
+          emissImg.data[idx + 2] = 0;
+        }
         emissImg.data[idx + 3] = 255;
       }
     }
@@ -816,8 +914,12 @@ export function createMineralDesertTextures(
     const roughCtx = roughCanvas.getContext("2d")!;
     const roughImg = roughCtx.createImageData(width, height);
 
-    const strataNoise = createNoise3D(seed + 41);
-    const duneNoise = createNoise3D(seed + 83);
+    const plateauN = createNoise3D(seed + 41);
+    const basinN = createNoise3D(seed + 127);
+    const scarpN = createNoise3D(seed + 211);
+    const duneN = createNoise3D(seed + 293);
+    const channelN = createNoise3D(seed + 389);
+    const microN = createNoise3D(seed + 467);
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
@@ -830,16 +932,96 @@ export function createMineralDesertTextures(
         const py = cosPhi;
         const pz = sinPhi * Math.sin(theta);
 
-        // Stratified sediment: horizontal banding modulated by vertical tectonic shifting
-        const latShift = fbm3D(strataNoise, px * 2.0, py * 2.0, pz * 2.0, 3) * 0.2;
-        const strata = Math.sin((py + latShift) * 18.0) * 0.5 + 0.5;
-        const dunes = fbm3D(duneNoise, px * 8.0, py * 8.0, pz * 8.0, 4) * 0.35;
-        const elevation = clamp(strata * 0.6 + dunes * 0.4, 0, 1);
+        // 1. DOMAIN WARPING FOR ORGANIC TECTONIC CONTOURS (NO LATITUDE BANDING!)
+        const wx = fbm3D(plateauN, px * 1.2, py * 1.2, pz * 1.2, 3);
+        const wy = fbm3D(plateauN, px * 1.2 + 2.8, py * 1.2 + 1.9, pz * 1.2 + 4.3, 3);
+        const wz = fbm3D(plateauN, px * 1.2 + 3.5, py * 1.2 + 4.1, pz * 1.2 + 1.6, 3);
+        const qx = px + wx * 0.28;
+        const qy = py + wy * 0.28;
+        const qz = pz + wz * 0.28;
 
-        // Sand, ochre, muted copper, dusty terracotta
-        const r = lerp(160, 215, elevation);
-        const g = lerp(110, 160, elevation);
-        const b = lerp(75, 105, elevation);
+        // 2. MACRO: Stepped plateaus / mesas crossing lat/long freely
+        const rawPlateau = fbm01(plateauN, qx * 1.6, qy * 1.6, qz * 1.6, 4);
+        const step = Math.floor(rawPlateau * 3.5) / 3.5;
+        const frac = rawPlateau * 3.5 - step;
+        const plateauElev = step + smoothstep(0.18, 0.42, frac) * (1.0 / 3.5);
+
+        // Ancient sunken basins
+        const basinField = fbm01(basinN, qx * 1.3, qy * 1.3, qz * 1.3, 3);
+        const inBasin = smoothstep(0.58, 0.78, basinField);
+
+        // 3. MESO: Escarpments, dry channel networks & local dune fields
+        const scarps = ridgedFbm3D(scarpN, qx * 4.5, qy * 4.5, qz * 4.5, 3) * 0.2;
+
+        // Dunes exist strictly in local basin patches (never wrap around the planet)
+        const dunePatch =
+          smoothstep(0.6, 0.82, fbm01(duneN, qx * 2.8, qy * 2.8, qz * 2.8, 2)) * inBasin;
+        const windAngle = fbm3D(duneN, px * 0.6, py * 0.6, pz * 0.6, 2) * Math.PI * 2;
+        const duneCoord = px * Math.cos(windAngle) + py * Math.sin(windAngle) + pz * 0.4;
+        const duneRipples = (Math.sin(duneCoord * 32.0) * 0.5 + 0.5) * dunePatch * 0.16;
+
+        // Dendritic dry channels / arroyos
+        const channelRidge = ridgedFbm3D(channelN, qx * 6.5, qy * 6.5, qz * 6.5, 3);
+        const channelCut = smoothstep(0.76, 0.96, channelRidge) * 0.16;
+
+        // 4. MICRO: Sand / regolith grain
+        const micro = fbm01(microN, px * 16.0, py * 16.0, pz * 16.0, 2) * 0.05;
+
+        const elevation = clamp(
+          plateauElev * 0.62 + scarps + duneRipples - channelCut + micro - inBasin * 0.18,
+          0.0,
+          1.0
+        );
+
+        // 5. PALETTE: Sandstone, ochre, muted copper, pale tan, gray-brown
+        // Dark mineral escarpments:
+        const darkR = 112,
+          darkG = 82,
+          darkB = 66;
+        // Warm ochre / weathered sandstone midtone:
+        const ochreR = 188,
+          ochreG = 138,
+          ochreB = 96;
+        // Pale plateau cap / desert tan:
+        const tanR = 218,
+          tanG = 182,
+          tanB = 142;
+        // Salt pan / alkali basin floor:
+        const alkaliR = 232,
+          alkaliG = 226,
+          alkaliB = 212;
+
+        let r = 0,
+          g = 0,
+          b = 0;
+        if (inBasin > 0.72 && elevation < 0.28) {
+          // Alkali / salt flat basin floor
+          const t = clamp((inBasin * (0.28 - elevation)) / 0.28, 0, 1);
+          r = lerp(ochreR, alkaliR, t);
+          g = lerp(ochreG, alkaliG, t);
+          b = lerp(ochreB, alkaliB, t);
+        } else if (elevation < 0.45) {
+          const t = elevation / 0.45;
+          r = lerp(darkR, ochreR, t);
+          g = lerp(darkG, ochreG, t);
+          b = lerp(darkB, ochreB, t);
+        } else {
+          const t = (elevation - 0.45) / 0.55;
+          r = lerp(ochreR, tanR, t);
+          g = lerp(ochreG, tanG, t);
+          b = lerp(ochreB, tanB, t);
+        }
+
+        // Dune tint in dune patches
+        if (duneRipples > 0.02) {
+          const duneTintR = 215,
+            duneTintG = 158,
+            duneTintB = 112;
+          const dt = clamp(duneRipples / 0.16, 0, 1);
+          r = lerp(r, duneTintR, dt * 0.4);
+          g = lerp(g, duneTintG, dt * 0.4);
+          b = lerp(b, duneTintB, dt * 0.4);
+        }
 
         const idx = (y * width + x) * 4;
         diffImg.data[idx] = Math.floor(r);
@@ -847,15 +1029,15 @@ export function createMineralDesertTextures(
         diffImg.data[idx + 2] = Math.floor(b);
         diffImg.data[idx + 3] = 255;
 
-        // Bump: shallow layered sediment terraces
-        const bumpVal = Math.floor(elevation * 230);
+        // Bump map
+        const bumpVal = Math.floor(elevation * 240);
         bumpImg.data[idx] = bumpVal;
         bumpImg.data[idx + 1] = bumpVal;
         bumpImg.data[idx + 2] = bumpVal;
         bumpImg.data[idx + 3] = 255;
 
-        // Matte sand/mineral: uniform high roughness (0.85–0.95)
-        const roughVal = Math.floor(lerp(215, 242, elevation));
+        // Roughness: strictly high matte sand/mineral (0.88-0.96)
+        const roughVal = Math.floor(lerp(226, 246, elevation));
         roughImg.data[idx] = roughVal;
         roughImg.data[idx + 1] = roughVal;
         roughImg.data[idx + 2] = roughVal;
@@ -899,6 +1081,7 @@ export interface LifeWorldTextures {
   readonly surface: THREE.CanvasTexture;
   readonly clouds: THREE.CanvasTexture;
   readonly roughness: THREE.CanvasTexture;
+  readonly bump?: THREE.CanvasTexture;
 }
 
 export function createLifeWorldTextures(
@@ -908,12 +1091,14 @@ export function createLifeWorldTextures(
   const surfKey = `life:surface:${seed}:${lod}`;
   const cloudKey = `life:clouds:${seed}:${lod}`;
   const roughKey = `life:rough:${seed}:${lod}`;
+  const bumpKey = `life:bump:${seed}:${lod}`;
 
   let surface = textureCache.get(surfKey);
   let clouds = textureCache.get(cloudKey);
   let roughness = textureCache.get(roughKey);
+  let bump = textureCache.get(bumpKey);
 
-  if (!surface || !clouds || !roughness) {
+  if (!surface || !clouds || !roughness || !bump) {
     const { width, height } = getResolution(lod);
 
     const surfCanvas = document.createElement("canvas");
@@ -928,15 +1113,24 @@ export function createLifeWorldTextures(
     const roughCtx = roughCanvas.getContext("2d")!;
     const roughImg = roughCtx.createImageData(width, height);
 
+    const bumpCanvas = document.createElement("canvas");
+    bumpCanvas.width = width;
+    bumpCanvas.height = height;
+    const bumpCtx = bumpCanvas.getContext("2d")!;
+    const bumpImg = bumpCtx.createImageData(width, height);
+
     const cloudCanvas = document.createElement("canvas");
     cloudCanvas.width = width;
     cloudCanvas.height = height;
     const cloudCtx = cloudCanvas.getContext("2d")!;
     const cloudImg = cloudCtx.createImageData(width, height);
 
-    const continentNoise = createNoise3D(seed);
-    const biomeNoise = createNoise3D(seed + 19);
-    const cloudNoise = createNoise3D(seed + 99);
+    const continentN = createNoise3D(seed + 10);
+    const islandN = createNoise3D(seed + 73);
+    const biomeN = createNoise3D(seed + 151);
+    const mountainN = createNoise3D(seed + 229);
+    const cloudN1 = createNoise3D(seed + 337);
+    const cloudN2 = createNoise3D(seed + 419);
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
@@ -949,48 +1143,102 @@ export function createLifeWorldTextures(
         const py = cosPhi;
         const pz = sinPhi * Math.sin(theta);
 
-        // 1. Continental land vs ocean generator:
-        // Use lower frequency (1.5x) with domain warping for large recognizable macro continents
-        const warp = domainWarp3D(continentNoise, px * 1.2, py * 1.2, pz * 1.2, 0.4);
-        const continent = fbm3D(
-          continentNoise,
-          (px + warp * 0.18) * 1.5,
-          (py + warp * 0.18) * 1.5,
-          (pz + warp * 0.18) * 1.5,
-          4
-        );
-        const biome = fbm3D(biomeNoise, px * 5.0, py * 5.0, pz * 5.0, 3);
+        // 1. CONTINENTS & OCEANS SEGMENTATION
+        const wx = fbm3D(continentN, px * 1.1, py * 1.1, pz * 1.1, 3);
+        const wy = fbm3D(continentN, px * 1.1 + 4.1, py * 1.1 + 2.3, pz * 1.1 + 6.7, 3);
+        const wz = fbm3D(continentN, px * 1.1 + 1.8, py * 1.1 + 5.5, pz * 1.1 + 3.2, 3);
+        const qx = px + wx * 0.35;
+        const qy = py + wy * 0.35;
+        const qz = pz + wz * 0.35;
 
-        const isLand = continent > 0.46;
-        let r = 0;
-        let g = 0;
-        let b = 0;
+        // Large macro continents (3-4 distinct major landmasses)
+        const continent = fbm01(continentN, qx * 1.35, qy * 1.35, qz * 1.35, 4);
+        // Archipelagos and coastal islands
+        const islands =
+          smoothstep(0.7, 0.88, fbm01(islandN, px * 4.2, py * 4.2, pz * 4.2, 3)) * 0.18;
+        const landMask = continent + islands;
+
+        const isLand = landMask > 0.52;
+        let r = 0,
+          g = 0,
+          b = 0;
         let rough = 0;
+        let bumpHeight = 0;
 
         if (!isLand) {
-          // Ocean: Deep sapphire (rgb 16, 52, 108) to shelf cyan (rgb 30, 126, 155)
-          const depth = clamp(continent / 0.46, 0, 1);
-          r = lerp(16, 30, depth);
-          g = lerp(52, 126, depth);
-          b = lerp(108, 155, depth);
-          rough = 26; // Ultra-glossy specular ocean (roughness ~0.10)
-        } else {
-          // Landmass: Forest green & teal-green lowlands, fertile olive interior, alpine peaks
-          const elevation = clamp((continent - 0.46) / 0.54, 0, 1);
-          if (elevation < 0.62) {
-            // Lowlands & fertile plateaus: Forest green (42, 124, 76) to fertile olive (92, 138, 74)
-            const t = clamp(biome * 0.5 + 0.5, 0, 1);
-            r = lerp(42, 92, t);
-            g = lerp(124, 138, t);
-            b = lerp(76, 74, t);
+          // OCEANS: Deep navy / ocean blue / teal continental shelf
+          const depth = clamp(landMask / 0.52, 0, 1);
+          // Abyssal navy -> open royal ocean -> continental shelf teal
+          const abyssalR = 14,
+            abyssalG = 34,
+            abyssalB = 76;
+          const oceanR = 20,
+            oceanG = 56,
+            oceanB = 115;
+          const shelfR = 32,
+            shelfG = 120,
+            shelfB = 145;
+
+          if (depth < 0.7) {
+            const t = depth / 0.7;
+            r = lerp(abyssalR, oceanR, t);
+            g = lerp(abyssalG, oceanG, t);
+            b = lerp(abyssalB, oceanB, t);
           } else {
-            // Cordilleras & alpine peaks: Muted stone (128, 120, 106) to snow (220, 235, 245)
-            const snowT = (elevation - 0.62) / 0.38;
-            r = lerp(128, 220, snowT);
-            g = lerp(120, 235, snowT);
-            b = lerp(106, 245, snowT);
+            const t = (depth - 0.7) / 0.3;
+            r = lerp(oceanR, shelfR, t);
+            g = lerp(oceanG, shelfG, t);
+            b = lerp(oceanB, shelfB, t);
           }
-          rough = 215; // Matte terrain (roughness ~0.85)
+          // Controlled ocean roughness (NO mirror glass, NO giant white circular highlight!)
+          rough = 165; // ~0.65 soft natural sheen
+          bumpHeight = 35; // flat sea level
+        } else {
+          // LANDMASSES: Forests, teals, savannas, mountains, snow
+          const elev = clamp((landMask - 0.52) / 0.48, 0, 1);
+          const biome = fbm01(biomeN, qx * 3.8, qy * 3.8, qz * 3.8, 3);
+          const mountain = ridgedFbm3D(mountainN, qx * 5.2, qy * 5.2, qz * 5.2, 3);
+
+          if (elev < 0.42) {
+            // Lowlands: Forest green & coastal teal-green
+            const forestR = 36,
+              forestG = 100,
+              forestB = 58;
+            const tealR = 30,
+              tealG = 125,
+              tealB = 105;
+            const t = clamp(biome, 0, 1);
+            r = lerp(forestR, tealR, t);
+            g = lerp(forestG, tealG, t);
+            b = lerp(forestB, tealB, t);
+          } else if (elev < 0.72) {
+            // Interior Savanna & temperate hills
+            const savannaR = 145,
+              savannaG = 134,
+              savannaB = 86;
+            const hillsR = 66,
+              hillsG = 116,
+              hillsB = 68;
+            const t = clamp(biome, 0, 1);
+            r = lerp(hillsR, savannaR, t);
+            g = lerp(hillsG, savannaG, t);
+            b = lerp(hillsB, savannaB, t);
+          } else {
+            // Cordilleras & Snow Peaks
+            const rockR = 115,
+              rockG = 106,
+              rockB = 98;
+            const snowR = 238,
+              snowG = 245,
+              snowB = 252;
+            const snowT = smoothstep(0.62, 0.86, mountain * 0.6 + elev * 0.4);
+            r = lerp(rockR, snowR, snowT);
+            g = lerp(rockG, snowG, snowT);
+            b = lerp(rockB, snowB, snowT);
+          }
+
+          rough = 235; // ~0.92 matte terrain
+          bumpHeight = Math.floor(lerp(60, 255, elev * 0.6 + mountain * 0.4));
         }
 
         const idx = (y * width + x) * 4;
@@ -1004,15 +1252,19 @@ export function createLifeWorldTextures(
         roughImg.data[idx + 2] = rough;
         roughImg.data[idx + 3] = 255;
 
-        // 2. Separate Cloud Shell: Organized large systems & wisps with clear sky gaps
-        const cloudMacro = fbm3D(cloudNoise, px * 2.2, py * 2.2, pz * 2.2, 3);
-        const cloudWarp = domainWarp3D(cloudNoise, px * 4.2, py * 4.2, pz * 4.2, 0.55);
-        const cloudVal = cloudMacro * 0.6 + cloudWarp * 0.4;
-        // Strict threshold so 55%+ of surface remains exposed through clear gaps
-        const cloudAlpha = clamp(smoothstep(0.48, 0.78, cloudVal) * 0.92, 0, 1);
+        bumpImg.data[idx] = bumpHeight;
+        bumpImg.data[idx + 1] = bumpHeight;
+        bumpImg.data[idx + 2] = bumpHeight;
+        bumpImg.data[idx + 3] = 255;
 
-        cloudImg.data[idx] = 252;
-        cloudImg.data[idx + 1] = 254;
+        // 2. CLOUD SHELL: Weather systems with 55%+ clear sky gaps
+        const weatherMacro = fbm01(cloudN1, px * 2.2, py * 2.2, pz * 2.2, 4);
+        const weatherWarp = domainWarp3D(cloudN2, px * 3.5, py * 3.5, pz * 3.5, 0.6) * 0.5 + 0.5;
+        const cloudDensity = weatherMacro * 0.55 + weatherWarp * 0.45;
+        const cloudAlpha = clamp(smoothstep(0.48, 0.68, cloudDensity), 0, 1);
+
+        cloudImg.data[idx] = 255;
+        cloudImg.data[idx + 1] = 255;
         cloudImg.data[idx + 2] = 255;
         cloudImg.data[idx + 3] = Math.floor(cloudAlpha * 255);
       }
@@ -1020,6 +1272,7 @@ export function createLifeWorldTextures(
 
     surfCtx.putImageData(surfImg, 0, 0);
     roughCtx.putImageData(roughImg, 0, 0);
+    bumpCtx.putImageData(bumpImg, 0, 0);
     cloudCtx.putImageData(cloudImg, 0, 0);
 
     surface = new THREE.CanvasTexture(surfCanvas);
@@ -1034,6 +1287,12 @@ export function createLifeWorldTextures(
     roughness.colorSpace = THREE.NoColorSpace;
     textureCache.set(roughKey, roughness);
 
+    bump = new THREE.CanvasTexture(bumpCanvas);
+    bump.wrapS = THREE.RepeatWrapping;
+    bump.wrapT = THREE.ClampToEdgeWrapping;
+    bump.colorSpace = THREE.NoColorSpace;
+    textureCache.set(bumpKey, bump);
+
     clouds = new THREE.CanvasTexture(cloudCanvas);
     clouds.wrapS = THREE.RepeatWrapping;
     clouds.wrapT = THREE.ClampToEdgeWrapping;
@@ -1041,7 +1300,7 @@ export function createLifeWorldTextures(
     textureCache.set(cloudKey, clouds);
   }
 
-  return { surface, clouds, roughness };
+  return { surface, clouds, roughness, bump };
 }
 
 function smoothstep(min: number, max: number, value: number): number {

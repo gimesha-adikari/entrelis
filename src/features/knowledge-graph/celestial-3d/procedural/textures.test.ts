@@ -108,12 +108,13 @@ describe("Procedural Texture Engines", () => {
     expect(desert.emissive).toBeUndefined(); // Desert has no lava
   });
 
-  it("generates life world textures with independent surface, cloud, and roughness maps", () => {
+  it("generates life world textures with independent surface, cloud, roughness, and bump maps", () => {
     const life = createLifeWorldTextures(301, "focus");
 
     expect(life.surface).toBeDefined();
     expect(life.clouds).toBeDefined();
     expect(life.roughness).toBeDefined();
+    expect(life.bump).toBeDefined();
   });
 
   it("generates atmospheric gas textures and storm giant textures with distinct generators", () => {
