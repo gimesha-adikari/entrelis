@@ -51,7 +51,7 @@ function setupCanvas2DMock() {
   };
 }
 
-describe("Celestial 3D Procedural Textures", () => {
+describe("Celestial 3D Procedural Textures & Shaders", () => {
   let restoreCanvas: () => void;
 
   beforeEach(() => {
@@ -63,15 +63,18 @@ describe("Celestial 3D Procedural Textures", () => {
     restoreCanvas();
   });
 
-  it("generates deterministic rocky textures with diffuse and bump maps", () => {
+  it("generates deterministic rocky textures with diffuse, bump, and roughness maps", () => {
     const tex1 = createRockyTextures(42);
     const tex2 = createRockyTextures(42);
 
     expect(tex1.diffuse).toBeDefined();
     expect(tex1.bump).toBeDefined();
-    // Cache returns the same instance for identical seed
+    expect(tex1.roughness).toBeDefined();
+
+    // Cache returns the same instances for identical seed
     expect(tex1.diffuse).toBe(tex2.diffuse);
     expect(tex1.bump).toBe(tex2.bump);
+    expect(tex1.roughness).toBe(tex2.roughness);
   });
 
   it("generates gas world texture with caching", () => {
@@ -82,17 +85,20 @@ describe("Celestial 3D Procedural Textures", () => {
     expect(tex1).toBe(tex2);
   });
 
-  it("generates ice world diffuse and roughness textures", () => {
+  it("generates ice world diffuse, roughness, and bump textures", () => {
     const tex1 = createIceTextures(202);
     const tex2 = createIceTextures(202);
 
     expect(tex1.diffuse).toBeDefined();
     expect(tex1.roughness).toBeDefined();
+    expect(tex1.bump).toBeDefined();
+
     expect(tex1.diffuse).toBe(tex2.diffuse);
     expect(tex1.roughness).toBe(tex2.roughness);
+    expect(tex1.bump).toBe(tex2.bump);
   });
 
-  it("generates star surface and corona billboard textures", () => {
+  it("generates star surface and organic corona billboard textures", () => {
     const tex1 = createStarTextures(303);
     const tex2 = createStarTextures(303);
 
@@ -140,13 +146,14 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     vi.restoreAllMocks();
   });
 
-  it("initializes gracefully and sets up 4 archetype meshes", () => {
+  it("initializes with 30fps default and sets up 4 archetype meshes and 2 atmosphere shells", () => {
     const onHoverChange = vi.fn();
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
       onHoverChange,
     });
+
+    expect(controller.getTargetFps()).toBe(30);
 
     const meshes = controller.getMeshes();
     expect(meshes.length).toBe(4);
@@ -156,13 +163,19 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     expect(archetypes).toContain("gas");
     expect(archetypes).toContain("ice");
 
+    const atmShells = controller.getAtmosphereShells();
+    expect(atmShells.length).toBe(2);
+    const atmTypes = atmShells.map((a) => a.archetype);
+    expect(atmTypes).toContain("gas");
+    expect(atmTypes).toContain("ice");
+
     controller.dispose();
   });
 
   it("correctly repositions meshes on resize", () => {
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
+      targetFps: 30,
     });
 
     controller.resize(1000, 800);
@@ -186,7 +199,7 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
   it("handles renderFrame without crashing and applies rotation delta", () => {
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
+      targetFps: 30,
     });
 
     const meshes = controller.getMeshes();
@@ -201,7 +214,7 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
 
   it("freezes rotation when prefers-reduced-motion is active", () => {
     const originalMatchMedia = window.matchMedia;
-    window.matchMedia = vi.fn().mockImplementation((query) => ({
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: query.includes("prefers-reduced-motion"),
       media: query,
       onchange: null,
@@ -214,7 +227,7 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
 
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
+      targetFps: 30,
     });
 
     const meshes = controller.getMeshes();
@@ -228,10 +241,10 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     window.matchMedia = originalMatchMedia;
   });
 
-  it("handles visibilitychange events gracefully", () => {
+  it("handles visibilitychange events gracefully without jumping", () => {
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
+      targetFps: 30,
     });
 
     Object.defineProperty(document, "hidden", { value: true, configurable: true });
@@ -246,10 +259,11 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
   it("disposes cleanly without throwing errors", () => {
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
+      targetFps: 30,
     });
 
     expect(() => controller.dispose()).not.toThrow();
     expect(controller.getMeshes().length).toBe(0);
+    expect(controller.getAtmosphereShells().length).toBe(0);
   });
 });

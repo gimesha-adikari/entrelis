@@ -22,7 +22,7 @@ export const Celestial3DLab: React.FC = () => {
 
     const controller = new Celestial3DController({
       canvas,
-      targetFps: 60,
+      targetFps: 30,
       onHoverChange: (archetype) => {
         setHoveredArchetype(archetype);
       },
