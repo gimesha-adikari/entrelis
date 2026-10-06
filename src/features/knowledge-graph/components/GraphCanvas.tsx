@@ -137,6 +137,11 @@ export default function GraphCanvas({
     animationFrameRef.current = requestAnimationFrame(animateRecenter);
   }, []);
 
+  // Initialize nodes and links for current dataset
+  const graphData = useMemo(() => createGraphData(dataset), [dataset]);
+  nodesRef.current = graphData.nodes;
+  linksRef.current = graphData.links;
+
   // When selected concept changes, recenter camera smoothly
   useEffect(() => {
     if (!selectedConceptSlug) return;
@@ -148,11 +153,7 @@ export default function GraphCanvas({
 
   // Interaction state must not recreate the force simulation; selection and hover only redraw the existing coordinates.
   useEffect(() => {
-    const { nodes, links } = createGraphData(dataset);
-    nodesRef.current = nodes;
-    linksRef.current = links;
-
-    const simulation = createGraphSimulation(nodes, links, {
+    const simulation = createGraphSimulation(graphData.nodes, graphData.links, {
       onTick: () => {
         drawRef.current();
       },
@@ -178,14 +179,6 @@ export default function GraphCanvas({
     updateDimensions();
     window.addEventListener("resize", updateDimensions);
 
-    // Initial center on selected concept once positions settle
-    if (selectedConceptSlug) {
-      const node = nodes.find((n) => n.slug === selectedConceptSlug);
-      if (node) {
-        recenterOnNode(node);
-      }
-    }
-
     return () => {
       simulation.stop();
       window.removeEventListener("resize", updateDimensions);
@@ -194,7 +187,7 @@ export default function GraphCanvas({
         animationFrameRef.current = null;
       }
     };
-  }, [dataset, recenterOnNode, selectedConceptSlug]);
+  }, [dataset, graphData]);
 
   // Redraw canvas when selection or hover state changes without touching physics
   useEffect(() => {
