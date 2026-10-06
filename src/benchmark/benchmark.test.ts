@@ -2,17 +2,17 @@ import { describe, it, expect } from "vitest";
 import { performance } from "node:perf_hooks";
 import { forceSimulation, forceLink, forceManyBody, forceCenter } from "d3-force";
 import { generateSyntheticDataset } from "./generator";
-import { createD3GraphData, type D3SimulationNode, type D3SimulationLink } from "../adapters/d3";
+import { createGraphData, type GraphNode, type GraphLink } from "@/features/knowledge-graph";
 
 interface D3BenchmarkResult {
   nodeCount: number;
   edgeCount: number;
-  d3AdapterMs: number;
-  d3Sim100TicksMs: number;
-  d3NeighborLookupMs: number;
+  adapterMs: number;
+  sim100TicksMs: number;
+  neighborLookupMs: number;
 }
 
-function runD3BenchmarkForSize(nodeCount: number): D3BenchmarkResult {
+function runBenchmarkForSize(nodeCount: number): D3BenchmarkResult {
   const dataset = generateSyntheticDataset(nodeCount);
   const edgeCount = dataset.relationships.length;
   const targetConcept = dataset.concepts[Math.floor(nodeCount / 2)];
@@ -20,15 +20,15 @@ function runD3BenchmarkForSize(nodeCount: number): D3BenchmarkResult {
 
   // 1. Adapter conversion time
   const t0 = performance.now();
-  const d3Data = createD3GraphData(dataset);
-  const d3AdapterMs = performance.now() - t0;
+  const graphData = createGraphData(dataset);
+  const adapterMs = performance.now() - t0;
 
   // 2. D3 simulation calculation (100 ticks)
   const t1 = performance.now();
-  const sim = forceSimulation(d3Data.nodes)
+  const sim = forceSimulation(graphData.nodes)
     .force(
       "link",
-      forceLink<D3SimulationNode, D3SimulationLink>(d3Data.links).id((d) => d.id)
+      forceLink<GraphNode, GraphLink>(graphData.links).id((d) => d.id)
     )
     .force("charge", forceManyBody().strength(-100))
     .force("center", forceCenter(0, 0))
@@ -37,37 +37,37 @@ function runD3BenchmarkForSize(nodeCount: number): D3BenchmarkResult {
   for (let i = 0; i < 100; i++) {
     sim.tick();
   }
-  const d3Sim100TicksMs = performance.now() - t1;
+  const sim100TicksMs = performance.now() - t1;
 
   // 3. Selection / neighbor lookup time
   const t2 = performance.now();
-  const d3Neighbors = new Set<string>();
-  for (const link of d3Data.links) {
+  const neighbors = new Set<string>();
+  for (const link of graphData.links) {
     const s = typeof link.source === "object" ? link.source.id : link.source;
     const t = typeof link.target === "object" ? link.target.id : link.target;
-    if (s === targetNodeId) d3Neighbors.add(t);
-    if (t === targetNodeId) d3Neighbors.add(s);
+    if (s === targetNodeId) neighbors.add(t);
+    if (t === targetNodeId) neighbors.add(s);
   }
-  const d3NeighborLookupMs = performance.now() - t2;
+  const neighborLookupMs = performance.now() - t2;
 
-  expect(d3Neighbors.size).toBeGreaterThan(0);
+  expect(neighbors.size).toBeGreaterThan(0);
 
   return {
     nodeCount,
     edgeCount,
-    d3AdapterMs,
-    d3Sim100TicksMs,
-    d3NeighborLookupMs,
+    adapterMs,
+    sim100TicksMs,
+    neighborLookupMs,
   };
 }
 
-describe("D3-force Synthetic Benchmarks (M0.3 Chosen Engine)", () => {
+describe("D3-force Synthetic Benchmarks (Production Engine)", () => {
   it("benchmarks 50, 500, and 5,000 synthetic nodes accurately", () => {
     const sizes = [50, 500, 5000];
     const results: D3BenchmarkResult[] = [];
 
     for (const size of sizes) {
-      const res = runD3BenchmarkForSize(size);
+      const res = runBenchmarkForSize(size);
       results.push(res);
     }
 
@@ -75,9 +75,9 @@ describe("D3-force Synthetic Benchmarks (M0.3 Chosen Engine)", () => {
       results.map((r) => ({
         Nodes: r.nodeCount,
         Edges: r.edgeCount,
-        "D3 Adapter (ms)": r.d3AdapterMs.toFixed(2),
-        "D3 Sim 100 Ticks (ms)": r.d3Sim100TicksMs.toFixed(2),
-        "D3 Neighbor Lookup (ms)": r.d3NeighborLookupMs.toFixed(3),
+        "Adapter (ms)": r.adapterMs.toFixed(2),
+        "Sim 100 Ticks (ms)": r.sim100TicksMs.toFixed(2),
+        "Neighbor Lookup (ms)": r.neighborLookupMs.toFixed(3),
       }))
     );
 
