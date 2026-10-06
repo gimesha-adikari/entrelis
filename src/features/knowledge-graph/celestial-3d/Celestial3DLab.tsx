@@ -12,6 +12,7 @@ import styles from "./Celestial3DLab.module.css";
 type CategoryFilter =
   | "ALL"
   | "STARS"
+  | "STARS_84PX"
   | "STARS_SCALE"
   | "CONFUSION_TEST"
   | "GOLDEN_CLOSE"
@@ -23,6 +24,27 @@ type CategoryFilter =
   | "STRUCTURAL"
   | "SMALL BODIES"
   | "CONCEPTS";
+
+const STARS_84PX_ITEMS: readonly CatalogItemEntry[] = [
+  {
+    id: "golden-84px",
+    name: "Golden Star (84px)",
+    identity: { archetype: "golden-star", seed: 101 },
+    radius: 42,
+  },
+  {
+    id: "blue-84px",
+    name: "Blue-White Star (84px)",
+    identity: { archetype: "blue-star", seed: 102 },
+    radius: 42,
+  },
+  {
+    id: "ember-84px",
+    name: "Ember Star (84px)",
+    identity: { archetype: "ember-star", seed: 103 },
+    radius: 42,
+  },
+];
 
 const STAR_SCALE_ITEMS: readonly CatalogItemEntry[] = [
   {
@@ -153,6 +175,9 @@ export const Celestial3DLab: React.FC = () => {
     if (activeCategory === "ALL") {
       return CATALOG_ARCHETYPES;
     }
+    if (activeCategory === "STARS_84PX") {
+      return STARS_84PX_ITEMS;
+    }
     if (activeCategory === "STARS_SCALE") {
       return STAR_SCALE_ITEMS;
     }
@@ -230,7 +255,8 @@ export const Celestial3DLab: React.FC = () => {
   const categories: readonly { id: CategoryFilter; label: string }[] = [
     { id: "ALL", label: "All Catalog" },
     { id: "STARS", label: "Stars" },
-    { id: "STARS_SCALE", label: "Stars (84px Scale)" },
+    { id: "STARS_84PX", label: "Stars (84px)" },
+    { id: "STARS_SCALE", label: "Stars (Scale)" },
     { id: "CONFUSION_TEST", label: "Confusion Test (84px)" },
     { id: "GOLDEN_CLOSE", label: "Golden Close" },
     { id: "BLUE_CLOSE", label: "Blue-White Close" },

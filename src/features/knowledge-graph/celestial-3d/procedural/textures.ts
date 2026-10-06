@@ -174,8 +174,8 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
       const center = size / 2;
       const img = ctx.createImageData(size, size);
       const data = img.data;
-      // coronaScale = 2.8, so star limb is at rLimb = 2.0 / 2.8 = 0.714
-      const rLimb = 2.0 / 2.8;
+      // coronaScale = 2.85, so star limb is at rLimb = 2.0 / 2.85 = 0.7018
+      const rLimb = 2.0 / 2.85;
 
       for (let y = 0; y < size; y++) {
         const dy = (y - center) / center;
@@ -188,43 +188,61 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
           // Altitude above star's spherical limb
           const alt = (r - rLimb) / rLimb;
 
-          // Asymmetric solar corona envelope lobes
-          const lobe1 = Math.sin(angle * 3.0 + seed * 0.15) * 0.18;
-          const lobe2 = Math.cos(angle * 2.0 - seed * 0.28) * 0.12;
-          const lobe = 1.0 + lobe1 + lobe2;
-          const effAlt = alt / Math.max(0.3, lobe);
+          // Subtle low-frequency organic asymmetry for scale height
+          const lobe =
+            1.0 +
+            0.18 * Math.sin(2.0 * angle + seed * 0.3) +
+            0.12 * Math.cos(3.0 * angle - seed * 0.5) +
+            0.08 * Math.sin(angle + seed * 0.7);
+          const effAlt = alt / Math.max(0.25, lobe);
+
+          // Circumferential / angular intensity variation (breaks uniform circular ring)
+          const baseLimb =
+            0.72 +
+            0.2 * Math.cos(2.0 * angle + seed * 0.4) +
+            0.12 * Math.sin(4.0 * angle - seed * 0.2);
 
           // 2 localized solar prominences arching out above the limb
-          const p1Angle = 0.82;
+          const p1Angle = 1.15;
           const dAng1 = Math.atan2(Math.sin(angle - p1Angle), Math.cos(angle - p1Angle));
           const prom1 =
-            Math.exp(-Math.pow(dAng1 / 0.18, 2)) *
-            Math.exp(-Math.pow(Math.max(0, alt) / 0.16, 2)) *
-            0.75;
+            0.55 *
+            Math.exp(-Math.pow(dAng1 / 0.22, 2)) *
+            Math.exp(-Math.pow(Math.max(0, alt) / 0.18, 2));
 
-          const p2Angle = 3.92;
+          const p2Angle = 3.65;
           const dAng2 = Math.atan2(Math.sin(angle - p2Angle), Math.cos(angle - p2Angle));
           const prom2 =
-            Math.exp(-Math.pow(dAng2 / 0.15, 2)) *
-            Math.exp(-Math.pow(Math.max(0, alt) / 0.13, 2)) *
-            0.55;
+            0.45 *
+            Math.exp(-Math.pow(dAng2 / 0.18, 2)) *
+            Math.exp(-Math.pow(Math.max(0, alt) / 0.15, 2));
+
+          // Faint secondary thermal puff
+          const p3Angle = 5.2;
+          const dAng3 = Math.atan2(Math.sin(angle - p3Angle), Math.cos(angle - p3Angle));
+          const prom3 =
+            0.35 *
+            Math.exp(-Math.pow(dAng3 / 0.32, 2)) *
+            Math.exp(-Math.pow(Math.max(0, alt) / 0.2, 2));
 
           let falloff = 0;
           if (alt < 0) {
             falloff = 1.0;
           } else {
-            // Materially visible solar envelope around the silhouette
-            const envInner = Math.exp(-effAlt / 0.08) * 0.88;
-            const envOuter = Math.exp(-effAlt / 0.22) * 0.45;
-            falloff = clamp(envInner + envOuter + prom1 + prom2, 0, 1);
+            // Softer multi-scale radial falloff with non-uniform limb intensity
+            const envInner = Math.exp(-effAlt / 0.09) * baseLimb * 0.92;
+            const envOuter = Math.exp(-effAlt / 0.25) * (baseLimb * 0.35);
+            // Window falloff to ZERO before sprite quad boundary r=1.0 to eliminate circular cutoff!
+            const window = smoothstep(1.0, 0.8, r);
+            falloff = clamp((envInner + envOuter + prom1 + prom2 + prom3) * window, 0, 1);
           }
 
           if (falloff <= 0.002) continue;
 
-          // Radiant white-gold at limb -> rich solar yellow -> warm amber outer falloff
-          const colR = lerp(255, 225, smoothstep(0.0, 0.35, Math.max(0, effAlt)));
-          const colG = lerp(248, 165, smoothstep(0.0, 0.35, Math.max(0, effAlt)));
-          const colB = lerp(200, 35, smoothstep(0.0, 0.35, Math.max(0, effAlt)));
+          // Warm radiant white-gold at limb -> rich solar yellow -> warm deep amber falloff
+          const colR = lerp(255, 220, smoothstep(0.0, 0.35, Math.max(0, effAlt)));
+          const colG = lerp(230, 115, smoothstep(0.0, 0.35, Math.max(0, effAlt)));
+          const colB = lerp(95, 8, smoothstep(0.0, 0.35, Math.max(0, effAlt)));
 
           const idx = (y * size + x) * 4;
           data[idx] = Math.floor(colR);
@@ -262,8 +280,8 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
 
       const warpN = createNoise3D(seed + 101);
       const upwellN = createNoise3D(seed + 127);
-      const microN = createNoise3D(seed + 151);
-      const coolN = createNoise3D(seed + 179);
+      const mesoN = createNoise3D(seed + 149);
+      const microN = createNoise3D(seed + 173);
 
       for (let y = 0; y < height; y++) {
         const phi = (y / height) * Math.PI;
@@ -285,28 +303,26 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
           const qz = pz + wz * 0.22;
 
           // Broad smooth thermal upwelling - vast white-hot regions
-          const upwell = fbm3D(upwellN, qx * 1.4, qy * 1.4, qz * 1.4, 3);
+          const broadThermal = fbm3D(upwellN, qx * 1.5, qy * 1.5, qz * 1.5, 3) * 0.16;
 
-          // Extremely fine micro-granulation with LOW contrast (no veins, no fissures, no marble)
-          const micro = fbm3D(microN, qx * 32.0, qy * 32.0, qz * 32.0, 2) * 0.045;
+          // Faint meso-scale variation visible in close-up
+          const mesoTurb = fbm3D(mesoN, qx * 5.5, qy * 5.5, qz * 5.5, 3) * 0.12;
 
-          // Subtle secondary cooler variation (very sparse pale cyan zones)
-          const coolZone =
-            smoothstep(0.62, 0.92, fbm3D(coolN, qx * 2.2, qy * 2.2, qz * 2.2, 2)) * 0.16;
+          // Fine stellar micro-granulation
+          const micro = fbm3D(microN, qx * 16.0, qy * 16.0, qz * 16.0, 2) * 0.06;
 
-          // Baseline temperature is high across the entire photosphere (0.72 - 1.0)
-          const temp = clamp(0.72 + upwell * 0.22 + micro - coolZone, 0.0, 1.0);
+          // Predominantly near-white photosphere (temp in 0.65 - 1.0)
+          const temp = clamp(0.72 + broadThermal + mesoTurb + micro, 0.0, 1.0);
 
-          // Colors: Predominantly near-white across the disk!
-          // Pale cyan only as secondary temperature variation in cooler pockets
-          // Cooler: Pale icy cyan [195, 232, 252]
-          // Mid: Radiant azure-white [236, 246, 255]
+          // Colors:
+          // Cooler pockets: Extremely pale icy cyan [212, 242, 253] (R >= 210, G >= 240)
+          // Mid: Radiant azure-white [242, 250, 255]
           // Peak: Pure incandescent white [255, 255, 255]
-          const cyanR = 195,
-            cyanG = 232,
-            cyanB = 252;
-          const azureWhiteR = 236,
-            azureWhiteG = 246,
+          const cyanR = 212,
+            cyanG = 242,
+            cyanB = 253;
+          const azureWhiteR = 242,
+            azureWhiteG = 250,
             azureWhiteB = 255;
           const peakR = 255,
             peakG = 255,
@@ -315,15 +331,15 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
           let r = 0,
             g = 0,
             b = 0;
-          if (temp < 0.78) {
-            const t = temp / 0.78;
+          if (temp < 0.72) {
+            const t = temp / 0.72;
             r = lerp(cyanR, azureWhiteR, t);
             g = lerp(cyanG, azureWhiteG, t);
             b = lerp(cyanB, azureWhiteB, t);
           } else {
-            const t = (temp - 0.78) / 0.22;
+            const t = (temp - 0.72) / 0.28;
             r = lerp(azureWhiteR, peakR, t);
-            g = lerp(azureWhiteG, peakG, t);
+            g = lerp(azureWhiteR, peakG, t);
             b = lerp(azureWhiteR, peakB, t);
           }
 
@@ -331,7 +347,7 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
           data[idx] = Math.floor(r);
           data[idx + 1] = Math.floor(g);
           data[idx + 2] = Math.floor(b);
-          data[idx + 3] = Math.floor(clamp(0.85 + upwell * 0.15, 0, 1) * 255);
+          data[idx + 3] = Math.floor(clamp(0.85 + broadThermal * 0.15, 0, 1) * 255);
         }
       }
       ctx.putImageData(img, 0, 0);
@@ -353,8 +369,8 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
       const center = size / 2;
       const img = ctx.createImageData(size, size);
       const data = img.data;
-      // coronaScale = 2.5, so star limb is at rLimb = 2.0 / 2.5 = 0.80
-      const rLimb = 2.0 / 2.5;
+      // coronaScale = 2.45, so star limb is at rLimb = 2.0 / 2.45 = 0.8163
+      const rLimb = 2.0 / 2.45;
 
       for (let y = 0; y < size; y++) {
         const dy = (y - center) / center;
@@ -364,28 +380,53 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
           if (r >= 1.0) continue;
 
           const angle = Math.atan2(dy, dx);
-          // Altitude above star's spherical limb
           const alt = (r - rLimb) / rLimb;
 
-          // Asymmetric compact stellar corona
-          const lobe = 1.0 + Math.sin(angle * 5.0 + seed * 0.2) * 0.08;
+          // Low-frequency asymmetry for non-circular envelope
+          const lobe =
+            1.0 +
+            0.14 * Math.cos(3.0 * angle + seed * 0.25) +
+            0.08 * Math.sin(5.0 * angle - seed * 0.4);
           const effAlt = alt / Math.max(0.2, lobe);
+
+          // Circumferential intensity modulation (no uniform stroke/ring)
+          const baseLimb =
+            0.78 +
+            0.18 * Math.sin(2.0 * angle + seed * 0.6) +
+            0.08 * Math.cos(4.0 * angle - seed * 0.15);
+
+          // Localized compact coronal energy plumes
+          const f1Angle = 2.1;
+          const dAng1 = Math.atan2(Math.sin(angle - f1Angle), Math.cos(angle - f1Angle));
+          const flare1 =
+            0.38 *
+            Math.exp(-Math.pow(dAng1 / 0.18, 2)) *
+            Math.exp(-Math.pow(Math.max(0, alt) / 0.11, 2));
+
+          const f2Angle = 5.45;
+          const dAng2 = Math.atan2(Math.sin(angle - f2Angle), Math.cos(angle - f2Angle));
+          const flare2 =
+            0.32 *
+            Math.exp(-Math.pow(dAng2 / 0.15, 2)) *
+            Math.exp(-Math.pow(Math.max(0, alt) / 0.1, 2));
 
           let falloff = 0;
           if (alt < 0) {
             falloff = 1.0;
           } else {
-            // Clearly visible compact white/cyan corona outside the limb
-            const envInner = Math.exp(-effAlt / 0.055) * 0.95;
-            const envOuter = Math.exp(-effAlt / 0.15) * 0.38;
-            falloff = clamp(envInner + envOuter, 0, 1);
+            // Intense, compact white/cyan envelope with zero gray stroke appearance
+            const envInner = Math.exp(-effAlt / 0.065) * baseLimb * 0.95;
+            const envOuter = Math.exp(-effAlt / 0.18) * (baseLimb * 0.28);
+            // Window falloff to ZERO before sprite quad boundary r=1.0 to eliminate circular cutoff!
+            const window = smoothstep(1.0, 0.88, r);
+            falloff = clamp((envInner + envOuter + flare1 + flare2) * window, 0, 1);
           }
 
           if (falloff <= 0.002) continue;
 
-          // Pure blazing white at limb -> crisp pale cyan -> soft azure falloff
-          const colR = lerp(255, 185, smoothstep(0.0, 0.25, Math.max(0, effAlt)));
-          const colG = lerp(255, 230, smoothstep(0.0, 0.25, Math.max(0, effAlt)));
+          // Electric pale cyan at limb -> vibrant electric cyan -> soft luminous azure (zero gray appearance)
+          const colR = lerp(205, 45, smoothstep(0.0, 0.22, Math.max(0, effAlt)));
+          const colG = lerp(242, 185, smoothstep(0.0, 0.22, Math.max(0, effAlt)));
           const colB = 255;
 
           const idx = (y * size + x) * 4;
@@ -498,7 +539,7 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
           } else {
             const t = (temp - 0.76) / 0.24;
             r = lerp(orangeR, amberR, t);
-            g = lerp(orangeG, amberR, t);
+            g = lerp(orangeG, amberG, t);
             b = lerp(orangeB, amberB, t);
           }
 
@@ -548,22 +589,30 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
           const lobe = 1.0 + lobe1 + lobe2;
           const effAlt = alt / Math.max(0.25, lobe);
 
+          // Circumferential intensity modulation (prevents uniform concentric ring)
+          const baseLimb =
+            0.72 +
+            0.18 * Math.cos(2.0 * angle + seed * 0.35) +
+            0.12 * Math.sin(3.0 * angle - seed * 0.15);
+
           let falloff = 0;
           if (alt < 0) {
             falloff = 1.0;
           } else {
-            // Visibly larger diffuse red stellar envelope/corona
-            const envInner = Math.exp(-effAlt / 0.14) * 0.88;
-            const envOuter = Math.exp(-effAlt / 0.42) * 0.48;
-            falloff = clamp(envInner + envOuter, 0, 1);
+            // Visibly larger diffuse red stellar envelope with non-uniform circumferential falloff
+            const envInner = Math.exp(-effAlt / 0.13) * baseLimb * 0.88;
+            const envOuter = Math.exp(-effAlt / 0.36) * (baseLimb * 0.38);
+            // Window falloff to ZERO before sprite quad boundary r=1.0 to eliminate circular cutoff!
+            const window = smoothstep(1.0, 0.78, r);
+            falloff = clamp((envInner + envOuter) * window, 0, 1);
           }
 
           if (falloff <= 0.002) continue;
 
           // Fiery garnet-orange at limb -> deep red-orange -> dusky crimson outer haze
-          const colR = lerp(245, 135, smoothstep(0.0, 0.45, Math.max(0, effAlt)));
-          const colG = lerp(95, 20, smoothstep(0.0, 0.45, Math.max(0, effAlt)));
-          const colB = lerp(22, 10, smoothstep(0.0, 0.45, Math.max(0, effAlt)));
+          const colR = lerp(255, 165, smoothstep(0.0, 0.4, Math.max(0, effAlt)));
+          const colG = lerp(105, 18, smoothstep(0.0, 0.4, Math.max(0, effAlt)));
+          const colB = lerp(18, 8, smoothstep(0.0, 0.4, Math.max(0, effAlt)));
 
           const idx = (y * size + x) * 4;
           data[idx] = Math.floor(colR);

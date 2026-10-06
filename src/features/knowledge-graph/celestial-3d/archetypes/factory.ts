@@ -104,12 +104,12 @@ export function createCelestialObject(
         coreColor: 0xffffff,
         midColor: 0xfef08a,
         limbColor: 0xb45309,
-        limbDarkening: 0.38,
+        limbDarkening: 0.32,
         intensity: 1.15,
         rimStrength: 0.0,
       };
       baseRotationSpeed = (2 * Math.PI) / 86; // 86s / rev (70-100s range)
-      coronaScale = 2.8;
+      coronaScale = 2.85;
       coronaPeriodX = 14.0;
       coronaPeriodY = 11.5;
       coronaVarAmp = 0.025;
@@ -120,13 +120,13 @@ export function createCelestialObject(
         coreColor: 0xffffff,
         midColor: 0xf0fdf4,
         limbColor: 0x38bdf8,
-        limbDarkening: 0.12,
-        intensity: 1.18,
+        limbDarkening: 0.1,
+        intensity: 1.12,
         rimColor: 0xe0f2fe,
-        rimStrength: 0.22,
+        rimStrength: 0.05,
       };
       baseRotationSpeed = (2 * Math.PI) / 68; // 68s / rev (55-85s range)
-      coronaScale = 2.5; // Compact, tight corona
+      coronaScale = 2.45; // Compact, tight corona
       coronaPeriodX = 11.0;
       coronaPeriodY = 9.0;
       coronaVarAmp = 0.018;
@@ -138,7 +138,7 @@ export function createCelestialObject(
         coreColor: 0xffedd5,
         midColor: 0xf97316,
         limbColor: 0x450a0a,
-        limbDarkening: 0.45,
+        limbDarkening: 0.42,
         intensity: 1.22,
         rimStrength: 0.0,
       };
