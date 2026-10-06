@@ -44,18 +44,27 @@ export function createStarSurfaceMaterial(
 
     void main() {
       vec4 tex = texture2D(uSurfaceMap, vUv);
-      float cellVal = tex.r;
+      float primaryCell = tex.r;
+      float microGranules = tex.g;
+      float hotBoost = tex.b;
 
-      // In orthographic projection, view-space NdotV is simply vNormal.z
+      // In orthographic projection, view-space NdotV is vNormal.z
       float NdotV = max(0.0, vNormal.z);
-      float limbFactor = 1.0 - uLimbDarkening * (1.0 - NdotV);
+      float limbFactor = 1.0 - uLimbDarkening * pow(1.0 - NdotV, 1.35);
 
-      // Multi-layer granulation mix: cell centers are radiant core, boundaries are limb color
-      vec3 surfaceColor = mix(uLimbColor, uMidColor, smoothstep(0.12, 0.55, cellVal));
-      surfaceColor = mix(surfaceColor, uCoreColor, smoothstep(0.55, 0.92, cellVal));
+      // Sinking plasma lanes: dark intergranular boundaries
+      float laneFactor = smoothstep(0.08, 0.42, primaryCell);
+      // Convective cell body with turbulent fine granulation
+      float cellBody = mix(primaryCell, microGranules, 0.28);
+      // Radiant upwelling core
+      float coreFactor = smoothstep(0.58, 0.94, cellBody) + hotBoost * 0.45;
 
-      // Apply natural stellar limb darkening
-      surfaceColor *= limbFactor;
+      vec3 surfaceColor = mix(uLimbColor, uMidColor, laneFactor);
+      surfaceColor = mix(surfaceColor, uCoreColor, clamp(coreFactor, 0.0, 1.0));
+
+      // Hottest core maintains radiance even near limb; darker lanes darken strongly
+      float dynamicLimb = mix(limbFactor, 1.0, clamp(coreFactor * 0.65, 0.0, 1.0));
+      surfaceColor *= dynamicLimb;
 
       gl_FragColor = vec4(surfaceColor * uIntensity, 1.0);
     }

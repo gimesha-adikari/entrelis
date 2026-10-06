@@ -97,10 +97,10 @@ export function createCelestialObject(
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
-        midColor: 0xfef08a,
-        limbColor: 0xf59e0b,
-        limbDarkening: 0.35,
-        intensity: 1.55,
+        midColor: 0xfde047,
+        limbColor: 0x854d0e,
+        limbDarkening: 0.38,
+        intensity: 1.65,
       };
       baseRotationSpeed = (2 * Math.PI) / 85;
       coronaScale = 2.45;
@@ -109,26 +109,26 @@ export function createCelestialObject(
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
-        midColor: 0x67e8f9,
-        limbColor: 0x2563eb,
-        limbDarkening: 0.42,
-        intensity: 1.7,
+        midColor: 0xcffafe,
+        limbColor: 0x1e3a8a,
+        limbDarkening: 0.45,
+        intensity: 1.85,
       };
       baseRotationSpeed = (2 * Math.PI) / 65;
       coronaScale = 2.3;
     } else {
-      // ember-star
+      // ember-star (Ownership)
       starTex = createEmberStarTextures(seed, lod);
       shaderParams = {
         surfaceTexture: starTex.surface,
-        coreColor: 0xffedd5,
-        midColor: 0xf97316,
-        limbColor: 0x7f1d1d,
-        limbDarkening: 0.32,
-        intensity: 1.45,
+        coreColor: 0xfed7aa,
+        midColor: 0xea580c,
+        limbColor: 0x450a0a,
+        limbDarkening: 0.3,
+        intensity: 1.95,
       };
       baseRotationSpeed = (2 * Math.PI) / 95;
-      coronaScale = 2.5;
+      coronaScale = 2.4;
     }
 
     starShaderMaterial = createStarSurfaceMaterial(shaderParams);
@@ -230,8 +230,8 @@ export function createCelestialObject(
     geometriesToDispose.push(atmGeo);
     atmosphereMaterial = createAtmosphereMaterial({
       color: 0x38bdf8,
-      fresnelPower: 2.6,
-      intensity: 0.8,
+      fresnelPower: 3.2,
+      intensity: 1.15,
     });
     materialsToDispose.push(atmosphereMaterial);
     atmosphereShell = new THREE.Mesh(atmGeo, atmosphereMaterial);
@@ -309,8 +309,11 @@ export function createCelestialObject(
         metalnessMap: tex.metalness,
         roughnessMap: tex.roughness,
         bumpMap: tex.bump,
-        bumpScale: 1.4,
-        metalness: 0.9,
+        bumpScale: 1.1,
+        metalness: 0.68,
+        emissiveMap: tex.emissive,
+        emissive: 0x22d3ee,
+        emissiveIntensity: 1.25,
       });
       materialsToDispose.push(mat);
       primaryMesh = new THREE.Mesh(geo, mat);
@@ -323,8 +326,8 @@ export function createCelestialObject(
         map: tex.diffuse,
         roughnessMap: tex.roughness,
         bumpMap: tex.bump,
-        bumpScale: 1.5,
-        metalness: 0.05,
+        bumpScale: 1.2,
+        metalness: 0.08,
       });
       materialsToDispose.push(mat);
       primaryMesh = new THREE.Mesh(geo, mat);
@@ -335,9 +338,9 @@ export function createCelestialObject(
       const atmGeo = new THREE.SphereGeometry(radius * 1.018, sphereSegments.w, sphereSegments.h);
       geometriesToDispose.push(atmGeo);
       atmosphereMaterial = createAtmosphereMaterial({
-        color: 0xa5f3fc,
-        fresnelPower: 3.2,
-        intensity: 0.65,
+        color: 0x7dd3fc,
+        fresnelPower: 3.4,
+        intensity: 0.8,
       });
       materialsToDispose.push(atmosphereMaterial);
       atmosphereShell = new THREE.Mesh(atmGeo, atmosphereMaterial);

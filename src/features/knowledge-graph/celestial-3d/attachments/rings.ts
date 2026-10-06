@@ -8,7 +8,29 @@ import { createRingTexture } from "../procedural/textures";
  */
 export function createRingMesh(config: RingConfig, lod: GeometryLOD = "focus"): THREE.Mesh {
   const thetaSegments = lod === "context" ? 32 : lod === "primary" ? 48 : 64;
-  const geometry = new THREE.RingGeometry(config.innerRadius, config.outerRadius, thetaSegments, 4);
+  const phiSegments = 8;
+  const geometry = new THREE.RingGeometry(
+    config.innerRadius,
+    config.outerRadius,
+    thetaSegments,
+    phiSegments
+  );
+
+  // Remap RingGeometry planar UVs to parametric polar coordinates:
+  // u: radial fraction [0, 1] (inner to outer radius)
+  // v: angular fraction [0, 1] (0 to 2*PI circumference)
+  const uv = geometry.attributes.uv;
+  if (uv) {
+    for (let i = 0; i <= phiSegments; i++) {
+      const u = i / phiSegments;
+      for (let j = 0; j <= thetaSegments; j++) {
+        const v = j / thetaSegments;
+        const index = i * (thetaSegments + 1) + j;
+        uv.setXY(index, u, v);
+      }
+    }
+    uv.needsUpdate = true;
+  }
 
   const texture = createRingTexture(config);
 
@@ -21,8 +43,8 @@ export function createRingMesh(config: RingConfig, lod: GeometryLOD = "focus"): 
     side: THREE.DoubleSide,
     depthWrite: true,
     depthTest: true,
-    roughness: 0.85,
-    metalness: 0.1,
+    roughness: 0.82,
+    metalness: 0.08,
   });
 
   const mesh = new THREE.Mesh(geometry, material);
