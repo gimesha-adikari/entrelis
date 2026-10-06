@@ -82,6 +82,9 @@ npm install
 
 ## Status
 
-**M0.1 — Foundation initialized**
+**M1 — First interactive knowledge journey**
 
-Application baseline configured with Next.js App Router, strict TypeScript, design tokens, and testing.
+- Interactive knowledge graph powered by `d3-force` and custom high-DPI HTML5 2D Canvas.
+- First polished knowledge exploration path: **Rust → Ownership → Memory → Stack & Heap → Operating Systems → CPUs → Transistors**.
+- Dynamic Next.js App Router routes at `/` (Rust default) and `/concept/[slug]` with synchronized browser history and clean 404 handling.
+- Parallel semantic DOM representation with keyboard-accessible connection navigation, live region announcements, and authoritative bibliographic source disclosure.

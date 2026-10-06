@@ -24,7 +24,9 @@ describe("Entrelis Production Root Homepage", () => {
     ).toBeDefined();
 
     // Ownership connection is present
-    expect(screen.getByRole("button", { name: /Explore connected concept: Ownership/i })).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /Explore connected concept: Ownership/i })
+    ).toBeDefined();
     expect(screen.getByText(/--uses-->/)).toBeDefined();
   });
 

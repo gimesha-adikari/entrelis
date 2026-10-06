@@ -19,10 +19,10 @@ export default function KnowledgeGraphExperience({
   const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
 
   // Find the active concept, falling back cleanly to rust
-  const selectedConcept = useMemo<Concept>(() => {
+  const selectedConcept = useMemo<Concept | null>(() => {
     const found = dataset.concepts.find((c) => c.slug === selectedSlug);
     if (found) return found;
-    return dataset.concepts.find((c) => c.slug === "rust") || dataset.concepts[0];
+    return dataset.concepts.find((c) => c.slug === "rust") ?? dataset.concepts[0] ?? null;
   }, [dataset.concepts, selectedSlug]);
 
   // Synchronize selection changes with browser history and URL
@@ -78,11 +78,7 @@ export default function KnowledgeGraphExperience({
       />
 
       {/* Semantic Right / Lower Detail Panel */}
-      <ConceptPanel
-        concept={selectedConcept}
-        dataset={dataset}
-        onSelectConcept={selectConcept}
-      />
+      <ConceptPanel concept={selectedConcept} dataset={dataset} onSelectConcept={selectConcept} />
     </div>
   );
 }

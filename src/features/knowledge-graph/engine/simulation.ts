@@ -29,12 +29,7 @@ export function createGraphSimulation(
   links: GraphLink[],
   options: SimulationOptions = {}
 ): Simulation<GraphNode, GraphLink> {
-  const {
-    distance = 110,
-    chargeStrength = -240,
-    collideRadius = 35,
-    onTick,
-  } = options;
+  const { distance = 110, chargeStrength = -240, collideRadius = 35, onTick } = options;
 
   const sim = forceSimulation<GraphNode>(nodes)
     .force(

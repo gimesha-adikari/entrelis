@@ -5,7 +5,7 @@ import type { Concept, KnowledgeDataset, Relationship, Source } from "@/domain/k
 import styles from "./KnowledgeGraph.module.css";
 
 interface Props {
-  concept: Concept;
+  concept: Concept | null;
   dataset: KnowledgeDataset;
   onSelectConcept: (slug: string) => void;
 }
@@ -13,15 +13,27 @@ interface Props {
 export default function ConceptPanel({ concept, dataset, onSelectConcept }: Props) {
   // Find all relationships connected to this concept
   const connectedRelationships = useMemo<Relationship[]>(() => {
+    if (!concept) return [];
     return dataset.relationships.filter(
       (r) => r.sourceConceptId === concept.id || r.targetConceptId === concept.id
     );
-  }, [concept.id, dataset.relationships]);
+  }, [concept, dataset.relationships]);
 
   // Find all bibliographic sources referenced by this concept
   const conceptSources = useMemo<Source[]>(() => {
+    if (!concept) return [];
     return dataset.sources.filter((s) => concept.sourceIds.includes(s.id));
-  }, [concept.sourceIds, dataset.sources]);
+  }, [concept, dataset.sources]);
+
+  if (!concept) {
+    return (
+      <aside className={styles.detailPanel} aria-label="Selected Concept Details">
+        <p className={styles.conceptSummary}>No concept selected.</p>
+      </aside>
+    );
+  }
+
+  const primaryDomain = concept.domains[0];
 
   return (
     <aside className={styles.detailPanel} aria-label="Selected Concept Details">
@@ -31,24 +43,18 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
       </div>
 
       <div className={styles.panelScroll}>
-        {concept.domains.length > 0 && (
-          <span className={styles.categoryBadge}>
-            {concept.domains[0].replace(/-/g, " ")}
-          </span>
+        {primaryDomain && (
+          <span className={styles.categoryBadge}>{primaryDomain.replace(/-/g, " ")}</span>
         )}
 
         <h2 className={styles.conceptTitle}>{concept.name}</h2>
         <p className={styles.conceptSummary}>{concept.shortDescription}</p>
 
-        {concept.description && (
-          <p className={styles.conceptDescription}>{concept.description}</p>
-        )}
+        {concept.description && <p className={styles.conceptDescription}>{concept.description}</p>}
 
         {/* Semantic connection navigation */}
         <nav className={styles.connectionsNav} aria-label="Concept Connections">
-          <h3 className={styles.sectionHeading}>
-            Connections ({connectedRelationships.length})
-          </h3>
+          <h3 className={styles.sectionHeading}>Connections ({connectedRelationships.length})</h3>
 
           <ul className={styles.connectionsList}>
             {connectedRelationships.map((rel) => {
@@ -102,9 +108,7 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
         {/* Provenance and bibliographic sources disclosure */}
         {conceptSources.length > 0 && (
           <details className={styles.sourcesDisclosure}>
-            <summary className={styles.sourcesSummary}>
-              Sources · {conceptSources.length}
-            </summary>
+            <summary className={styles.sourcesSummary}>Sources · {conceptSources.length}</summary>
             <ul className={styles.sourcesList}>
               {conceptSources.map((source) => (
                 <li key={source.id} className={styles.sourceCard}>

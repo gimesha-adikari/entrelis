@@ -36,14 +36,12 @@ export default function GraphCanvas({
 
   const nodesRef = useRef<GraphNode[]>([]);
   const linksRef = useRef<GraphLink[]>([]);
-
-  // Find currently selected node based on slug
-  const selectedNode = useMemo<GraphNode | null>(() => {
+  // Find currently selected concept ID directly from dataset props without reading refs during render
+  const selectedNodeId = useMemo<string | null>(() => {
     if (!selectedConceptSlug) return null;
-    return nodesRef.current.find((n) => n.slug === selectedConceptSlug) || null;
-  }, [selectedConceptSlug]);
-
-  const selectedNodeId = selectedNode?.id || null;
+    const found = dataset.concepts.find((c) => c.slug === selectedConceptSlug);
+    return found ? found.id : null;
+  }, [dataset.concepts, selectedConceptSlug]);
 
   // Compute 1st-degree neighbors of selected concept
   const neighborIds = useMemo<Set<string>>(() => {
@@ -137,23 +135,13 @@ export default function GraphCanvas({
     animationFrameRef.current = requestAnimationFrame(animateRecenter);
   }, []);
 
-  // Initialize nodes and links for current dataset
-  const graphData = useMemo(() => createGraphData(dataset), [dataset]);
-  nodesRef.current = graphData.nodes;
-  linksRef.current = graphData.links;
-
-  // When selected concept changes, recenter camera smoothly
-  useEffect(() => {
-    if (!selectedConceptSlug) return;
-    const node = nodesRef.current.find((n) => n.slug === selectedConceptSlug);
-    if (node) {
-      recenterOnNode(node);
-    }
-  }, [selectedConceptSlug, recenterOnNode]);
-
   // Interaction state must not recreate the force simulation; selection and hover only redraw the existing coordinates.
   useEffect(() => {
-    const simulation = createGraphSimulation(graphData.nodes, graphData.links, {
+    const { nodes, links } = createGraphData(dataset);
+    nodesRef.current = nodes;
+    linksRef.current = links;
+
+    const simulation = createGraphSimulation(nodes, links, {
       onTick: () => {
         drawRef.current();
       },
@@ -187,7 +175,16 @@ export default function GraphCanvas({
         animationFrameRef.current = null;
       }
     };
-  }, [dataset, graphData]);
+  }, [dataset]);
+
+  // When selected concept changes, recenter camera smoothly
+  useEffect(() => {
+    if (!selectedConceptSlug) return;
+    const node = nodesRef.current.find((n) => n.slug === selectedConceptSlug);
+    if (node) {
+      recenterOnNode(node);
+    }
+  }, [selectedConceptSlug, recenterOnNode]);
 
   // Redraw canvas when selection or hover state changes without touching physics
   useEffect(() => {

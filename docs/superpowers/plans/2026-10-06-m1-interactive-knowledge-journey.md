@@ -11,6 +11,7 @@
 **Spec:** Linear task GIM-16 / User prompt specifications.
 
 ## Global Constraints
+
 - Target Node.js version: `>=22.12.0 <23`.
 - Relationship direction invariant: `SOURCE --TYPE--> TARGET`.
 - Simulation lifecycle invariant: Interaction state must not recreate the force simulation; selection and hover only redraw existing coordinates.
@@ -21,6 +22,7 @@
 - Zero console errors and warnings.
 
 ## Review Focus
+
 1. **Direct Route Initialization:** Direct loading of `/concept/rust`, `/concept/ownership`, or `/concept/memory` initializes the graph with that concept focused and centered without requiring prior navigation from `/`.
 2. **Not-Found Enforcement:** Invalid concept slug (e.g. `/concept/definitely-not-a-real-concept`) triggers Next.js `notFound()` and displays a styled 404 page rather than silently defaulting or crashing.
 3. **Browser History Synchronization:** Selecting concepts updates the URL to `/concept/<slug>` via `window.history.pushState` / router without full page reloads; browser Back and Forward (`popstate`) accurately restore the focused concept and recenter the camera.
@@ -73,11 +75,13 @@ src/
 ### Task 1: Domain Types and Graph Adapter
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/types.ts`
 - Create: `src/features/knowledge-graph/adapters/graph-adapter.ts`
 - Create: `src/features/knowledge-graph/adapters/graph-adapter.test.ts`
 
 **Interfaces:**
+
 - Consumes: `KnowledgeDataset`, `Concept`, `Relationship` from `@/domain/knowledge/types`
 - Produces: `GraphNode`, `GraphLink`, `GraphData`, `ViewportTransform`, `CanvasRenderOptions`, `createGraphData`
 
@@ -211,10 +215,12 @@ git commit -m "feat(graph): add production graph domain types and data adapter"
 ### Task 2: Simulation Engine and Invariant Protection
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/engine/simulation.ts`
 - Create: `src/features/knowledge-graph/engine/simulation.test.ts`
 
 **Interfaces:**
+
 - Consumes: `GraphNode`, `GraphLink`, `GraphData` from `../types`
 - Produces: `createGraphSimulation`, `stopSimulation`
 
@@ -277,12 +283,7 @@ export function createGraphSimulation(
   links: GraphLink[],
   options: SimulationOptions = {}
 ): Simulation<GraphNode, GraphLink> {
-  const {
-    distance = 110,
-    chargeStrength = -240,
-    collideRadius = 35,
-    onTick,
-  } = options;
+  const { distance = 110, chargeStrength = -240, collideRadius = 35, onTick } = options;
 
   const sim = forceSimulation<GraphNode>(nodes)
     .force(
@@ -320,11 +321,13 @@ git commit -m "feat(graph): add physics simulation engine with configurable forc
 ### Task 3: High-DPI Canvas Rendering and Hit-Testing
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/rendering/canvas-renderer.ts`
 - Create: `src/features/knowledge-graph/rendering/hit-test.ts`
 - Create: `src/features/knowledge-graph/rendering/canvas-renderer.test.ts`
 
 **Interfaces:**
+
 - Consumes: `GraphNode`, `GraphLink`, `GraphData`, `ViewportTransform`, `CanvasRenderOptions`
 - Produces: `renderGraphCanvas`, `hitTestNode`
 
@@ -570,10 +573,12 @@ git commit -m "feat(graph): add high-DPI canvas renderer and hit-testing engine"
 ### Task 4: Interactive GraphCanvas Component
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/components/GraphCanvas.tsx`
 - Modify: `src/features/knowledge-graph/components/KnowledgeGraph.module.css`
 
 **Interfaces:**
+
 - Consumes: `GraphData`, `ViewportTransform`, `renderGraphCanvas`, `hitTestNode`
 - Produces: `GraphCanvas` component
 
@@ -597,10 +602,12 @@ git commit -m "feat(graph): add interactive GraphCanvas component with gesture a
 ### Task 5: Semantic Concept Detail Panel & Provenance UI
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/components/ConceptPanel.tsx`
 - Modify: `src/features/knowledge-graph/components/KnowledgeGraph.module.css`
 
 **Interfaces:**
+
 - Consumes: `Concept`, `Relationship`, `Source`, `KnowledgeDataset`
 - Produces: `ConceptPanel` component
 
@@ -629,11 +636,13 @@ git commit -m "feat(graph): add semantic concept detail panel with connections a
 ### Task 6: KnowledgeGraphExperience Coordinator & Browser History Sync
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/components/KnowledgeGraphExperience.tsx`
 - Create: `src/features/knowledge-graph/index.ts`
 - Modify: `src/features/knowledge-graph/components/KnowledgeGraph.module.css`
 
 **Interfaces:**
+
 - Consumes: `KnowledgeDataset`, `GraphCanvas`, `ConceptPanel`
 - Produces: `KnowledgeGraphExperience` component
 - Behavior:
@@ -655,6 +664,7 @@ git commit -m "feat(graph): add KnowledgeGraphExperience coordinator with URL an
 ### Task 7: Production App Routes (`/` and `/concept/[slug]`) and 404 Page
 
 **Files:**
+
 - Modify: `src/app/page.tsx`
 - Create: `src/app/concept/[slug]/page.tsx`
 - Create: `src/app/not-found.tsx`
@@ -662,6 +672,7 @@ git commit -m "feat(graph): add KnowledgeGraphExperience coordinator with URL an
 - Modify: `src/app/page.test.tsx`
 
 **Interfaces:**
+
 - Server Components resolving concepts from `SEED_DATASET`.
 - `page.tsx` renders `<KnowledgeGraphExperience initialSlug="rust" />`.
 - `concept/[slug]/page.tsx` parses async `params.slug`:
@@ -683,6 +694,7 @@ git commit -m "feat(app): configure production routes for root, concept slugs, a
 ### Task 8: Cleanup Spike Routes & Migrate Synthetic Benchmarks
 
 **Files:**
+
 - Remove: `src/app/spike/` (all 4 spike pages, layout, and CSS)
 - Remove: `src/spike/components/` (old spike prototype component and tests)
 - Migrate / Retain: `src/benchmark/benchmark.test.ts` and `src/benchmark/generator.ts` (retaining the O(n log n) Barnes-Hut benchmark test)
@@ -703,10 +715,12 @@ git commit -m "refactor(cleanup): remove temporary spike routes and migrate benc
 ### Task 9: Comprehensive Feature Tests
 
 **Files:**
+
 - Create: `src/features/knowledge-graph/__tests__/KnowledgeGraph.test.tsx`
 - Create: `src/features/knowledge-graph/__tests__/routes.test.tsx`
 
 **Coverage:**
+
 - Root resolves to Rust selection.
 - Route `/concept/ownership` and `/concept/memory` load with correct concept.
 - Invalid concept slug triggers `notFound()`.
@@ -731,6 +745,7 @@ git commit -m "test(graph): add comprehensive integration, lifecycle, and route 
 ### Task 10: Documentation & Validation
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `docs/PLAN.md`
 

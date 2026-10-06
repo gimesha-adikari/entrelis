@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import * as d3Force from "d3-force";
 import KnowledgeGraphExperience from "../components/KnowledgeGraphExperience";
 import { SEED_DATASET } from "@/data/seed";
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hitTestNode } from "./hit-test";
+import { SEED_DATASET } from "@/data/seed";
 import type { GraphNode } from "../types";
 
 describe("hitTestNode", () => {
@@ -7,7 +8,7 @@ describe("hitTestNode", () => {
     id: "concept-rust",
     slug: "rust",
     name: "Rust",
-    concept: {} as any,
+    concept: SEED_DATASET.concepts[0]!,
     x: 0,
     y: 0,
   };
