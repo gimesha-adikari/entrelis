@@ -8,6 +8,7 @@ import {
   createMineralDesertTextures,
   createLifeWorldTextures,
   createBlueAtmosphericTexture,
+  createBlueAtmosphericCloudTexture,
   createStormGiantTexture,
   createMetallicWorldTextures,
   createCrystalWorldTextures,
@@ -269,49 +270,66 @@ export function createCelestialObject(
       const tex = createBlueAtmosphericTexture(seed, lod);
       const mat = new THREE.MeshStandardMaterial({
         map: tex,
-        roughness: 0.85,
-        metalness: 0.05,
+        roughness: 0.88,
+        metalness: 0.04,
       });
       materialsToDispose.push(mat);
       primaryMesh = new THREE.Mesh(geo, mat);
       tiltZ = 0.14; // 8°
-      baseRotationSpeed = (2 * Math.PI) / 48;
+      baseRotationSpeed = (2 * Math.PI) / 56; // 56s/rev
 
-      // Atmosphere Shell
+      // Upper Cloud Shell (differential rotation ~1.14x speed)
+      const cloudGeo = new THREE.SphereGeometry(radius * 1.012, sphereSegments.w, sphereSegments.h);
+      geometriesToDispose.push(cloudGeo);
+      const cloudTex = createBlueAtmosphericCloudTexture(seed, lod);
+      const cloudMat = new THREE.MeshStandardMaterial({
+        map: cloudTex,
+        transparent: true,
+        opacity: 0.75,
+        roughness: 0.9,
+        depthWrite: false,
+      });
+      materialsToDispose.push(cloudMat);
+      cloudShell = new THREE.Mesh(cloudGeo, cloudMat);
+      cloudShell.rotation.z = tiltZ;
+      cloudRotationSpeed = (2 * Math.PI) / 49;
+      group.add(cloudShell);
+
+      // Atmosphere Shell (calm soft limb scattering, not glowing)
       const atmGeo = new THREE.SphereGeometry(radius * 1.025, sphereSegments.w, sphereSegments.h);
       geometriesToDispose.push(atmGeo);
       atmosphereMaterial = createAtmosphereMaterial({
-        color: 0x60a5fa,
-        fresnelPower: 2.7,
-        intensity: 0.85,
+        color: 0x38bdf8,
+        fresnelPower: 3.2,
+        intensity: 0.58,
       });
       materialsToDispose.push(atmosphereMaterial);
       atmosphereShell = new THREE.Mesh(atmGeo, atmosphereMaterial);
-      atmosphereRotationSpeed = (2 * Math.PI) / 42;
+      atmosphereRotationSpeed = (2 * Math.PI) / 50;
     } else {
       // storm-giant
       const tex = createStormGiantTexture(seed, lod);
       const mat = new THREE.MeshStandardMaterial({
         map: tex,
-        roughness: 0.8,
-        metalness: 0.05,
+        roughness: 0.82,
+        metalness: 0.04,
       });
       materialsToDispose.push(mat);
       primaryMesh = new THREE.Mesh(geo, mat);
       tiltZ = 0.21; // 12°
-      baseRotationSpeed = (2 * Math.PI) / 40;
+      baseRotationSpeed = (2 * Math.PI) / 48; // 48s/rev
 
-      // Warm peach/gold Atmosphere Shell
+      // Warm peach/gold Atmosphere Shell (subtle limb scattering)
       const atmGeo = new THREE.SphereGeometry(radius * 1.026, sphereSegments.w, sphereSegments.h);
       geometriesToDispose.push(atmGeo);
       atmosphereMaterial = createAtmosphereMaterial({
         color: 0xfde047,
-        fresnelPower: 2.8,
-        intensity: 0.7,
+        fresnelPower: 3.0,
+        intensity: 0.55,
       });
       materialsToDispose.push(atmosphereMaterial);
       atmosphereShell = new THREE.Mesh(atmGeo, atmosphereMaterial);
-      atmosphereRotationSpeed = (2 * Math.PI) / 35;
+      atmosphereRotationSpeed = (2 * Math.PI) / 44;
     }
 
     primaryMesh.rotation.z = tiltZ;
@@ -404,6 +422,13 @@ export function createCelestialObject(
     ringMesh = createRingMesh(identity.rings, lod);
     geometriesToDispose.push(ringMesh.geometry);
     materialsToDispose.push(ringMesh.material as THREE.Material);
+    for (const child of ringMesh.children) {
+      const meshChild = child as THREE.Mesh;
+      if (meshChild.isMesh) {
+        geometriesToDispose.push(meshChild.geometry);
+        materialsToDispose.push(meshChild.material as THREE.Material);
+      }
+    }
     group.add(ringMesh);
   }
 

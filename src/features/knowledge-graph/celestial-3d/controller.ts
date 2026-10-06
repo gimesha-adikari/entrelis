@@ -267,6 +267,18 @@ export class Celestial3DController {
       return;
     }
 
+    if (count === 5) {
+      // Single horizontal row of 5 items for side-by-side comparison row (e.g. 84px comparison row)
+      const spacingX = Math.min(220, (this.width * 0.9) / 5);
+      for (let i = 0; i < 5; i++) {
+        const x = (i - 2) * spacingX;
+        const entry = this.activeEntries[i]!;
+        entry.basePosition.set(x, 0, 0);
+        entry.body.group.position.copy(entry.basePosition);
+      }
+      return;
+    }
+
     if (count === 6) {
       // 2x3 layout (3 top row, 3 bottom row) - ideal for scale comparison
       const spacingX = Math.min(270, this.width * 0.31);

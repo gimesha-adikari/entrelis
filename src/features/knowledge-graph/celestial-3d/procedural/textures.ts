@@ -1318,7 +1318,7 @@ export function createBlueAtmosphericTexture(
   seed: number,
   lod: GeometryLOD = "focus"
 ): THREE.CanvasTexture {
-  const key = `gas:blue:${seed}:${lod}`;
+  const key = `gas:blue:surface:${seed}:${lod}`;
   let texture = textureCache.get(key);
   if (texture) return texture;
 
@@ -1332,8 +1332,9 @@ export function createBlueAtmosphericTexture(
     const img = ctx.createImageData(width, height);
     const data = img.data;
     const warpNoise = createNoise3D(seed);
-    const turbNoise = createNoise3D(seed + 101);
-    const vortexNoise = createNoise3D(seed + 202);
+    const shearNoise = createNoise3D(seed + 107);
+    const eddyNoise = createNoise3D(seed + 219);
+    const accentNoise = createNoise3D(seed + 331);
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
@@ -1346,53 +1347,111 @@ export function createBlueAtmosphericTexture(
         const py = cosPhi;
         const pz = sinPhi * Math.sin(theta);
 
-        // Unequal band widths & local longitudinal distortion:
-        // 1. Large-scale 3D domain warping to break horizontal uniformity
-        const warp = domainWarp3D(warpNoise, px * 2.2, py * 2.2, pz * 2.2, 0.65);
-        const latDistorted = py + warp * 0.22;
+        // 1. Broad Fluid Domain Warping (calm, low-frequency 3D distortion)
+        const wx = fbm3D(warpNoise, px * 1.3, py * 1.3, pz * 1.3, 3) * 0.32;
+        const wy = fbm3D(warpNoise, px * 1.3 + 3.1, py * 1.3 + 1.7, pz * 1.3 + 5.2, 3) * 0.22;
+        const wz = fbm3D(warpNoise, px * 1.3 + 1.4, py * 1.3 + 4.6, pz * 1.3 + 2.8, 3) * 0.32;
+        const qx = px + wx;
+        const qy = py + wy;
+        const qz = pz + wz;
 
-        // 2. Non-linear, multi-scale harmonic belts with unequal widths
-        const belt1 = Math.sin(latDistorted * 15.0 + 0.4);
-        const belt2 = Math.sin(latDistorted * 32.0 - 1.2) * 0.45;
-        const belt3 = Math.sin(latDistorted * 7.5 + 2.1) * 0.65;
-        const baseBelts = (belt1 + belt2 + belt3) * 0.35 + 0.5;
+        // 2. Unequal, Calm Latitudinal Zones (polar hoods, calm temperate zones, undulating tropical currents)
+        // Polar hoods: calm deep abyssal navy near poles
+        const absLat = Math.abs(qy);
+        const polarHood = smoothstep(0.62, 0.92, absLat);
 
-        // 3. Local turbulent shear & vortex eddies
-        const shear = fbm3D(turbNoise, px * 5.0 + py * 1.5, py * 5.0, pz * 5.0, 4) * 0.35;
-        const vortex = ridgedFbm3D(vortexNoise, px * 3.2, py * 3.2, pz * 3.2, 3) * 0.25;
+        // Undulating jet-stream currents with unequal widths (NOT regular periodic sines)
+        const current1 = Math.exp(-Math.pow((qy - 0.22) / 0.16, 2)); // North tropical current
+        const current2 = Math.exp(-Math.pow((qy + 0.26) / 0.18, 2)); // South tropical current
+        const current3 = Math.exp(-Math.pow((qy - 0.52) / 0.14, 2)); // North temperate band
+        const current4 = Math.exp(-Math.pow((qy + 0.56) / 0.15, 2)); // South temperate band
+        const current5 = Math.exp(-Math.pow(qy / 0.12, 2)) * 0.85; // Equatorial calm zone
 
-        const val = clamp(baseBelts + shear + vortex, 0, 1);
+        // Longitudinal wave perturbation to make bands bend and drift naturally
+        const waveUndulation =
+          Math.sin(theta * 3.0 + wx * 2.0) * 0.14 + Math.cos(theta * 5.0 - wz * 1.5) * 0.08;
 
-        // Palette:
-        // Deep abyssal navy (14, 24, 75)
-        // Mid azure/cobalt (24, 85, 175)
-        // Vivid cyan jet-streams (45, 195, 235)
-        // Radiant pale turquoise/white cirrus (185, 242, 255)
-        // Plus subtle violet shear lanes (80, 50, 140)
-        let r: number, g: number, b: number;
-        if (val < 0.3) {
-          const t = val / 0.3;
-          r = lerp(14, 24, t);
-          g = lerp(24, 85, t);
-          b = lerp(75, 175, t);
-        } else if (val < 0.72) {
-          const t = (val - 0.3) / 0.42;
-          r = lerp(24, 45, t);
-          g = lerp(85, 195, t);
-          b = lerp(175, 235, t);
+        const beltField = clamp(
+          current1 * 0.95 +
+            current2 * 0.9 +
+            current3 * 0.75 +
+            current4 * 0.7 +
+            current5 * 0.6 +
+            waveUndulation * (1.0 - polarHood),
+          0,
+          1
+        );
+
+        // 3. Delicate Shear Boundaries & Swirling Eddies between belts
+        const shear = fbm3D(shearNoise, qx * 3.6, qy * 3.6, qz * 3.6, 3) * 0.22;
+        const eddy = ridgedFbm3D(eddyNoise, qx * 4.2, qy * 4.2, qz * 4.2, 3) * 0.14;
+
+        // Effective atmospheric level
+        const atmLevel = clamp((beltField * 0.68 + shear + eddy) * (1.0 - polarHood * 0.8), 0, 1);
+
+        // 4. Subtle sparse cyan streamer accent (only at fastest shear peaks)
+        const accentPeak = smoothstep(
+          0.72,
+          0.92,
+          fbm01(accentNoise, qx * 5.5, qy * 5.5, qz * 5.5, 2) * (1.0 - polarHood)
+        );
+
+        // 5. Calm, Deep Cinematic Palette
+        // Abyssal navy: rgb(14, 26, 62)
+        // Deep slate blue: rgb(28, 54, 98)
+        // Slate blue midtone: rgb(44, 88, 138)
+        // Muted cyan-gray: rgb(68, 138, 178)
+        // Pale cloud blue: rgb(145, 195, 228)
+        // Bright cyan accent: rgb(56, 189, 248)
+        const navyR = 14,
+          navyG = 26,
+          navyB = 62;
+        const slateDeepR = 28,
+          slateDeepG = 54,
+          slateDeepB = 98;
+        const slateMidR = 44,
+          slateMidG = 88,
+          slateMidB = 138;
+        const cyanMutedR = 68,
+          cyanMutedG = 138,
+          cyanMutedB = 178;
+        const cloudPaleR = 145,
+          cloudPaleG = 195,
+          cloudPaleB = 228;
+        const accentCyanR = 56,
+          accentCyanG = 189,
+          accentCyanB = 248;
+
+        let r = 0,
+          g = 0,
+          b = 0;
+        if (atmLevel < 0.25) {
+          const t = atmLevel / 0.25;
+          r = lerp(navyR, slateDeepR, t);
+          g = lerp(navyG, slateDeepG, t);
+          b = lerp(navyB, slateDeepB, t);
+        } else if (atmLevel < 0.6) {
+          const t = (atmLevel - 0.25) / 0.35;
+          r = lerp(slateDeepR, slateMidR, t);
+          g = lerp(slateDeepG, slateMidG, t);
+          b = lerp(slateDeepB, slateMidB, t);
+        } else if (atmLevel < 0.85) {
+          const t = (atmLevel - 0.6) / 0.25;
+          r = lerp(slateMidR, cyanMutedR, t);
+          g = lerp(slateMidG, cyanMutedG, t);
+          b = lerp(slateMidB, cyanMutedB, t);
         } else {
-          const t = (val - 0.72) / 0.28;
-          r = lerp(45, 195, t);
-          g = lerp(195, 245, t);
-          b = lerp(235, 255, t);
+          const t = (atmLevel - 0.85) / 0.15;
+          r = lerp(cyanMutedR, cloudPaleR, t);
+          g = lerp(cyanMutedG, cloudPaleG, t);
+          b = lerp(cyanMutedB, cloudPaleB, t);
         }
 
-        // Violet shear tint where turbulence is concentrated
-        if (Math.abs(shear) > 0.22) {
-          const violetFactor = clamp((Math.abs(shear) - 0.22) * 2.5, 0, 0.4);
-          r = lerp(r, 95, violetFactor);
-          g = lerp(g, 55, violetFactor);
-          b = lerp(b, 150, violetFactor);
+        // Apply sparse bright cyan jet accent
+        if (accentPeak > 0.05) {
+          r = lerp(r, accentCyanR, accentPeak * 0.45);
+          g = lerp(g, accentCyanG, accentPeak * 0.45);
+          b = lerp(b, accentCyanB, accentPeak * 0.45);
         }
 
         const idx = (y * width + x) * 4;
@@ -1400,6 +1459,68 @@ export function createBlueAtmosphericTexture(
         data[idx + 1] = Math.floor(g);
         data[idx + 2] = Math.floor(b);
         data[idx + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  textureCache.set(key, texture);
+  return texture;
+}
+
+/**
+ * Creates subtle upper cloud haze / cirrus wisps for Blue Atmospheric world.
+ * Allows differential rotation and delicate upper atmospheric depth.
+ */
+export function createBlueAtmosphericCloudTexture(
+  seed: number,
+  lod: GeometryLOD = "focus"
+): THREE.CanvasTexture {
+  const key = `gas:blue:clouds:${seed}:${lod}`;
+  let texture = textureCache.get(key);
+  if (texture) return texture;
+
+  const { width, height } = getResolution(lod);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  if (ctx) {
+    const img = ctx.createImageData(width, height);
+    const data = img.data;
+    const cirrusNoise = createNoise3D(seed + 419);
+    const wispNoise = createNoise3D(seed + 523);
+
+    for (let y = 0; y < height; y++) {
+      const phi = (y / height) * Math.PI;
+      const sinPhi = Math.sin(phi);
+      const cosPhi = Math.cos(phi);
+
+      for (let x = 0; x < width; x++) {
+        const theta = (x / width) * 2 * Math.PI;
+        const px = sinPhi * Math.cos(theta);
+        const py = cosPhi;
+        const pz = sinPhi * Math.sin(theta);
+
+        // Delicate elongated cirrus wisps along jet-stream lines
+        const cirrus = fbm01(cirrusNoise, px * 2.8, py * 5.2, pz * 2.8, 3);
+        const wisps = ridgedFbm3D(wispNoise, px * 4.5, py * 4.5, pz * 4.5, 2) * 0.4;
+        const density = cirrus * 0.7 + wisps * 0.3;
+
+        // Cloud coverage: mostly transparent (65%+ clear sky)
+        const alpha = clamp(smoothstep(0.56, 0.78, density) * 0.65, 0, 1);
+
+        const idx = (y * width + x) * 4;
+        // Soft white / pale azure cirrus
+        data[idx] = 228;
+        data[idx + 1] = 242;
+        data[idx + 2] = 255;
+        data[idx + 3] = Math.floor(alpha * 255);
       }
     }
     ctx.putImageData(img, 0, 0);
@@ -1434,95 +1555,224 @@ export function createStormGiantTexture(
     const vortexNoise = createNoise3D(seed + 88);
     const stormNoise = createNoise3D(seed + 144);
 
-    // Great Storm Oval coordinates: Southern tropical belt
-    const stormTheta = 1.65; // ~94° longitude
+    // 1. Primary Great Storm Vortex Coordinates: Southern tropical belt
+    const stormTheta = 1.68; // ~96° longitude
     const stormPy = -0.28; // Southern hemisphere latitude
+    const stormA = 0.38; // Longitudinal semi-axis
+    const stormB = 0.17; // Latitudinal semi-axis
 
-    // Secondary smaller storm eddy: Northern temperate belt
-    const secTheta = 4.2;
-    const secPy = 0.38;
+    // 2. Deterministic Secondary Vortices:
+    // Eddy 1: North temperate white anticyclone
+    const sec1Theta = 4.22;
+    const sec1Py = 0.34;
+    const sec1A = 0.2;
+    const sec1B = 0.1;
+
+    // Eddy 2: South subpolar dark cyclone
+    const sec2Theta = 5.78;
+    const sec2Py = -0.46;
+    const sec2A = 0.16;
+    const sec2B = 0.09;
+
+    // Eddy 3: North tropical tawny eddy
+    const sec3Theta = 0.78;
+    const sec3Py = 0.18;
+    const sec3A = 0.15;
+    const sec3B = 0.08;
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
-      const sinPhi = Math.sin(phi);
       const cosPhi = Math.cos(phi);
 
       for (let x = 0; x < width; x++) {
         const theta = (x / width) * 2 * Math.PI;
-        const px = sinPhi * Math.cos(theta);
         const py = cosPhi;
-        const pz = sinPhi * Math.sin(theta);
 
-        // 1. Great Storm Oval distance & streamline deflection
-        let dTheta = theta - stormTheta;
-        if (dTheta > Math.PI) dTheta -= 2 * Math.PI;
-        if (dTheta < -Math.PI) dTheta -= 2 * Math.PI;
+        // -------------------------------------------------------------
+        // FLOW-FIELD STREAMLINE DEFLECTION (EMBEDDED VORTEX DYNAMICS)
+        // -------------------------------------------------------------
 
-        const stormDx = dTheta * 1.8;
-        const stormDy = (py - stormPy) * 3.2;
-        const stormDist = Math.sqrt(stormDx * stormDx + stormDy * stormDy);
+        // 1. Great Storm Flow Field
+        const dTheta0 = Math.atan2(Math.sin(theta - stormTheta), Math.cos(theta - stormTheta));
+        const dy0 = py - stormPy;
+        const stormDist = Math.sqrt(
+          Math.pow((dTheta0 * Math.cos(stormPy)) / stormA, 2) + Math.pow(dy0 / stormB, 2)
+        );
 
-        // Streamlines deform visibly around the storm boundary
-        const deflection =
-          (1.0 - smoothstep(0.0, 1.35, stormDist)) * 0.18 * (py >= stormPy ? 1.0 : -1.0);
-        const deformedPy = py + deflection;
+        // Vector streamline deflection: jets divert smoothly around the storm perimeter
+        const stormInfluence = Math.exp(-Math.pow(stormDist / 1.45, 1.8));
+        const latSplitSign = Math.tanh(dy0 / 0.07);
+        const deflectionY0 = latSplitSign * stormInfluence * 0.22;
 
-        // 2. Secondary storm eddy distance
-        let dSecTheta = theta - secTheta;
-        if (dSecTheta > Math.PI) dSecTheta -= 2 * Math.PI;
-        if (dSecTheta < -Math.PI) dSecTheta += 2 * Math.PI;
-        const secDist = Math.sqrt(dSecTheta * dSecTheta * 2.2 + (py - secPy) * (py - secPy) * 4.0);
+        // Cyclonic azimuthal curling around storm core
+        const stormAngle = Math.atan2(dy0 * 2.2, dTheta0);
+        const curlTheta0 = -Math.sin(stormAngle) * stormInfluence * 0.32;
+        const curlY0 = Math.cos(stormAngle) * stormInfluence * 0.14;
 
-        // 3. Multi-harmonic non-parallel belts across deformed coordinates
-        const belt1 = Math.sin(deformedPy * 18.0 + 0.3);
-        const belt2 = Math.sin(deformedPy * 36.0 - 0.8) * 0.5;
-        const belt3 = Math.sin(deformedPy * 9.0 + 1.6) * 0.6;
+        // Trailing turbulent wake downstream of the storm (positive dTheta0)
+        let stormWake = 0;
+        if (dTheta0 > 0 && dTheta0 < 1.6) {
+          const wakeEnvelope =
+            Math.exp(-Math.pow(dy0 / 0.14, 2)) * Math.exp(-Math.pow((dTheta0 - 0.6) / 0.8, 2));
+          stormWake = Math.sin(dTheta0 * 12.0) * wakeEnvelope * 0.11;
+        }
+
+        // 2. Secondary Vortex Streamline Deflections
+        // Eddy 1
+        const dTheta1 = Math.atan2(Math.sin(theta - sec1Theta), Math.cos(theta - sec1Theta));
+        const dy1 = py - sec1Py;
+        const dist1 = Math.sqrt(
+          Math.pow((dTheta1 * Math.cos(sec1Py)) / sec1A, 2) + Math.pow(dy1 / sec1B, 2)
+        );
+        const defY1 = Math.tanh(dy1 / 0.06) * Math.exp(-Math.pow(dist1 / 1.3, 2)) * 0.08;
+
+        // Eddy 2
+        const dTheta2 = Math.atan2(Math.sin(theta - sec2Theta), Math.cos(theta - sec2Theta));
+        const dy2 = py - sec2Py;
+        const dist2 = Math.sqrt(
+          Math.pow((dTheta2 * Math.cos(sec2Py)) / sec2A, 2) + Math.pow(dy2 / sec2B, 2)
+        );
+        const defY2 = Math.tanh(dy2 / 0.06) * Math.exp(-Math.pow(dist2 / 1.3, 2)) * 0.07;
+
+        // Eddy 3
+        const dTheta3 = Math.atan2(Math.sin(theta - sec3Theta), Math.cos(theta - sec3Theta));
+        const dy3 = py - sec3Py;
+        const dist3 = Math.sqrt(
+          Math.pow((dTheta3 * Math.cos(sec3Py)) / sec3A, 2) + Math.pow(dy3 / sec3B, 2)
+        );
+        const defY3 = Math.tanh(dy3 / 0.06) * Math.exp(-Math.pow(dist3 / 1.3, 2)) * 0.06;
+
+        // Deformed coordinates: streamlines wrap and curl organically
+        const deformedPy = clamp(
+          py + deflectionY0 + curlY0 + stormWake + defY1 + defY2 + defY3,
+          -0.98,
+          0.98
+        );
+        const deformedTheta = theta + curlTheta0;
+
+        const defSinPhi = Math.sqrt(Math.max(0.001, 1.0 - deformedPy * deformedPy));
+        const defPx = defSinPhi * Math.cos(deformedTheta);
+        const defPz = defSinPhi * Math.sin(deformedTheta);
+
+        // -------------------------------------------------------------
+        // BELTS & SHEAR TURBULENCE ON DEFORMED COORDINATES
+        // -------------------------------------------------------------
+
+        // Multi-harmonic non-parallel belts across the warped streamlines
+        const belt1 = Math.sin(deformedPy * 17.0 + 0.35);
+        const belt2 = Math.sin(deformedPy * 34.0 - 0.85) * 0.45;
+        const belt3 = Math.sin(deformedPy * 8.5 + 1.7) * 0.6;
         const baseBelts = (belt1 + belt2 + belt3) * 0.35 + 0.5;
 
-        // 4. Shear turbulence & boundary interactions
-        const shear = fbm3D(bandNoise, px * 5.2, deformedPy * 5.2, pz * 5.2, 4) * 0.35;
-        const vortex = ridgedFbm3D(vortexNoise, px * 3.0, py * 3.0, pz * 3.0, 3) * 0.2;
+        // Shear turbulence & boundary interactions along deformed streamlines
+        const shear = fbm3D(bandNoise, defPx * 4.6, deformedPy * 4.6, defPz * 4.6, 4) * 0.32;
+        const vortex =
+          ridgedFbm3D(vortexNoise, defPx * 3.2, deformedPy * 3.2, defPz * 3.2, 3) * 0.18;
 
         const val = clamp(baseBelts + shear + vortex, 0, 1);
 
-        // 5. Palette: Warm tawny, mocha, peach, cream, amber
-        let r = lerp(228, 95, val);
-        let g = lerp(178, 62, val);
-        let b = lerp(130, 48, val);
+        // -------------------------------------------------------------
+        // PALETTE: WARM CINEMATIC TAWNY, RUST, MOCHA, PEACH, CREAM
+        // -------------------------------------------------------------
+        // Deep mocha / umber dark belt: rgb(82, 52, 36)
+        // Rich rust / chestnut: rgb(138, 78, 48)
+        // Warm tawny midtone: rgb(182, 128, 86)
+        // Pale golden peach: rgb(222, 178, 134)
+        // Ammonia cream clouds: rgb(248, 236, 216)
+        const mochaR = 82,
+          mochaG = 52,
+          mochaB = 36;
+        const rustR = 138,
+          rustG = 78,
+          rustB = 48;
+        const tawnyR = 182,
+          tawnyG = 128,
+          tawnyB = 86;
+        const peachR = 222,
+          peachG = 178,
+          peachB = 134;
+        const creamR = 248,
+          creamG = 236,
+          creamB = 216;
 
-        // Ammonia cloud deck highlights
-        if (val > 0.72) {
-          const t = (val - 0.72) / 0.28;
-          r = lerp(r, 248, t);
-          g = lerp(g, 230, t);
-          b = lerp(b, 205, t);
+        let r: number, g: number, b: number;
+        if (val < 0.28) {
+          const t = val / 0.28;
+          r = lerp(mochaR, rustR, t);
+          g = lerp(mochaG, rustG, t);
+          b = lerp(mochaB, rustB, t);
+        } else if (val < 0.65) {
+          const t = (val - 0.28) / 0.37;
+          r = lerp(rustR, tawnyR, t);
+          g = lerp(rustG, tawnyG, t);
+          b = lerp(rustB, tawnyB, t);
+        } else if (val < 0.88) {
+          const t = (val - 0.65) / 0.23;
+          r = lerp(tawnyR, peachR, t);
+          g = lerp(tawnyG, peachG, t);
+          b = lerp(tawnyB, peachB, t);
+        } else {
+          const t = (val - 0.88) / 0.12;
+          r = lerp(peachR, creamR, t);
+          g = lerp(peachG, creamG, t);
+          b = lerp(peachB, creamB, t);
         }
 
-        // 6. Great Storm Oval internal cyclonic spiraling core
-        if (stormDist < 0.95) {
-          const stormMask = 1.0 - smoothstep(0.15, 0.95, stormDist);
-          const stormAngle = Math.atan2(stormDy, stormDx);
+        // -------------------------------------------------------------
+        // EMBEDDED STORM EYE & EDDY CORES
+        // -------------------------------------------------------------
+
+        // Great Storm Internal Cyclonic Spiraling Core
+        if (stormDist < 1.15) {
+          const stormMask = 1.0 - smoothstep(0.2, 1.12, stormDist);
           const spiral = Math.sin(
-            stormDist * 16.0 - stormAngle * 2.5 + fbm3D(stormNoise, px * 8, py * 8, pz * 8, 2) * 1.5
+            stormDist * 16.0 -
+              stormAngle * 2.2 +
+              fbm3D(stormNoise, defPx * 7.0, deformedPy * 7.0, defPz * 7.0, 2) * 1.6
           );
           const coreT = clamp(spiral * 0.5 + 0.5, 0, 1);
 
-          // Rich terracotta-brick amber storm eye (rgb 215, 85, 52) to peach margin (rgb 238, 148, 98)
-          const stormR = lerp(215, 242, coreT);
-          const stormG = lerp(85, 155, coreT);
-          const stormB = lerp(52, 105, coreT);
+          // Deep terracotta brick amber storm eye (rgb 212, 78, 44) to amber peach margin (rgb 238, 148, 92)
+          const stormEyeR = lerp(212, 240, coreT);
+          const stormEyeG = lerp(78, 150, coreT);
+          const stormEyeB = lerp(44, 96, coreT);
 
-          r = lerp(r, stormR, stormMask);
-          g = lerp(g, stormG, stormMask);
-          b = lerp(b, stormB, stormMask);
+          r = lerp(r, stormEyeR, stormMask * 0.94);
+          g = lerp(g, stormEyeG, stormMask * 0.94);
+          b = lerp(b, stormEyeB, stormMask * 0.94);
         }
 
-        // 7. Secondary eddy core
-        if (secDist < 0.6) {
-          const secMask = 1.0 - smoothstep(0.1, 0.6, secDist);
-          r = lerp(r, 245, secMask * 0.85);
-          g = lerp(g, 210, secMask * 0.85);
-          b = lerp(b, 175, secMask * 0.85);
+        // Secondary Eddy 1: Cream White Anticyclone Oval
+        if (dist1 < 1.05) {
+          const m1 = 1.0 - smoothstep(0.15, 1.0, dist1);
+          const ovalR = 246,
+            ovalG = 238,
+            ovalB = 222;
+          r = lerp(r, ovalR, m1 * 0.88);
+          g = lerp(g, ovalG, m1 * 0.88);
+          b = lerp(b, ovalB, m1 * 0.88);
+        }
+
+        // Secondary Eddy 2: Dark Chocolate Subpolar Cyclone
+        if (dist2 < 1.05) {
+          const m2 = 1.0 - smoothstep(0.15, 1.0, dist2);
+          const darkR = 76,
+            darkG = 44,
+            darkB = 28;
+          r = lerp(r, darkR, m2 * 0.85);
+          g = lerp(g, darkG, m2 * 0.85);
+          b = lerp(b, darkB, m2 * 0.85);
+        }
+
+        // Secondary Eddy 3: Tawny Tropical Eddy
+        if (dist3 < 1.05) {
+          const m3 = 1.0 - smoothstep(0.15, 1.0, dist3);
+          const eddy3R = 215,
+            eddy3G = 155,
+            eddy3B = 110;
+          r = lerp(r, eddy3R, m3 * 0.8);
+          g = lerp(g, eddy3G, m3 * 0.8);
+          b = lerp(b, eddy3B, m3 * 0.8);
         }
 
         const idx = (y * width + x) * 4;
@@ -1996,7 +2246,7 @@ export function createAsteroidTextures(
  */
 
 export function createRingTexture(config: RingConfig): THREE.CanvasTexture {
-  const key = `ring:${config.style}:${config.seed}:${config.opacity}`;
+  const key = `ring:${config.style}:${config.seed}:${config.opacity}:v2`;
   let texture = textureCache.get(key);
   if (texture) return texture;
 
@@ -2011,76 +2261,166 @@ export function createRingTexture(config: RingConfig): THREE.CanvasTexture {
     const img = ctx.createImageData(width, height);
     const data = img.data;
     const noise = createNoise3D(config.seed);
+    const clumpNoise = createNoise3D(config.seed + 109);
+    const edgeNoise = createNoise3D(config.seed + 211);
 
     for (let y = 0; y < height; y++) {
       const v = y / height; // Angular coordinate around circumference [0, 1]
       const angle = v * 2 * Math.PI;
 
-      // Angular modulation depending on style
+      // -----------------------------------------------------------
+      // AZIMUTHAL / SECTOR MASKING BY RING STYLE
+      // -----------------------------------------------------------
       let angularMask = 1.0;
+
       if (config.style === "broken") {
-        // True angular gaps: multi-harmonic azimuthal breaks
-        const wave1 = Math.sin(angle * 3.0 + config.seed * 0.4);
-        const wave2 = Math.cos(angle * 5.0 - config.seed * 0.6) * 0.5;
-        angularMask = smoothstep(-0.1, 0.35, wave1 + wave2);
-      } else if (config.style === "ice") {
-        // Subtle azimuthal spiral density waves
-        angularMask = 0.92 + 0.08 * Math.sin(angle * 6.0 + config.seed);
+        // True angular sector masking with clear voids readable at 84px
+        // Angle shifted by deterministic seed
+        const seedAngleShift = ((config.seed % 100) / 100) * Math.PI * 2;
+        const normAngle = (angle + seedAngleShift) % (2 * Math.PI);
+
+        // Edge jitter for natural jagged break points
+        const jaggedEdge =
+          fbm3D(edgeNoise, Math.cos(angle) * 3.0, Math.sin(angle) * 3.0, 0.5, 2) * 0.08;
+        const effAngle = normAngle + jaggedEdge;
+
+        // Sectors:
+        // Sector 1: Major continuous arc (0.15 rad to 2.45 rad, ~132°)
+        // Void Gap 1: 2.45 to 3.35 rad (~51° void)
+        // Sector 2: Medium arc (3.35 to 4.55 rad, ~69°)
+        // Void Gap 2: 4.55 to 5.15 rad (~34° void)
+        // Sector 3: Fragmented cluster (5.15 to 5.85 rad, ~40°)
+        // Void Gap 3: 5.85 to 2*PI + 0.15 rad (~34° void)
+        if (effAngle >= 0.15 && effAngle <= 2.45) {
+          // Major arc: solid with soft tapered tips
+          const tipIn = smoothstep(0.15, 0.25, effAngle);
+          const tipOut = smoothstep(2.45, 2.35, effAngle);
+          angularMask = tipIn * tipOut;
+        } else if (effAngle >= 3.35 && effAngle <= 4.55) {
+          // Medium arc
+          const tipIn = smoothstep(3.35, 3.45, effAngle);
+          const tipOut = smoothstep(4.55, 4.45, effAngle);
+          angularMask = tipIn * tipOut * 0.95;
+        } else if (effAngle >= 5.15 && effAngle <= 5.85) {
+          // Fragmented arclets cluster: broken into 2-3 discrete clumps
+          const clusterEnvelope =
+            smoothstep(5.15, 5.25, effAngle) * smoothstep(5.85, 5.75, effAngle);
+          const clumpBreaks = Math.sin(effAngle * 28.0) > -0.15 ? 1.0 : 0.0;
+          angularMask = clusterEnvelope * clumpBreaks * 0.88;
+        } else {
+          // Absolute void gaps
+          angularMask = 0.0;
+        }
+      } else if (config.style === "dust") {
+        // Dust: particulate clumping and longitudinal density variations along the orbit
+        const clumping = fbm3D(clumpNoise, Math.cos(angle) * 1.8, Math.sin(angle) * 1.8, 0.5, 3);
+        angularMask = clamp(0.7 + clumping * 0.35, 0.45, 1.0);
       } else {
-        // Dust: irregular clumpiness around orbit
-        const clumping = fbm3D(noise, Math.cos(angle) * 2.0, Math.sin(angle) * 2.0, 0.5, 2);
-        angularMask = clamp(0.75 + clumping * 0.3, 0, 1);
+        // Ice: subtle density ripples around orbit
+        angularMask = 0.94 + 0.06 * Math.sin(angle * 6.0 + config.seed);
       }
 
       for (let x = 0; x < width; x++) {
         const u = x / width; // Radial fraction from inner to outer radius [0, 1]
 
-        // Edge fades at inner & outer radial boundaries
-        const edgeFade = smoothstep(0.0, 0.06, u) * smoothstep(1.0, 0.94, u);
-
-        // Multi-scale concentric ring density
-        const band1 = Math.sin(u * 95.0) * 0.5 + 0.5;
-        const band2 = Math.sin(u * 240.0 + config.seed) * 0.5 + 0.5;
-        const band3 = Math.sin(u * 520.0 - config.seed) * 0.5 + 0.5;
-
-        // Division gaps
-        const cassini = u > 0.61 && u < 0.67 ? 0.0 : 1.0; // Cassini division gap
-        const encke = u > 0.85 && u < 0.88 ? 0.0 : 1.0; // Encke gap
-
-        const radialDensity =
-          (band1 * 0.45 + band2 * 0.35 + band3 * 0.2) * cassini * encke * edgeFade;
-
         let r = 255;
         let g = 255;
         let b = 255;
-        let baseAlpha = 0.7;
+        let radialDensity = 0.0;
+        let baseAlpha = 0.75;
 
         if (config.style === "ice") {
-          // Delicate translucent ice bands with radial tint variation
-          baseAlpha = 0.68;
-          if (u < 0.61) {
-            // Inner B-ring: warm ivory ice
-            r = Math.floor(lerp(242, 252, radialDensity));
-            g = Math.floor(lerp(235, 248, radialDensity));
-            b = Math.floor(lerp(220, 242, radialDensity));
+          // ---------------------------------------------------------
+          // ICY RINGS: Multiple fine density lanes & crisp divisions
+          // ---------------------------------------------------------
+          // Multi-scale concentric ringlets
+          const fine1 = Math.sin(u * 120.0) * 0.5 + 0.5;
+          const fine2 = Math.sin(u * 320.0 + config.seed) * 0.5 + 0.5;
+          const fine3 = Math.sin(u * 680.0 - config.seed) * 0.5 + 0.5;
+          const fine4 = Math.sin(u * 1400.0) * 0.5 + 0.5;
+          const ringlets = fine1 * 0.4 + fine2 * 0.3 + fine3 * 0.2 + fine4 * 0.1;
+
+          // Crisp transparent division gaps
+          const cassini = u > 0.61 && u < 0.67 ? 0.0 : 1.0; // Cassini division
+          const encke = u > 0.855 && u < 0.875 ? 0.0 : 1.0; // Encke gap
+          const maxwell = u > 0.345 && u < 0.36 ? 0.0 : 1.0; // Maxwell gap
+
+          // Edge fades
+          const edgeFade = smoothstep(0.01, 0.08, u) * smoothstep(0.99, 0.94, u);
+
+          radialDensity = (0.35 + ringlets * 0.65) * cassini * encke * maxwell * edgeFade;
+
+          // Radial color and opacity zones
+          if (u < 0.22) {
+            // Faint inner C-ring: delicate ivory-gray
+            baseAlpha = 0.38;
+            r = Math.floor(lerp(218, 238, ringlets));
+            g = Math.floor(lerp(212, 232, ringlets));
+            b = Math.floor(lerp(202, 224, ringlets));
+          } else if (u < 0.61) {
+            // Dense main B-ring: warm champagne / ivory ice
+            baseAlpha = 0.85;
+            r = Math.floor(lerp(238, 252, ringlets));
+            g = Math.floor(lerp(230, 248, ringlets));
+            b = Math.floor(lerp(215, 238, ringlets));
           } else {
-            // Outer A-ring: cool azure-white ice
-            r = Math.floor(lerp(210, 245, radialDensity));
-            g = Math.floor(lerp(228, 250, radialDensity));
-            b = Math.floor(lerp(248, 255, radialDensity));
+            // Crisp outer A-ring: cool azure-white ice
+            baseAlpha = 0.78;
+            r = Math.floor(lerp(215, 242, ringlets));
+            g = Math.floor(lerp(232, 250, ringlets));
+            b = Math.floor(lerp(250, 255, ringlets));
           }
         } else if (config.style === "dust") {
-          // Softer, darker brown/gray silicate particles
-          baseAlpha = 0.42;
-          r = Math.floor(lerp(125, 168, radialDensity));
-          g = Math.floor(lerp(110, 148, radialDensity));
-          b = Math.floor(lerp(95, 132, radialDensity));
+          // ---------------------------------------------------------
+          // DUST RINGS: Silicate mineral particles, soft edges, matte
+          // ---------------------------------------------------------
+          // Broad diffuse waves (NO sharp Cassini knife-cuts)
+          const wave1 = Math.sin(u * 28.0 + config.seed) * 0.5 + 0.5;
+          const wave2 = Math.sin(u * 64.0 - config.seed) * 0.5 + 0.5;
+          const broadWaves = wave1 * 0.6 + wave2 * 0.4;
+
+          // Particulate grain and clumping across the radius
+          const grain =
+            fbm3D(noise, u * 18.0, Math.cos(angle) * 3.0, Math.sin(angle) * 3.0, 2) * 0.25;
+
+          // Soft envelope at boundaries
+          const softEnvelope = smoothstep(0.01, 0.14, u) * smoothstep(0.99, 0.82, u);
+
+          radialDensity = clamp((0.45 + broadWaves * 0.55 + grain) * softEnvelope, 0, 1);
+          baseAlpha = 0.76; // Visible silicate dust transparency
+
+          // Silicate mineral dust albedo:
+          // Inner: warm dusty sand rgb(182, 154, 126)
+          // Mid: muted mineral taupe rgb(156, 132, 108)
+          // Outer: charcoal silicate rgb(122, 104, 88)
+          if (u < 0.5) {
+            const t = u / 0.5;
+            r = Math.floor(lerp(182, 156, t));
+            g = Math.floor(lerp(154, 132, t));
+            b = Math.floor(lerp(126, 108, t));
+          } else {
+            const t = (u - 0.5) / 0.5;
+            r = Math.floor(lerp(156, 122, t));
+            g = Math.floor(lerp(132, 104, t));
+            b = Math.floor(lerp(108, 88, t));
+          }
         } else {
-          // Broken rings: fractured icy chunks
-          baseAlpha = 0.72;
-          r = Math.floor(lerp(218, 250, radialDensity));
-          g = Math.floor(lerp(228, 252, radialDensity));
-          b = Math.floor(lerp(242, 255, radialDensity));
+          // ---------------------------------------------------------
+          // BROKEN / DEBRIS RINGS: Fractured icy/rocky arcs
+          // ---------------------------------------------------------
+          // Dense fractured lanes
+          const b1 = Math.sin(u * 90.0) * 0.5 + 0.5;
+          const b2 = Math.sin(u * 240.0 + config.seed) * 0.5 + 0.5;
+          const lanes = b1 * 0.55 + b2 * 0.45;
+
+          const edgeFade = smoothstep(0.02, 0.1, u) * smoothstep(0.98, 0.9, u);
+          radialDensity = (0.4 + lanes * 0.6) * edgeFade;
+          baseAlpha = 0.82;
+
+          // Luminous fractured ice with mineral silicate streaks
+          r = Math.floor(lerp(218, 248, lanes));
+          g = Math.floor(lerp(228, 250, lanes));
+          b = Math.floor(lerp(242, 255, lanes));
         }
 
         const alpha = clamp(radialDensity * angularMask * baseAlpha * config.opacity, 0, 1);

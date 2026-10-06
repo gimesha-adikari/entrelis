@@ -81,10 +81,31 @@ describe("Celestial 3D Attachments", () => {
     const mat = ringMesh.material as THREE.MeshStandardMaterial;
     expect(mat.transparent).toBe(true);
     expect(mat.side).toBe(THREE.DoubleSide);
-    expect(mat.depthWrite).toBe(true);
+    expect(mat.depthWrite).toBe(false);
+    expect(mat.depthTest).toBe(true);
 
     ringMesh.geometry.dispose();
     mat.dispose();
+  });
+
+  it("creates a broken ring mesh with miniature debris chunks in the ring plane", () => {
+    const brokenRing = createRingMesh({
+      innerRadius: 65,
+      outerRadius: 105,
+      tilt: 0.38,
+      opacity: 0.85,
+      style: "broken",
+      seed: 55,
+    });
+
+    expect(brokenRing).toBeInstanceOf(THREE.Mesh);
+    expect(brokenRing.children.length).toBe(5); // 5 miniature irregular debris rock chunks
+    for (const child of brokenRing.children) {
+      expect(child).toBeInstanceOf(THREE.Mesh);
+    }
+
+    brokenRing.geometry.dispose();
+    (brokenRing.material as THREE.Material).dispose();
   });
 
   it("creates a moon group with pivot and deterministic orbital phase", () => {

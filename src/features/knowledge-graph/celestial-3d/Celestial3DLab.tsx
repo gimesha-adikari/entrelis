@@ -11,6 +11,17 @@ import styles from "./Celestial3DLab.module.css";
 
 type CategoryFilter =
   | "ALL"
+  | "BLUE_ATM_CLOSE"
+  | "STORM_GIANT_CLOSE"
+  | "ICY_RING_CLOSE"
+  | "DUST_RING_CLOSE"
+  | "BROKEN_RING_CLOSE"
+  | "RINGED_GAS_CLOSE"
+  | "RINGED_ROCKY_CLOSE"
+  | "GAS_RINGS_84PX"
+  | "RING_OCCLUSION"
+  | "STORM_ROT"
+  | "RINGED_ROT"
   | "STARS"
   | "STARS_84PX"
   | "STARS_SCALE"
@@ -249,6 +260,239 @@ const LIFE_ROT_ITEM: readonly CatalogItemEntry[] = [
   },
 ];
 
+const BLUE_ATM_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "blue-atm-close",
+    name: "Blue Atmospheric World (Close-Up)",
+    identity: { archetype: "blue-atmospheric", seed: 401 },
+    radius: 110,
+  },
+];
+
+const STORM_GIANT_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "storm-giant-close",
+    name: "Storm Gas Giant (Close-Up)",
+    identity: { archetype: "storm-giant", seed: 402 },
+    radius: 110,
+  },
+];
+
+const ICY_RING_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "icy-ring-close",
+    name: "Icy Ring System (Close-Up)",
+    identity: {
+      archetype: "storm-giant",
+      seed: 403,
+      rings: {
+        innerRadius: 135,
+        outerRadius: 200,
+        tilt: 0.42,
+        opacity: 0.88,
+        style: "ice",
+        seed: 403,
+      },
+    },
+    radius: 105,
+  },
+];
+
+const DUST_RING_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "dust-ring-close",
+    name: "Dust Ring System (Close-Up)",
+    identity: {
+      archetype: "mineral-rocky",
+      seed: 503,
+      rings: {
+        innerRadius: 130,
+        outerRadius: 185,
+        tilt: 0.36,
+        opacity: 0.78,
+        style: "dust",
+        seed: 503,
+      },
+    },
+    radius: 105,
+  },
+];
+
+const BROKEN_RING_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "broken-ring-close",
+    name: "Broken / Debris Ring (Close-Up)",
+    identity: {
+      archetype: "mineral-rocky",
+      seed: 504,
+      rings: {
+        innerRadius: 132,
+        outerRadius: 190,
+        tilt: 0.4,
+        opacity: 0.85,
+        style: "broken",
+        seed: 504,
+      },
+    },
+    radius: 105,
+  },
+];
+
+const RINGED_GAS_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "ringed-gas-close",
+    name: "Ringed Gas Giant Presentation (Close-Up)",
+    identity: {
+      archetype: "storm-giant",
+      seed: 403,
+      rings: {
+        innerRadius: 135,
+        outerRadius: 200,
+        tilt: 0.42,
+        opacity: 0.88,
+        style: "ice",
+        seed: 403,
+      },
+    },
+    radius: 105,
+  },
+];
+
+const RINGED_ROCKY_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "ringed-rocky-close",
+    name: "Ringed Structured Rocky Presentation (Close-Up)",
+    identity: {
+      archetype: "mineral-rocky",
+      seed: 503,
+      rings: {
+        innerRadius: 130,
+        outerRadius: 185,
+        tilt: 0.36,
+        opacity: 0.78,
+        style: "dust",
+        seed: 503,
+      },
+    },
+    radius: 105,
+  },
+];
+
+const GAS_RINGS_84PX_ITEMS: readonly CatalogItemEntry[] = [
+  {
+    id: "blue-atm-84px",
+    name: "Blue Atmospheric (84px)",
+    identity: { archetype: "blue-atmospheric", seed: 401 },
+    radius: 42,
+  },
+  {
+    id: "storm-giant-84px",
+    name: "Storm Gas Giant (84px)",
+    identity: { archetype: "storm-giant", seed: 402 },
+    radius: 42,
+  },
+  {
+    id: "ringed-gas-84px",
+    name: "Ringed Gas Giant (84px)",
+    identity: {
+      archetype: "storm-giant",
+      seed: 403,
+      rings: {
+        innerRadius: 54,
+        outerRadius: 80,
+        tilt: 0.42,
+        opacity: 0.88,
+        style: "ice",
+        seed: 403,
+      },
+    },
+    radius: 42,
+  },
+  {
+    id: "ringed-rocky-84px",
+    name: "Ringed Structured (84px)",
+    identity: {
+      archetype: "mineral-rocky",
+      seed: 503,
+      rings: {
+        innerRadius: 52,
+        outerRadius: 74,
+        tilt: 0.36,
+        opacity: 0.78,
+        style: "dust",
+        seed: 503,
+      },
+    },
+    radius: 42,
+  },
+  {
+    id: "broken-ring-84px",
+    name: "Broken Ring (84px)",
+    identity: {
+      archetype: "mineral-rocky",
+      seed: 504,
+      rings: {
+        innerRadius: 54,
+        outerRadius: 78,
+        tilt: 0.4,
+        opacity: 0.85,
+        style: "broken",
+        seed: 504,
+      },
+    },
+    radius: 42,
+  },
+];
+
+const RING_OCCLUSION_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "ring-occlusion-close",
+    name: "Ring Occlusion Geometry (Close-Up)",
+    identity: {
+      archetype: "storm-giant",
+      seed: 403,
+      rings: {
+        innerRadius: 145,
+        outerRadius: 215,
+        tilt: 0.44,
+        opacity: 0.9,
+        style: "ice",
+        seed: 403,
+      },
+    },
+    radius: 115,
+  },
+];
+
+const STORM_ROT_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "storm-giant-rot",
+    name: "Storm Gas Giant (Rotation)",
+    identity: { archetype: "storm-giant", seed: 402 },
+    radius: 95,
+  },
+];
+
+const RINGED_ROT_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "ringed-gas-rot",
+    name: "Ringed Gas Giant (Rotation)",
+    identity: {
+      archetype: "storm-giant",
+      seed: 403,
+      rings: {
+        innerRadius: 125,
+        outerRadius: 185,
+        tilt: 0.42,
+        opacity: 0.88,
+        style: "ice",
+        seed: 403,
+      },
+    },
+    radius: 95,
+  },
+];
+
 const CONCEPT_ITEMS: readonly CatalogItemEntry[] = [
   { id: "rust", name: "Rust", identity: ENTRELIS_CONCEPT_IDENTITIES["rust"]! },
   { id: "ownership", name: "Ownership", identity: ENTRELIS_CONCEPT_IDENTITIES["ownership"]! },
@@ -313,6 +557,39 @@ export const Celestial3DLab: React.FC = () => {
     }
     if (activeCategory === "CONFUSION_ROW_84PX") {
       return CONFUSION_ROW_84PX_ITEMS;
+    }
+    if (activeCategory === "BLUE_ATM_CLOSE") {
+      return BLUE_ATM_CLOSE_ITEM;
+    }
+    if (activeCategory === "STORM_GIANT_CLOSE") {
+      return STORM_GIANT_CLOSE_ITEM;
+    }
+    if (activeCategory === "ICY_RING_CLOSE") {
+      return ICY_RING_CLOSE_ITEM;
+    }
+    if (activeCategory === "DUST_RING_CLOSE") {
+      return DUST_RING_CLOSE_ITEM;
+    }
+    if (activeCategory === "BROKEN_RING_CLOSE") {
+      return BROKEN_RING_CLOSE_ITEM;
+    }
+    if (activeCategory === "RINGED_GAS_CLOSE") {
+      return RINGED_GAS_CLOSE_ITEM;
+    }
+    if (activeCategory === "RINGED_ROCKY_CLOSE") {
+      return RINGED_ROCKY_CLOSE_ITEM;
+    }
+    if (activeCategory === "GAS_RINGS_84PX") {
+      return GAS_RINGS_84PX_ITEMS;
+    }
+    if (activeCategory === "RING_OCCLUSION") {
+      return RING_OCCLUSION_ITEM;
+    }
+    if (activeCategory === "STORM_ROT") {
+      return STORM_ROT_ITEM;
+    }
+    if (activeCategory === "RINGED_ROT") {
+      return RINGED_ROT_ITEM;
     }
     if (activeCategory === "VOLCANIC_ROT") {
       return VOLCANIC_ROT_ITEM;
@@ -381,6 +658,17 @@ export const Celestial3DLab: React.FC = () => {
 
   const categories: readonly { id: CategoryFilter; label: string }[] = [
     { id: "ALL", label: "All Catalog" },
+    { id: "BLUE_ATM_CLOSE", label: "Blue Atm Close" },
+    { id: "STORM_GIANT_CLOSE", label: "Storm Giant Close" },
+    { id: "ICY_RING_CLOSE", label: "Icy Ring Close" },
+    { id: "DUST_RING_CLOSE", label: "Dust Ring Close" },
+    { id: "BROKEN_RING_CLOSE", label: "Broken Ring Close" },
+    { id: "RINGED_GAS_CLOSE", label: "Ringed Gas Close" },
+    { id: "RINGED_ROCKY_CLOSE", label: "Ringed Rocky Close" },
+    { id: "GAS_RINGS_84PX", label: "Gas & Rings (84px)" },
+    { id: "RING_OCCLUSION", label: "Ring Occlusion" },
+    { id: "STORM_ROT", label: "Storm Rot" },
+    { id: "RINGED_ROT", label: "Ringed Gas Rot" },
     { id: "VOLCANIC_CLOSE", label: "Volcanic Close" },
     { id: "MINERAL_CLOSE", label: "Mineral Desert Close" },
     { id: "LIFE_CLOSE", label: "Life World Close" },

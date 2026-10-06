@@ -7,6 +7,7 @@ import {
   createMineralDesertTextures,
   createLifeWorldTextures,
   createBlueAtmosphericTexture,
+  createBlueAtmosphericCloudTexture,
   createStormGiantTexture,
   createMetallicWorldTextures,
   createCrystalWorldTextures,
@@ -119,9 +120,11 @@ describe("Procedural Texture Engines", () => {
 
   it("generates atmospheric gas textures and storm giant textures with distinct generators", () => {
     const blueGas = createBlueAtmosphericTexture(401, "focus");
+    const blueClouds = createBlueAtmosphericCloudTexture(401, "focus");
     const stormGiant = createStormGiantTexture(402, "focus");
 
     expect(blueGas).toBeDefined();
+    expect(blueClouds).toBeDefined();
     expect(stormGiant).toBeDefined();
   });
 
