@@ -11,8 +11,11 @@ import { renderUniverseScene } from "../rendering/universe-renderer";
 import { hitTestUniverseNode } from "../rendering/hit-test";
 import styles from "./KnowledgeGraph.module.css";
 
+import type { KnowledgeGraphIndex } from "../knowledge-index";
+
 interface Props {
   dataset: KnowledgeDataset;
+  index?: KnowledgeGraphIndex;
   selectedConceptSlug: string | null;
   onSelectConcept: (slug: string) => void;
   onResetCamera?: () => void;
@@ -20,6 +23,7 @@ interface Props {
 
 export default function GraphCanvas({
   dataset,
+  index,
   selectedConceptSlug,
   onSelectConcept,
   onResetCamera,
@@ -28,6 +32,14 @@ export default function GraphCanvas({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+
+  // Reactive dimensions tracked via ResizeObserver
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
+    width: typeof window !== "undefined" ? window.innerWidth : 1280,
+    height: typeof window !== "undefined" ? window.innerHeight : 800,
+  });
+
+  const isMobile = dimensions.width <= 768;
 
   // Camera transform state (pan offset x, y, and scale k)
   const transformRef = useRef<ViewportTransform>({ x: 0, y: 0, k: 1 });
@@ -46,18 +58,20 @@ export default function GraphCanvas({
   // Currently displayed universe scene on the canvas
   const currentSceneRef = useRef<UniverseScene | null>(null);
 
-  // Compute mobile viewport state
-  const isMobile = typeof window !== "undefined" ? window.innerWidth <= 768 : false;
-
-  // Build and lay out target scene for currently selected concept
+  // Build and lay out target scene using prebuilt index and exact available CSS dimensions
   const targetScene = useMemo<UniverseScene>(() => {
     const rawScene = buildLocalUniverseScene({
       dataset,
+      index,
       focusSlug: selectedConceptSlug ?? "rust",
       isMobile,
     });
-    return layoutLocalUniverseScene(rawScene, { isMobile });
-  }, [dataset, selectedConceptSlug, isMobile]);
+    return layoutLocalUniverseScene(rawScene, {
+      viewportWidth: dimensions.width,
+      viewportHeight: dimensions.height,
+      isMobile,
+    });
+  }, [dataset, index, selectedConceptSlug, isMobile, dimensions.width, dimensions.height]);
 
   // Single-pass canvas drawing function
   const draw = useCallback(() => {
@@ -145,11 +159,13 @@ export default function GraphCanvas({
     };
   }, [targetScene]);
 
-  // Handle resize and DPI scaling
+  // Handle reactive container resizing and HiDPI canvas backing store scaling
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
     const updateDimensions = () => {
       const canvas = canvasRef.current;
-      const container = containerRef.current;
       if (!canvas || !container) return;
 
       const effectiveDpr = Math.min(
@@ -159,24 +175,45 @@ export default function GraphCanvas({
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      canvas.width = width * effectiveDpr;
-      canvas.height = height * effectiveDpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      if (width > 0 && height > 0) {
+        setDimensions((prev) => {
+          if (Math.abs(prev.width - width) < 1 && Math.abs(prev.height - height) < 1) {
+            return prev;
+          }
+          return { width, height };
+        });
 
-      drawRef.current();
+        canvas.width = width * effectiveDpr;
+        canvas.height = height * effectiveDpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+
+        drawRef.current();
+      }
     };
 
     updateDimensions();
-    window.addEventListener("resize", updateDimensions);
 
-    return () => {
-      window.removeEventListener("resize", updateDimensions);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-    };
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(updateDimensions);
+      observer.observe(container);
+      return () => {
+        observer.disconnect();
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+      };
+    } else {
+      window.addEventListener("resize", updateDimensions);
+      return () => {
+        window.removeEventListener("resize", updateDimensions);
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+      };
+    }
   }, []);
 
   // Redraw when hover changes
@@ -404,7 +441,7 @@ export default function GraphCanvas({
         onTouchCancel={handleTouchCancel}
         onWheel={handleWheel}
         className={styles.canvas}
-        aria-label="Interactive 2D knowledge universe canvas"
+        aria-hidden="true"
       />
       <div className={styles.controls}>
         <button

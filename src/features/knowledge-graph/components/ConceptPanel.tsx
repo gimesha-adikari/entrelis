@@ -2,28 +2,35 @@
 
 import { useMemo } from "react";
 import type { Concept, KnowledgeDataset, Relationship, Source } from "@/domain/knowledge/types";
+import { getOrCreateKnowledgeGraphIndex, type KnowledgeGraphIndex } from "../knowledge-index";
 import styles from "./KnowledgeGraph.module.css";
 
 interface Props {
   concept: Concept | null;
   dataset: KnowledgeDataset;
+  index?: KnowledgeGraphIndex;
   onSelectConcept: (slug: string) => void;
 }
 
-export default function ConceptPanel({ concept, dataset, onSelectConcept }: Props) {
-  // Find all direct relationships connected to this concept (ensures 100% accessibility even if culled visually)
-  const connectedRelationships = useMemo<Relationship[]>(() => {
-    if (!concept) return [];
-    return dataset.relationships.filter(
-      (r) => r.sourceConceptId === concept.id || r.targetConceptId === concept.id
-    );
-  }, [concept, dataset.relationships]);
+export default function ConceptPanel({ concept, dataset, index, onSelectConcept }: Props) {
+  const graphIndex = useMemo(
+    () => index ?? getOrCreateKnowledgeGraphIndex(dataset),
+    [index, dataset]
+  );
 
-  // Find all bibliographic sources referenced by this concept
+  // Find all direct relationships connected to this concept using O(1) indexed adjacency lookup
+  const connectedRelationships = useMemo<readonly Relationship[]>(() => {
+    if (!concept) return [];
+    return graphIndex.relationshipsByConceptId.get(concept.id) ?? [];
+  }, [concept, graphIndex]);
+
+  // Find all bibliographic sources referenced by this concept using O(1) indexed source lookup
   const conceptSources = useMemo<Source[]>(() => {
     if (!concept) return [];
-    return dataset.sources.filter((s) => concept.sourceIds.includes(s.id));
-  }, [concept, dataset.sources]);
+    return concept.sourceIds
+      .map((id) => graphIndex.sourceById.get(id))
+      .filter((s): s is Source => Boolean(s));
+  }, [concept, graphIndex]);
 
   if (!concept) {
     return (
@@ -53,7 +60,7 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
 
         {concept.description && <p className={styles.conceptDescription}>{concept.description}</p>}
 
-        {/* Semantic connection navigation */}
+        {/* Semantic editorial connection list */}
         <nav className={styles.connectionsNav} aria-label="Concept Connections">
           <h3 className={styles.sectionHeading}>
             Connections <span className={styles.countBadge}>({connectedRelationships.length})</span>
@@ -63,7 +70,7 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
             {connectedRelationships.map((rel) => {
               const isSource = rel.sourceConceptId === concept.id;
               const otherConceptId = isSource ? rel.targetConceptId : rel.sourceConceptId;
-              const otherConcept = dataset.concepts.find((c) => c.id === otherConceptId);
+              const otherConcept = graphIndex.conceptById.get(otherConceptId);
 
               if (!otherConcept) return null;
 

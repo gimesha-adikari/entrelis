@@ -169,4 +169,96 @@ describe("layoutLocalUniverseScene", () => {
       expect(dist).toBeLessThanOrEqual(180);
     }
   });
+
+  it("scales constellation radii proportionally with viewport dimensions", () => {
+    const scene = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "ownership",
+      isMobile: false,
+    });
+
+    const smallViewport = layoutLocalUniverseScene(scene, {
+      viewportWidth: 800,
+      viewportHeight: 600,
+      isMobile: false,
+    });
+
+    const largeViewport = layoutLocalUniverseScene(scene, {
+      viewportWidth: 1600,
+      viewportHeight: 1200,
+      isMobile: false,
+    });
+
+    const smallDist = Math.hypot(
+      smallViewport.primaryNodes[0]!.x - smallViewport.focus.x,
+      smallViewport.primaryNodes[0]!.y - smallViewport.focus.y
+    );
+    const largeDist = Math.hypot(
+      largeViewport.primaryNodes[0]!.x - largeViewport.focus.x,
+      largeViewport.primaryNodes[0]!.y - largeViewport.focus.y
+    );
+
+    expect(largeDist).toBeGreaterThan(smallDist);
+  });
+
+  it("uses asymmetric slot templates that avoid exact 180° opposition and mechanical symmetry", () => {
+    const scene = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "ownership", // Has exactly 2 primary neighbors: rust & memory
+      isMobile: false,
+    });
+
+    const laidOut = layoutLocalUniverseScene(scene, {
+      viewportWidth: 1280,
+      viewportHeight: 800,
+      isMobile: false,
+    });
+
+    expect(laidOut.primaryNodes.length).toBe(2);
+    const n1 = laidOut.primaryNodes[0]!;
+    const n2 = laidOut.primaryNodes[1]!;
+
+    const angle1 = Math.atan2(n1.y - laidOut.focus.y, n1.x - laidOut.focus.x);
+    const angle2 = Math.atan2(n2.y - laidOut.focus.y, n2.x - laidOut.focus.x);
+    let diff = Math.abs(angle1 - angle2);
+    if (diff > Math.PI) diff = 2 * Math.PI - diff;
+
+    // Angle difference must NOT be exactly 180° (Math.PI)
+    expect(Math.abs(diff - Math.PI)).toBeGreaterThan(0.12);
+  });
+
+  it("crossing desktop/mobile breakpoint dynamically changes scene budget and geometry", () => {
+    const desktopScene = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "memory",
+      isMobile: false,
+    });
+    const desktopLaidOut = layoutLocalUniverseScene(desktopScene, {
+      viewportWidth: 1024,
+      viewportHeight: 768,
+      isMobile: false,
+    });
+
+    const mobileScene = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "memory",
+      isMobile: true,
+    });
+    const mobileLaidOut = layoutLocalUniverseScene(mobileScene, {
+      viewportWidth: 375,
+      viewportHeight: 812,
+      isMobile: true,
+    });
+
+    expect(desktopLaidOut.primaryNodes.length).toBeGreaterThanOrEqual(
+      mobileLaidOut.primaryNodes.length
+    );
+    expect(desktopLaidOut.contextNodes.length).toBeGreaterThanOrEqual(
+      mobileLaidOut.contextNodes.length
+    );
+    expect(mobileLaidOut.allNodes.length).toBeLessThanOrEqual(6);
+    expect(desktopLaidOut.allNodes.length).toBeLessThanOrEqual(10);
+    expect(mobileLaidOut.focus.x).toBe(0);
+    expect(desktopLaidOut.focus.x).toBe(-100);
+  });
 });

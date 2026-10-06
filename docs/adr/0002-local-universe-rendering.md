@@ -31,15 +31,15 @@ Entrelis will eventually encompass thousands or millions of interconnected conce
    - Direct primary neighbors arrange on an inner elliptical orbital ring using deterministic angular sectors based on relationship strength and stable concept ID hash.
    - Second-degree context concepts cluster on an outer orbital ring aligned near their parent primary neighbor.
 4. **Complete Removal of `d3-force`**: `d3-force` and `@types/d3-force` are uninstalled and removed from all production runtime code, types, and benchmarks.
-5. **Zero Permanent Idle Animation**: Bounded 420ms transitions animate travel between concepts via a single cubic easing curve. When the transition completes or when `prefers-reduced-motion` is enabled, `requestAnimationFrame` halts completely and CPU falls 100% idle.
+5. **Zero Permanent Idle Animation**: Bounded 420ms transitions animate travel between concepts via a single cubic easing curve. When the transition completes or when `prefers-reduced-motion` is enabled, Entrelis schedules no application-owned animation frames while the scene is idle.
 
 ## Consequences
 
 ### Positive
 
 - **Uncompromising Spatial Beauty**: Concepts render as celestial bodies with luminous multi-layer coronas, spherical gradients, and curved quadratic Bézier relationship paths maintaining strict `SOURCE --TYPE--> TARGET` orientation.
-- **Instantaneous Bounded Performance**: Local scene building and layout for 5,000 concepts executes in ~5.7ms (down from 2,480ms with D3 force simulation—a ~435× speedup).
-- **Absolute Battery and Thermal Efficiency**: Zero RAF requests while idle; mobile devices experience zero battery drain when resting on a concept.
+- **Bounded Local Scalability**: Visual scene complexity is bounded, and per-focus scene construction operates on indexed local adjacency rather than scanning the global relationship set. Once indexed, per-navigation local scene composition executes in sub-millisecond median time across synthetic benchmarks from 50 to 5,000 concepts.
+- **Battery and Thermal Efficiency**: Entrelis schedules no application-owned animation frames while the scene is idle; mobile devices experience no continuous animation loop churn when resting on a concept.
 - **Predictable Spatial Orientation**: Every revisit to a concept reproduces the identical, beautiful constellation.
 - **Lean Dependency Footprint**: Zero third-party graph or physics libraries required (`d3-force` removed).
 

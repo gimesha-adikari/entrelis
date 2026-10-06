@@ -170,7 +170,7 @@ describe("buildLocalUniverseScene", () => {
       };
     });
 
-    console.log("Desktop Visible Counts:\n", JSON.stringify(desktopResults, null, 2));
+    // Pristine test execution without noisy console.log
 
     const rust = desktopResults.find((r) => r.slug === "rust")!;
     expect(rust.totalVisibleNodes).toBeLessThanOrEqual(10);
@@ -188,5 +188,49 @@ describe("buildLocalUniverseScene", () => {
     const os = desktopResults.find((r) => r.slug === "operating-systems")!;
     expect(os.primaryCount).toBe(3); // Stack & Heap, CPUs, Memory
     expect(os.contextCount).toBe(3); // Transistors, Ownership, Rust
+  });
+
+  it("builds identical bounded scene using a pre-created KnowledgeGraphIndex", async () => {
+    const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+    const index = createKnowledgeGraphIndex(SEED_DATASET);
+
+    const sceneFromDataset = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "rust",
+      isMobile: false,
+    });
+
+    const sceneFromIndex = buildLocalUniverseScene({
+      index,
+      focusSlug: "rust",
+      isMobile: false,
+    });
+
+    expect(sceneFromIndex.focus.id).toBe(sceneFromDataset.focus.id);
+    expect(sceneFromIndex.primaryNodes.map((n) => n.id)).toEqual(
+      sceneFromDataset.primaryNodes.map((n) => n.id)
+    );
+    expect(sceneFromIndex.contextNodes.map((n) => n.id)).toEqual(
+      sceneFromDataset.contextNodes.map((n) => n.id)
+    );
+    expect(sceneFromIndex.relationships.map((r) => r.id)).toEqual(
+      sceneFromDataset.relationships.map((r) => r.id)
+    );
+  });
+
+  it("builds bounded scene from synthetic 500-node index without scanning global dataset", async () => {
+    const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+    const largeDataset = generateSyntheticDataset(500);
+    const index = createKnowledgeGraphIndex(largeDataset);
+
+    const scene = buildLocalUniverseScene({
+      index,
+      focusSlug: largeDataset.concepts[250]!.slug,
+      isMobile: false,
+    });
+
+    expect(scene.allNodes.length).toBeLessThanOrEqual(DESKTOP_SCENE_BUDGET.maxTotal);
+    expect(scene.primaryNodes.length).toBeLessThanOrEqual(DESKTOP_SCENE_BUDGET.maxPrimary);
+    expect(scene.contextNodes.length).toBeLessThanOrEqual(DESKTOP_SCENE_BUDGET.maxContext);
   });
 });

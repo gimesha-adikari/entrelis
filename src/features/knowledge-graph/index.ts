@@ -10,3 +10,4 @@ export * from "./rendering/universe-renderer";
 export * from "./rendering/glow-cache";
 export * from "./rendering/hit-test";
 export * from "./rendering/canvas-renderer";
+export * from "./knowledge-index";

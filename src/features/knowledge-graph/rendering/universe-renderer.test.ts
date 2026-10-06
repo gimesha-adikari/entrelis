@@ -24,6 +24,9 @@ function createMockContext(): CanvasRenderingContext2D {
     createRadialGradient: vi.fn().mockReturnValue({
       addColorStop: vi.fn(),
     }),
+    createLinearGradient: vi.fn().mockReturnValue({
+      addColorStop: vi.fn(),
+    }),
     drawImage: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
