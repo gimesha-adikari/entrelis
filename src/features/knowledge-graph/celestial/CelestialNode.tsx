@@ -59,7 +59,7 @@ export const CelestialNode: React.FC<CelestialNodeProps> = ({
     };
   }, [role, isMobile]);
 
-  // 3. Coordinate Positioning
+  // 3. Coordinate Positioning (PositionWrapper owns scene x/y only)
   const isPositioned = typeof x === "number" && typeof y === "number";
 
   const positionStyle: React.CSSProperties = isPositioned
@@ -110,36 +110,42 @@ export const CelestialNode: React.FC<CelestialNodeProps> = ({
   };
 
   return (
-    <button
-      type="button"
-      className={`${styles.nodeButton} ${roleClass} ${!isPositioned ? styles.relativeNode : ""} ${className}`}
+    <div
+      className={`${styles.positionWrapper} ${!isPositioned ? styles.relativePosition : ""}`}
       style={{
         width: hitSize,
         height: hitSize,
         ...positionStyle,
-        ...style,
       }}
-      onClick={onClick}
-      onMouseEnter={() => onHover?.(id)}
-      onMouseLeave={() => onHover?.(null)}
-      onFocus={() => onHover?.(id)}
-      onBlur={() => onHover?.(null)}
-      aria-label={`${name} (${identity.archetype} ${role})`}
-      data-concept-id={id}
-      data-concept-slug={slug}
-      data-role={role}
-      data-archetype={identity.archetype}
-      data-testid={testId ?? `celestial-node-${id}`}
     >
-      {/* Visual Celestial Body */}
-      {renderArchetypeBody()}
+      <button
+        type="button"
+        className={`${styles.interactionButton} ${roleClass} ${className}`}
+        style={{
+          ...style,
+        }}
+        onClick={onClick}
+        onMouseEnter={() => onHover?.(id)}
+        onMouseLeave={() => onHover?.(null)}
+        onFocus={() => onHover?.(id)}
+        onBlur={() => onHover?.(null)}
+        aria-label={`${name} (${identity.archetype} ${role})`}
+        data-concept-id={id}
+        data-concept-slug={slug}
+        data-role={role}
+        data-archetype={identity.archetype}
+        data-testid={testId ?? `celestial-node-${id}`}
+      >
+        {/* Visual interaction wrapper owns hover/focus scaling without modifying position */}
+        <div className={styles.visualWrapper}>{renderArchetypeBody()}</div>
 
-      {/* Label */}
-      {shouldShowLabel && (
-        <div className={styles.labelWrapper}>
-          <span className={labelClass}>{name}</span>
-        </div>
-      )}
-    </button>
+        {/* Label */}
+        {shouldShowLabel && (
+          <div className={styles.labelWrapper}>
+            <span className={labelClass}>{name}</span>
+          </div>
+        )}
+      </button>
+    </div>
   );
 };
