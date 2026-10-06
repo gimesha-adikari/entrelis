@@ -10,6 +10,29 @@ import type { GraphData, GraphNode, ViewportTransform, CanvasRenderOptions } fro
  * - Substantial fading of unrelated nodes to preserve larger network context.
  * - Responsive label suppression to avoid visual clutter.
  */
+const FIXED_STARS: ReadonlyArray<{ x: number; y: number; r: number; alpha: number }> = [
+  { x: -350, y: -280, r: 1.2, alpha: 0.08 },
+  { x: 280, y: -320, r: 0.8, alpha: 0.06 },
+  { x: -180, y: 340, r: 1.0, alpha: 0.07 },
+  { x: 390, y: 220, r: 1.4, alpha: 0.09 },
+  { x: -450, y: 120, r: 0.9, alpha: 0.05 },
+  { x: 120, y: -420, r: 1.1, alpha: 0.08 },
+  { x: -220, y: -160, r: 0.7, alpha: 0.04 },
+  { x: 310, y: -140, r: 1.0, alpha: 0.06 },
+  { x: -120, y: 210, r: 0.8, alpha: 0.05 },
+  { x: 230, y: 380, r: 1.2, alpha: 0.07 },
+  { x: -400, y: -380, r: 0.9, alpha: 0.05 },
+  { x: 420, y: -260, r: 1.3, alpha: 0.08 },
+  { x: -290, y: 190, r: 0.8, alpha: 0.06 },
+  { x: 160, y: 160, r: 0.7, alpha: 0.04 },
+  { x: -80, y: -360, r: 1.1, alpha: 0.07 },
+  { x: 340, y: 70, r: 0.8, alpha: 0.05 },
+  { x: -330, y: 390, r: 1.0, alpha: 0.06 },
+  { x: 470, y: 320, r: 0.9, alpha: 0.05 },
+  { x: -160, y: -440, r: 1.2, alpha: 0.07 },
+  { x: 260, y: -210, r: 0.8, alpha: 0.06 },
+];
+
 export function renderGraphCanvas(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -28,6 +51,16 @@ export function renderGraphCanvas(
   ctx.translate(width / 2 + transform.x * dpr, height / 2 + transform.y * dpr);
   ctx.scale(transform.k * dpr, transform.k * dpr);
 
+  // Subtle deterministic atmospheric celestial points in world coordinates
+  ctx.save();
+  for (const star of FIXED_STARS) {
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.r, 0, 2 * Math.PI);
+    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+    ctx.fill();
+  }
+  ctx.restore();
+
   // 1. Draw Links / Edges
   for (const link of data.links) {
     const source = link.source as GraphNode;
@@ -44,18 +77,19 @@ export function renderGraphCanvas(
     ctx.lineTo(target.x, target.y);
 
     if (isConnected) {
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 2.5;
+      const isPrimary = link.strength === "primary";
+      ctx.strokeStyle = isPrimary ? "rgba(129, 140, 248, 0.75)" : "rgba(125, 211, 252, 0.55)";
+      ctx.lineWidth = isPrimary ? 1.5 : 1.2;
       ctx.globalAlpha = 1;
     } else if (isDimmed) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.15;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.12;
     } else {
       ctx.strokeStyle =
-        link.strength === "primary" ? "rgba(96, 165, 250, 0.4)" : "rgba(255, 255, 255, 0.18)";
-      ctx.lineWidth = link.strength === "primary" ? 2 : 1;
-      ctx.globalAlpha = 0.6;
+        link.strength === "primary" ? "rgba(129, 140, 248, 0.35)" : "rgba(255, 255, 255, 0.12)";
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.5;
     }
     ctx.stroke();
 
@@ -63,10 +97,10 @@ export function renderGraphCanvas(
     const dx = target.x - source.x;
     const dy = target.y - source.y;
     const angle = Math.atan2(dy, dx);
-    const targetRadius = (target.id === selectedNodeId ? 18 : 12) + 2;
+    const targetRadius = (target.id === selectedNodeId ? 22 : 13) + 2;
     const arrowX = target.x - Math.cos(angle) * targetRadius;
     const arrowY = target.y - Math.sin(angle) * targetRadius;
-    const arrowLength = 7;
+    const arrowLength = 6.5;
 
     ctx.beginPath();
     ctx.moveTo(arrowX, arrowY);
@@ -91,18 +125,41 @@ export function renderGraphCanvas(
     const isHovered = node.id === hoveredNodeId;
     const isDimmed = Boolean(selectedNodeId) && !isSelected && !isNeighbor;
 
-    ctx.globalAlpha = isDimmed ? 0.22 : 1.0;
+    // Determine if connected via a primary relationship to selected concept
+    const isPrimaryNeighbor =
+      isNeighbor &&
+      data.links.some(
+        (l) =>
+          ((typeof l.source === "object" ? l.source.id : l.source) === selectedNodeId &&
+            (typeof l.target === "object" ? l.target.id : l.target) === node.id &&
+            l.strength === "primary") ||
+          ((typeof l.source === "object" ? l.source.id : l.source) === node.id &&
+            (typeof l.target === "object" ? l.target.id : l.target) === selectedNodeId &&
+            l.strength === "primary")
+      );
 
-    const radius = isSelected ? 18 : isHovered ? 15 : isNeighbor ? 13 : 11;
+    ctx.globalAlpha = isDimmed ? 0.18 : 1.0;
 
-    // Glowing atmospheric halo for selected concept
+    const radius = isSelected
+      ? isMobile
+        ? 20
+        : 22
+      : isHovered
+        ? 15
+        : isPrimaryNeighbor
+          ? 14
+          : isNeighbor
+            ? 12
+            : 10;
+
+    // Luminous soft halo for selected concept
     if (isSelected) {
       ctx.save();
-      ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 22;
+      ctx.shadowColor = "rgba(56, 189, 248, 0.4)";
+      ctx.shadowBlur = 24;
       ctx.beginPath();
-      ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = "#38bdf8";
+      ctx.arc(node.x, node.y, radius + 2, 0, 2 * Math.PI);
+      ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
       ctx.fill();
       ctx.restore();
     }
@@ -113,23 +170,31 @@ export function renderGraphCanvas(
     if (isSelected) {
       ctx.fillStyle = "#ffffff";
       ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#0284c7";
-    } else if (isNeighbor) {
-      ctx.fillStyle = "#93c5fd";
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = "#38bdf8";
+    } else if (isPrimaryNeighbor) {
+      // Restrained violet for primary neighbors
+      ctx.fillStyle = "#818cf8";
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "#38bdf8";
+      ctx.strokeStyle = "rgba(167, 139, 250, 0.85)";
+    } else if (isNeighbor) {
+      // Desaturated cool blue for secondary neighbors
+      ctx.fillStyle = "#7dd3fc";
+      ctx.fill();
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
     } else if (isDimmed) {
-      ctx.fillStyle = "rgba(51, 65, 85, 0.4)";
+      // Distant concepts receding into darkness
+      ctx.fillStyle = "#1e293b";
       ctx.fill();
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
     } else {
-      ctx.fillStyle = "#60a5fa";
+      ctx.fillStyle = "#64748b";
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "#bfdbfe";
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(203, 213, 225, 0.4)";
     }
     ctx.stroke();
 
@@ -138,9 +203,15 @@ export function renderGraphCanvas(
 
     if (shouldDrawLabel && !isDimmed) {
       ctx.font = isSelected
-        ? "bold 13px system-ui, -apple-system, sans-serif"
-        : "12px system-ui, -apple-system, sans-serif";
-      ctx.fillStyle = isSelected ? "#f8fafc" : isNeighbor ? "#e2e8f0" : "#cbd5e1";
+        ? "600 13px system-ui, -apple-system, sans-serif"
+        : "500 11px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = isSelected
+        ? "#ffffff"
+        : isPrimaryNeighbor
+          ? "#c7d2fe"
+          : isNeighbor
+            ? "#bae6fd"
+            : "#94a3b8";
       ctx.textAlign = "center";
       ctx.fillText(node.name, node.x, node.y + radius + 14);
     }

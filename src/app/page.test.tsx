@@ -27,13 +27,15 @@ describe("Entrelis Production Root Homepage", () => {
     expect(
       screen.getByRole("button", { name: /Explore connected concept: Ownership/i })
     ).toBeDefined();
-    expect(screen.getByText(/--uses-->/)).toBeDefined();
+    expect(screen.getByText("uses")).toBeDefined();
+    expect(screen.getAllByText("→").length).toBeGreaterThan(0);
   });
 
-  it("renders interactive canvas and reset controls", () => {
+  it("renders interactive canvas and product Return to Rust control without debug chrome", () => {
     const { container } = render(<Home />);
 
     expect(container.querySelector("canvas")).toBeDefined();
-    expect(screen.getByRole("button", { name: /Reset graph view/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: /Return to Rust/i })).toBeDefined();
+    expect(screen.queryByText(/2D Graph/i)).toBeNull();
   });
 });

@@ -37,4 +37,25 @@ describe("simulation engine", () => {
 
     simulation.stop();
   });
+
+  it("synchronously settles node coordinates when settleTicks is provided and stops automatic timer", () => {
+    const { nodes, links } = createGraphData(SEED_DATASET);
+    const onTick = vi.fn();
+    const simulation = createGraphSimulation(nodes, links, {
+      settleTicks: 100,
+      onTick,
+    });
+
+    const rust = nodes.find((n) => n.id === "concept-rust");
+    expect(typeof rust?.x).toBe("number");
+    expect(typeof rust?.y).toBe("number");
+    expect(onTick).toHaveBeenCalledTimes(1);
+
+    const rustX = rust?.x;
+    const rustY = rust?.y;
+    expect(rust?.x).toBe(rustX);
+    expect(rust?.y).toBe(rustY);
+
+    simulation.stop();
+  });
 });

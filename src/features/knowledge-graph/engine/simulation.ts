@@ -12,6 +12,7 @@ export interface SimulationOptions {
   distance?: number;
   chargeStrength?: number;
   collideRadius?: number;
+  settleTicks?: number;
   onTick?: () => void;
 }
 
@@ -29,7 +30,13 @@ export function createGraphSimulation(
   links: GraphLink[],
   options: SimulationOptions = {}
 ): Simulation<GraphNode, GraphLink> {
-  const { distance = 110, chargeStrength = -240, collideRadius = 35, onTick } = options;
+  const {
+    distance = 110,
+    chargeStrength = -240,
+    collideRadius = 35,
+    settleTicks,
+    onTick,
+  } = options;
 
   const sim = forceSimulation<GraphNode>(nodes)
     .force(
@@ -42,7 +49,15 @@ export function createGraphSimulation(
     .force("center", forceCenter(0, 0))
     .force("collide", forceCollide(collideRadius));
 
-  if (onTick) {
+  if (settleTicks && settleTicks > 0) {
+    sim.stop();
+    for (let i = 0; i < settleTicks; i++) {
+      sim.tick();
+    }
+    if (onTick) {
+      onTick();
+    }
+  } else if (onTick) {
     sim.on("tick", onTick);
   }
 

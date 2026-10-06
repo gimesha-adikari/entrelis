@@ -79,14 +79,26 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(forceSimulationCallCount).toBe(1);
   });
 
-  it("strictly preserves SOURCE --TYPE--> TARGET directional relationship display", () => {
+  it("strictly preserves SOURCE → TARGET directional relationship display and removes raw strength", () => {
     render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="ownership" />);
 
     // Ownership has two connections:
-    // Rust --uses--> Ownership (incoming)
-    // Ownership --manages--> Memory (outgoing)
-    expect(screen.getByText(/--uses-->/)).toBeDefined();
-    expect(screen.getByText(/--manages-->/)).toBeDefined();
+    // Rust → Ownership (incoming, uses)
+    // Ownership → Memory (outgoing, manages)
+    expect(screen.getByText("uses")).toBeDefined();
+    expect(screen.getByText("manages")).toBeDefined();
+    expect(screen.getAllByText("→").length).toBe(2);
+
+    // Incoming has Rust as clickable connection, Ownership as current
+    expect(screen.getByRole("button", { name: /Explore connected concept: Rust/i })).toBeDefined();
+    // Outgoing has Memory as clickable connection
+    expect(
+      screen.getByRole("button", { name: /Explore connected concept: Memory/i })
+    ).toBeDefined();
+
+    // Internal graph engine terminology should not be rendered
+    expect(screen.queryByText(/Strength:/i)).toBeNull();
+    expect(screen.queryByText(/PRIMARY/i)).toBeNull();
   });
 
   it("exposes source provenance without leaking internal IDs", () => {
@@ -114,13 +126,14 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     const { unmount } = render(
       <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />
     );
-    expect(simulationStopCallCount).toBe(0);
+    // Simulation was stopped during synchronous settling to freeze coordinates
+    expect(simulationStopCallCount).toBe(1);
 
     unmount();
-    expect(simulationStopCallCount).toBe(1);
+    expect(simulationStopCallCount).toBe(2);
   });
 
-  it("honors prefers-reduced-motion without scheduling RAF animations", () => {
+  it("honors prefers-reduced-motion without scheduling RAF animations on selection", () => {
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: query.includes("prefers-reduced-motion"),
       media: query,
@@ -132,7 +145,12 @@ describe("KnowledgeGraphExperience Production Integration", () => {
       dispatchEvent: vi.fn(),
     }));
 
+    const rafSpy = vi.spyOn(window, "requestAnimationFrame");
+
     render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
+
+    // Clear any initial frame requests
+    rafSpy.mockClear();
 
     const ownershipBtn = screen.getByRole("button", {
       name: /Explore connected concept: Ownership/i,
@@ -140,7 +158,10 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     fireEvent.click(ownershipBtn);
 
     expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
-    expect(forceSimulationCallCount).toBe(1);
+    // With prefers-reduced-motion active, no recenter RAF animation should be scheduled
+    expect(rafSpy).not.toHaveBeenCalled();
+
+    rafSpy.mockRestore();
   });
 
   it("updates browser history state when concept selection changes", () => {
@@ -168,14 +189,44 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
   });
 
-  it("resets camera and selection to Rust on Reset View", () => {
+  it("synchronizes document title during client exploration and popstate navigation", () => {
+    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
+    expect(document.title).toBe("Entrelis — Everything is connected");
+
+    // Select Ownership
+    const ownershipBtn = screen.getByRole("button", {
+      name: /Explore connected concept: Ownership/i,
+    });
+    fireEvent.click(ownershipBtn);
+    expect(document.title).toBe("Ownership — Entrelis");
+
+    // Select Memory
+    const memoryBtn = screen.getByRole("button", {
+      name: /Explore connected concept: Memory/i,
+    });
+    fireEvent.click(memoryBtn);
+    expect(document.title).toBe("Memory — Entrelis");
+
+    // Simulate browser back to /concept/ownership
+    window.history.pushState({}, "", "/concept/ownership");
+    fireEvent(window, new PopStateEvent("popstate"));
+    expect(document.title).toBe("Ownership — Entrelis");
+
+    // Simulate browser back to root /
+    window.history.pushState({}, "", "/");
+    fireEvent(window, new PopStateEvent("popstate"));
+    expect(document.title).toBe("Entrelis — Everything is connected");
+  });
+
+  it("resets camera and selection to Rust on Return to Rust", () => {
     render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="ownership" />);
 
     expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
 
-    const resetBtn = screen.getByRole("button", { name: /Reset graph view/i });
-    fireEvent.click(resetBtn);
+    const returnBtn = screen.getByRole("button", { name: /Return to Rust/i });
+    fireEvent.click(returnBtn);
 
     expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+    expect(screen.queryByText(/2D Graph/i)).toBeNull();
   });
 });

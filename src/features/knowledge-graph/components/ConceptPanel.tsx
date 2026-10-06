@@ -67,38 +67,44 @@ export default function ConceptPanel({ concept, dataset, onSelectConcept }: Prop
               return (
                 <li key={rel.id} className={styles.connectionCard}>
                   <div className={styles.connectionHeader}>
-                    {/* Strictly maintain SOURCE --TYPE--> TARGET directional invariant */}
-                    {isSource ? (
-                      <>
-                        <span style={{ fontWeight: 600 }}>{concept.name}</span>
-                        <span className={styles.connectionArrow}>--{rel.type}--&gt;</span>
-                        <button
-                          type="button"
-                          className={styles.connectionLink}
-                          onClick={() => onSelectConcept(otherConcept.slug)}
-                          aria-label={`Explore connected concept: ${otherConcept.name}`}
-                        >
-                          {otherConcept.name}
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className={styles.connectionLink}
-                          onClick={() => onSelectConcept(otherConcept.slug)}
-                          aria-label={`Explore connected concept: ${otherConcept.name}`}
-                        >
-                          {otherConcept.name}
-                        </button>
-                        <span className={styles.connectionArrow}>--{rel.type}--&gt;</span>
-                        <span style={{ fontWeight: 600 }}>{concept.name}</span>
-                      </>
-                    )}
+                    {/* Strictly maintain SOURCE → TARGET directional invariant */}
+                    <div className={styles.connectionPath}>
+                      {isSource ? (
+                        <>
+                          <span className={styles.currentConceptLabel}>{concept.name}</span>
+                          <span className={styles.arrowIcon} aria-hidden="true">
+                            →
+                          </span>
+                          <button
+                            type="button"
+                            className={styles.connectionLink}
+                            onClick={() => onSelectConcept(otherConcept.slug)}
+                            aria-label={`Explore connected concept: ${otherConcept.name}`}
+                          >
+                            {otherConcept.name}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className={styles.connectionLink}
+                            onClick={() => onSelectConcept(otherConcept.slug)}
+                            aria-label={`Explore connected concept: ${otherConcept.name}`}
+                          >
+                            {otherConcept.name}
+                          </button>
+                          <span className={styles.arrowIcon} aria-hidden="true">
+                            →
+                          </span>
+                          <span className={styles.currentConceptLabel}>{concept.name}</span>
+                        </>
+                      )}
+                    </div>
+                    <span className={styles.typePill}>{rel.type}</span>
                   </div>
 
                   <p className={styles.connectionExplanation}>{rel.explanation}</p>
-                  <span className={styles.connectionStrength}>Strength: {rel.strength}</span>
                 </li>
               );
             })}
