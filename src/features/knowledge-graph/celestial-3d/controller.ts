@@ -8,6 +8,7 @@ export interface CatalogItemEntry {
   readonly name: string;
   readonly identity: CelestialIdentity;
   readonly category?: string;
+  readonly radius?: number;
 }
 
 export interface Celestial3DConfig {
@@ -28,6 +29,7 @@ export interface ItemScreenPosition {
   readonly name: string;
   readonly x: number;
   readonly y: number;
+  readonly radius?: number;
 }
 
 export class Celestial3DController {
@@ -167,9 +169,19 @@ export class Celestial3DController {
     this.hoveredId = null;
 
     // Body radius scaled based on number of visible items
-    const radius = items.length <= 4 ? 50 : items.length <= 8 ? 44 : 38;
+    const defaultRadius =
+      items.length === 1
+        ? 110
+        : items.length <= 3
+          ? 64
+          : items.length <= 4
+            ? 50
+            : items.length <= 8
+              ? 44
+              : 38;
 
     for (const item of items) {
+      const radius = item.radius ?? defaultRadius;
       const body = createCelestialObject(item.identity, lod, radius);
       this.scene.add(body.group);
 
@@ -196,6 +208,32 @@ export class Celestial3DController {
     const count = this.activeEntries.length;
     if (count === 0) return;
 
+    if (count === 1) {
+      // Single body centered (close-up inspection)
+      const entry = this.activeEntries[0]!;
+      entry.basePosition.set(0, 0, 0);
+      entry.body.group.position.copy(entry.basePosition);
+      return;
+    }
+
+    if (count === 3) {
+      // 3 items in a centered horizontal line (ideal for 3 stars review)
+      const spacingX = Math.min(270, this.width * 0.31);
+      const coords = [
+        [-spacingX, 0],
+        [0, 0],
+        [spacingX, 0],
+      ];
+
+      for (let i = 0; i < 3; i++) {
+        const [x, y] = coords[i]!;
+        const entry = this.activeEntries[i]!;
+        entry.basePosition.set(x!, y!, 0);
+        entry.body.group.position.copy(entry.basePosition);
+      }
+      return;
+    }
+
     if (count === 4) {
       // Classic 2x2 presentation
       const spacingX = Math.min(220, this.width * 0.26);
@@ -209,6 +247,28 @@ export class Celestial3DController {
       ];
 
       for (let i = 0; i < count; i++) {
+        const [x, y] = coords[i]!;
+        const entry = this.activeEntries[i]!;
+        entry.basePosition.set(x!, y!, 0);
+        entry.body.group.position.copy(entry.basePosition);
+      }
+      return;
+    }
+
+    if (count === 6) {
+      // 2x3 layout (3 top row, 3 bottom row) - ideal for scale comparison
+      const spacingX = Math.min(270, this.width * 0.31);
+      const spacingY = Math.min(130, this.height * 0.22);
+      const coords = [
+        [-spacingX, spacingY],
+        [0, spacingY],
+        [spacingX, spacingY],
+        [-spacingX, -spacingY],
+        [0, -spacingY],
+        [spacingX, -spacingY],
+      ];
+
+      for (let i = 0; i < 6; i++) {
         const [x, y] = coords[i]!;
         const entry = this.activeEntries[i]!;
         entry.basePosition.set(x!, y!, 0);
@@ -301,6 +361,15 @@ export class Celestial3DController {
       name: entry.item.name,
       x: halfW + entry.basePosition.x,
       y: halfH - entry.basePosition.y,
+      radius:
+        entry.item.radius ??
+        (this.activeEntries.length === 1
+          ? 110
+          : this.activeEntries.length <= 3
+            ? 64
+            : this.activeEntries.length <= 4
+              ? 50
+              : 44),
     }));
   }
 

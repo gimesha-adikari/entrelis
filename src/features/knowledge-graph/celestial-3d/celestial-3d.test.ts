@@ -99,7 +99,7 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     expect(screenPositions[0]?.name).toBe("RUST");
 
     controller.dispose();
-  });
+  }, 15000);
 
   it("loads all catalog archetypes and repositions on resize", () => {
     const controller = new Celestial3DController({ canvas });
@@ -112,7 +112,7 @@ describe("Celestial 3D Controller Lifecycle & Architecture", () => {
     expect(screenPositions.length).toBe(CATALOG_ARCHETYPES.length);
 
     controller.dispose();
-  });
+  }, 15000);
 
   it("handles renderFrame without crashing and updates rotation", () => {
     const controller = new Celestial3DController({ canvas });

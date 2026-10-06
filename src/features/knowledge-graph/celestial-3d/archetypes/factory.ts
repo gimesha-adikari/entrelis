@@ -80,6 +80,11 @@ export function createCelestialObject(
 
   let starCoronaSprite: THREE.Sprite | undefined;
   let starShaderMaterial: THREE.ShaderMaterial | undefined;
+  let coronaBaseSize = radius * 2.45;
+  let coronaPeriodX = 14.0;
+  let coronaPeriodY = 11.5;
+  let coronaVarAmp = 0.025;
+  let coronaHoverScale = 1.0;
 
   let ringMesh: THREE.Mesh | undefined;
 
@@ -97,13 +102,17 @@ export function createCelestialObject(
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
-        midColor: 0xfde047,
-        limbColor: 0x854d0e,
-        limbDarkening: 0.38,
-        intensity: 1.65,
+        midColor: 0xfef08a,
+        limbColor: 0x92400e,
+        limbDarkening: 0.42,
+        intensity: 1.08,
+        rimStrength: 0.0,
       };
-      baseRotationSpeed = (2 * Math.PI) / 85;
+      baseRotationSpeed = (2 * Math.PI) / 86; // 86s / rev (70-100s range)
       coronaScale = 2.45;
+      coronaPeriodX = 14.0;
+      coronaPeriodY = 11.5;
+      coronaVarAmp = 0.025;
     } else if (archetype === "blue-star") {
       starTex = createBlueStarTextures(seed, lod);
       shaderParams = {
@@ -111,11 +120,16 @@ export function createCelestialObject(
         coreColor: 0xffffff,
         midColor: 0xcffafe,
         limbColor: 0x1e3a8a,
-        limbDarkening: 0.45,
-        intensity: 1.85,
+        limbDarkening: 0.25,
+        intensity: 1.06,
+        rimColor: 0x93c5fd,
+        rimStrength: 0.16,
       };
-      baseRotationSpeed = (2 * Math.PI) / 65;
-      coronaScale = 2.3;
+      baseRotationSpeed = (2 * Math.PI) / 68; // 68s / rev (55-85s range)
+      coronaScale = 1.95; // Compact, tight corona
+      coronaPeriodX = 11.0;
+      coronaPeriodY = 9.0;
+      coronaVarAmp = 0.018;
     } else {
       // ember-star (Ownership)
       starTex = createEmberStarTextures(seed, lod);
@@ -123,13 +137,19 @@ export function createCelestialObject(
         surfaceTexture: starTex.surface,
         coreColor: 0xfed7aa,
         midColor: 0xea580c,
-        limbColor: 0x450a0a,
-        limbDarkening: 0.3,
-        intensity: 1.95,
+        limbColor: 0x3b0707,
+        limbDarkening: 0.52,
+        intensity: 1.15,
+        rimStrength: 0.0,
       };
-      baseRotationSpeed = (2 * Math.PI) / 95;
-      coronaScale = 2.4;
+      baseRotationSpeed = (2 * Math.PI) / 122; // 122s / rev (90-140s range)
+      coronaScale = 2.85; // Broad, diffuse, irregular envelope
+      coronaPeriodX = 17.0;
+      coronaPeriodY = 13.5;
+      coronaVarAmp = 0.03;
     }
+
+    coronaBaseSize = radius * coronaScale;
 
     starShaderMaterial = createStarSurfaceMaterial(shaderParams);
     materialsToDispose.push(starShaderMaterial);
@@ -148,7 +168,7 @@ export function createCelestialObject(
     materialsToDispose.push(coronaMat);
 
     starCoronaSprite = new THREE.Sprite(coronaMat);
-    const spriteSize = radius * coronaScale;
+    const spriteSize = coronaBaseSize;
     starCoronaSprite.scale.set(spriteSize, spriteSize, 1);
     group.add(starCoronaSprite);
   }
@@ -419,10 +439,12 @@ export function createCelestialObject(
 
     setHover(isHovered: boolean) {
       if (starShaderMaterial) {
-        const targetIntensity = isHovered ? 1.25 : 1.15;
-        const current = (starShaderMaterial.uniforms["uIntensity"]?.value as number) ?? 1.15;
-        starShaderMaterial.uniforms["uIntensity"]!.value =
-          current + (targetIntensity - current) * 0.15;
+        const targetHover = isHovered ? 1.0 : 0.0;
+        const currentHover = (starShaderMaterial.uniforms["uHover"]?.value as number) ?? 0.0;
+        starShaderMaterial.uniforms["uHover"]!.value =
+          currentHover + (targetHover - currentHover) * 0.2;
+        const targetCoronaHover = isHovered ? 1.035 : 1.0;
+        coronaHoverScale = coronaHoverScale + (targetCoronaHover - coronaHoverScale) * 0.2;
       } else {
         const mat = primaryMesh.material as THREE.MeshStandardMaterial;
         if (mat && typeof mat.emissiveIntensity === "number") {
@@ -459,12 +481,15 @@ export function createCelestialObject(
         atmosphereShell.rotation.y += deltaSec * atmosphereRotationSpeed;
       }
 
-      // Star corona breathing
+      // Star corona subtle asynchronous atmospheric variation (Rule 13: 2-4% over 10-18s)
       if (starCoronaSprite) {
-        const breathCycle = (elapsedTime % 10) / 10;
-        const breathScale = 1.0 + 0.04 * Math.sin(breathCycle * Math.PI * 2);
-        const baseSize = radius * 2.45;
-        starCoronaSprite.scale.set(baseSize * breathScale, baseSize * breathScale, 1);
+        const sx = 1.0 + coronaVarAmp * Math.sin((elapsedTime / coronaPeriodX) * Math.PI * 2);
+        const sy = 1.0 + coronaVarAmp * Math.cos((elapsedTime / coronaPeriodY) * Math.PI * 2);
+        starCoronaSprite.scale.set(
+          coronaBaseSize * sx * coronaHoverScale,
+          coronaBaseSize * sy * coronaHoverScale,
+          1
+        );
       }
 
       // Moon orbits

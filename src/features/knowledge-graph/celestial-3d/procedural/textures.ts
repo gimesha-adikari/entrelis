@@ -70,8 +70,15 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
     if (ctx) {
       const img = ctx.createImageData(width, height);
       const data = img.data;
-      const cellNoise = createCellular3D(seed);
-      const fineNoise = createNoise3D(seed + 93);
+
+      const warpN = createNoise3D(seed + 11);
+      const macroN = createNoise3D(seed + 23);
+      const mesoN = createNoise3D(seed + 37);
+      const faculaN = createNoise3D(seed + 51);
+      const hotN = createNoise3D(seed + 73);
+      const microN = createNoise3D(seed + 89);
+      const macroCells = createCellular3D(seed + 5);
+      const mesoCells = createCellular3D(seed + 7);
 
       for (let y = 0; y < height; y++) {
         const phi = (y / height) * Math.PI;
@@ -84,22 +91,85 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
           const py = cosPhi;
           const pz = sinPhi * Math.sin(theta);
 
-          // Multi-scale solar granulation:
-          // 1. Primary convective cells with defined intergranular lanes
-          const cell = cellNoise(px * 14, py * 14, pz * 14);
-          const primaryVal = clamp(cell.diff * 1.55, 0, 1);
+          // 3D domain warp for fluid, organic convection (no Voronoi polygon straight edges)
+          const wx = fbm3D(warpN, px * 1.5, py * 1.5, pz * 1.5, 3);
+          const wy = fbm3D(warpN, px * 1.5 + 5.2, py * 1.5 + 1.3, pz * 1.5 + 2.8, 3);
+          const wz = fbm3D(warpN, px * 1.5 + 9.7, py * 1.5 + 4.1, pz * 1.5 + 7.3, 3);
+          const qx = px + wx * 0.26;
+          const qy = py + wy * 0.26;
+          const qz = pz + wz * 0.26;
 
-          // 2. Secondary turbulent fine granulation
-          const micro = fbm3D(fineNoise, px * 26, py * 26, pz * 26, 3) * 0.5 + 0.5;
+          // Macro supergranulation network
+          const macro = macroCells(qx * 3.0, qy * 3.0, qz * 3.0);
+          const macroInterior = smoothstep(0.04, 0.42, macro.diff);
+          const macroHeat = fbm3D(macroN, qx * 2.2, qy * 2.2, qz * 2.2, 3) * 0.18;
 
-          // 3. Faculae / magnetic bright points concentrated in cell upwelling centers
-          const hotCenter = Math.pow(clamp(cell.diff * 1.35, 0, 1), 2.2);
+          // Meso granulation cells with fluid boundaries
+          const lw = mesoN(qx * 5.0, qy * 5.0, qz * 5.0) * 0.09;
+          const meso = mesoCells((qx + lw) * 9.5, (qy - lw) * 9.5, (qz + lw) * 9.5);
+          const lane = 1.0 - smoothstep(0.04, 0.22, meso.diff);
+          const cellDome = 1.0 - smoothstep(0.05, 0.55, meso.f1);
+
+          // Micro granulation (subtle 5% amplitude)
+          const micro = fbm3D(microN, px * 28.0, py * 28.0, pz * 28.0, 2) * 0.05;
+
+          // Faculae along supergranulation margins
+          const faculaRidge = 1.0 - Math.abs(faculaN(qx * 8.0, qy * 8.0, qz * 8.0));
+          const facula = (1.0 - macroInterior) * smoothstep(0.65, 0.95, faculaRidge) * 0.35;
+
+          // Rare irregular hot upwellings
+          const hotField = fbm3D(hotN, qx * 3.2, qy * 3.2, qz * 3.2, 3);
+          const hotSpot = smoothstep(0.6, 0.85, hotField) * 0.45;
+
+          // Fluid temperature
+          const temp = clamp(
+            0.42 +
+              macroHeat +
+              cellDome * 0.32 -
+              lane * 0.38 * (0.6 + 0.4 * macroInterior) +
+              micro +
+              facula * 0.4 +
+              hotSpot * 0.5,
+            0,
+            1
+          );
+
+          // Colors: Warm amber lane -> pale solar yellow -> radiant warm white
+          const laneR = 170,
+            laneG = 90,
+            laneB = 18;
+          const midR = 253,
+            midG = 224,
+            midB = 71;
+          const hotR = 255,
+            hotG = 254,
+            hotB = 235;
+
+          let r = 0,
+            g = 0,
+            b = 0;
+          if (temp < 0.4) {
+            const t = temp / 0.4;
+            r = lerp(laneR, midR, t);
+            g = lerp(laneG, midG, t);
+            b = lerp(laneB, midB, t);
+          } else {
+            const t = (temp - 0.4) / 0.6;
+            r = lerp(midR, hotR, t);
+            g = lerp(midG, hotG, t);
+            b = lerp(midB, hotB, t);
+          }
+
+          const boost = facula * 0.4 + hotSpot * 0.6;
+          r = clamp(r + boost * 30, 0, 255);
+          g = clamp(g + boost * 25, 0, 255);
+          b = clamp(b + boost * 15, 0, 255);
 
           const idx = (y * width + x) * 4;
-          data[idx] = Math.floor(primaryVal * 255);
-          data[idx + 1] = Math.floor(micro * 255);
-          data[idx + 2] = Math.floor(hotCenter * 255);
-          data[idx + 3] = 255;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(clamp(temp * 0.7 + boost * 0.5, 0, 1) * 255);
         }
       }
       ctx.putImageData(img, 0, 0);
@@ -130,18 +200,39 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
           if (r >= 1.0) continue;
 
           const angle = Math.atan2(dy, dx);
-          // 5-lobe organic solar flare modulation
-          const lobe =
-            1.0 + 0.14 * Math.sin(angle * 5 + seed * 0.1) + 0.08 * Math.cos(angle * 3 - seed * 0.2);
-          const normR = r / lobe;
-          if (normR >= 1.0) continue;
+          // Medium balanced corona, 3-4 broad asymmetric lobes
+          const lobe1 = Math.sin(angle * 3.0 + seed * 0.15) * 0.16;
+          const lobe2 = Math.cos(angle * 2.0 - seed * 0.28) * 0.1;
+          const lobe = 1.0 + lobe1 + lobe2;
+          const effH = r / Math.max(0.2, lobe);
 
-          const falloff = Math.pow(Math.max(0, 1.0 - normR), 2.4);
+          // 2 localized subtle prominences
+          const p1Angle = 0.82;
+          const dAng1 = Math.atan2(Math.sin(angle - p1Angle), Math.cos(angle - p1Angle));
+          const prom1 =
+            Math.exp(-Math.pow(dAng1 / 0.15, 2)) * Math.exp(-Math.pow(r / 0.22, 2)) * 0.42;
+
+          const p2Angle = 3.92;
+          const dAng2 = Math.atan2(Math.sin(angle - p2Angle), Math.cos(angle - p2Angle));
+          const prom2 =
+            Math.exp(-Math.pow(dAng2 / 0.12, 2)) * Math.exp(-Math.pow(r / 0.16, 2)) * 0.28;
+
+          const envInner = Math.exp(-effH / 0.1) * 0.65;
+          const envOuter = Math.exp(-effH / 0.3) * 0.45;
+          const falloff = clamp(envInner + envOuter + prom1 + prom2, 0, 1);
+
+          if (falloff <= 0.001) continue;
+
+          // Warm white-gold -> solar gold -> soft amber
+          const colR = lerp(255, 210, smoothstep(0.0, 0.4, effH));
+          const colG = lerp(242, 145, smoothstep(0.0, 0.4, effH));
+          const colB = lerp(160, 25, smoothstep(0.0, 0.4, effH));
+
           const idx = (y * size + x) * 4;
-          data[idx] = Math.floor(255 * falloff);
-          data[idx + 1] = Math.floor(225 * falloff);
-          data[idx + 2] = Math.floor(130 * falloff);
-          data[idx + 3] = Math.floor(255 * falloff);
+          data[idx] = Math.floor(colR);
+          data[idx + 1] = Math.floor(colG);
+          data[idx + 2] = Math.floor(colB);
+          data[idx + 3] = Math.floor(falloff * 255);
         }
       }
       ctx.putImageData(img, 0, 0);
@@ -170,8 +261,13 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
     if (ctx) {
       const img = ctx.createImageData(width, height);
       const data = img.data;
-      const cellNoise = createCellular3D(seed + 99);
-      const fineNoise = createNoise3D(seed + 555);
+
+      const warpN = createNoise3D(seed + 101);
+      const regionN = createNoise3D(seed + 131);
+      const filN1 = createNoise3D(seed + 157);
+      const filN2 = createNoise3D(seed + 173);
+      const coolN = createNoise3D(seed + 191);
+      const turbN = createNoise3D(seed + 211);
 
       for (let y = 0; y < height; y++) {
         const phi = (y / height) * Math.PI;
@@ -184,21 +280,73 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
           const py = cosPhi;
           const pz = sinPhi * Math.sin(theta);
 
-          // Ultra-hot O/B-type star: tight high-frequency granulation with intense white upwelling
-          const cell = cellNoise(px * 26, py * 26, pz * 26);
-          const primaryVal = clamp(Math.pow(cell.diff * 1.6, 1.4), 0, 1);
+          // 3D Domain warp for compressed turbulent high-energy flow (no Voronoi cell boundaries)
+          const wx = fbm3D(warpN, px * 2.0, py * 2.0, pz * 2.0, 2);
+          const wy = fbm3D(warpN, px * 2.0 + 4.7, py * 2.0 + 8.1, pz * 2.0 + 1.9, 2);
+          const wz = fbm3D(warpN, px * 2.0 + 7.3, py * 2.0 + 2.6, pz * 2.0 + 6.4, 2);
+          const qx = px + wx * 0.18;
+          const qy = py + wy * 0.18;
+          const qz = pz + wz * 0.18;
 
-          // Micro-cellular granulation
-          const micro = fbm3D(fineNoise, px * 42, py * 42, pz * 42, 3) * 0.5 + 0.5;
+          // Broad radiant thermal zones
+          const regions = fbm3D(regionN, qx * 2.8, qy * 2.8, qz * 2.8, 3) * 0.16;
 
-          // Radiant white central core boost
-          const hotCenter = Math.pow(clamp(cell.diff * 1.5, 0, 1), 2.8);
+          // Inverted ridges = compressed bright filaments of glowing plasma
+          const r1 = Math.pow(1.0 - Math.abs(filN1(qx * 13.0, qy * 13.0, qz * 13.0)), 2.0);
+          const r2 = Math.pow(
+            1.0 - Math.abs(filN2(qx * 25.0 + 3.1, qy * 25.0 - 1.7, qz * 25.0 + 0.4)),
+            2.4
+          );
+          const filaments = r1 * 0.65 + r2 * 0.35;
+
+          // Fine turbulence (absolute-value)
+          const turb = Math.abs(turbN(qx * 20.0, qy * 20.0, qz * 20.0)) * 0.1;
+
+          // Restrained cooler zones
+          const cool = smoothstep(0.48, 0.82, fbm3D(coolN, qx * 2.0, qy * 2.0, qz * 2.0, 3));
+
+          // Balanced temperature: visible deep sapphire depths, electric icy cyan midtones, and white-hot filaments
+          const temp = clamp(0.38 + regions + filaments * 0.44 - turb - cool * 0.32, 0, 1);
+
+          // Colors: Deep sapphire -> electric icy cyan -> radiant azure-white -> pure white
+          const sapphireR = 28,
+            sapphireG = 52,
+            sapphireB = 135;
+          const cyanR = 96,
+            cyanG = 192,
+            cyanB = 248;
+          const azureWhiteR = 215,
+            azureWhiteG = 240,
+            azureWhiteB = 255;
+          const peakR = 255,
+            peakG = 255,
+            peakB = 255;
+
+          let r = 0,
+            g = 0,
+            b = 0;
+          if (temp < 0.34) {
+            const t = temp / 0.34;
+            r = lerp(sapphireR, cyanR, t);
+            g = lerp(sapphireG, cyanG, t);
+            b = lerp(sapphireB, cyanB, t);
+          } else if (temp < 0.72) {
+            const t = (temp - 0.34) / 0.38;
+            r = lerp(cyanR, azureWhiteR, t);
+            g = lerp(cyanG, azureWhiteG, t);
+            b = lerp(cyanB, azureWhiteB, t);
+          } else {
+            const t = (temp - 0.72) / 0.28;
+            r = lerp(azureWhiteR, peakR, t);
+            g = lerp(azureWhiteR, peakG, t);
+            b = lerp(azureWhiteR, peakB, t);
+          }
 
           const idx = (y * width + x) * 4;
-          data[idx] = Math.floor(primaryVal * 255);
-          data[idx + 1] = Math.floor(micro * 255);
-          data[idx + 2] = Math.floor(hotCenter * 255);
-          data[idx + 3] = 255;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(clamp(temp * 0.65 + filaments * 0.35, 0, 1) * 255);
         }
       }
       ctx.putImageData(img, 0, 0);
@@ -229,17 +377,26 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
           if (r >= 1.0) continue;
 
           const angle = Math.atan2(dy, dx);
-          // Tighter, energetic 7-ray corona
-          const lobe = 1.0 + 0.18 * Math.sin(angle * 7 + seed * 0.2);
-          const normR = r / lobe;
-          if (normR >= 1.0) continue;
+          // Tight, sharp, compact corona, bright right at limb
+          const lobe = 1.0 + Math.sin(angle * 7.0 + seed * 0.2) * 0.06;
+          const effH = r / lobe;
 
-          const falloff = Math.pow(Math.max(0, 1.0 - normR), 3.2);
+          const envInner = Math.exp(-effH / 0.06) * 0.95;
+          const envOuter = Math.exp(-effH / 0.18) * 0.28;
+          const falloff = clamp(envInner + envOuter, 0, 1);
+
+          if (falloff <= 0.001) continue;
+
+          // Radiant white -> pale icy cyan -> delicate azure
+          const colR = lerp(245, 95, smoothstep(0.0, 0.2, effH));
+          const colG = lerp(250, 195, smoothstep(0.0, 0.2, effH));
+          const colB = lerp(255, 255, smoothstep(0.0, 0.2, effH));
+
           const idx = (y * size + x) * 4;
-          data[idx] = Math.floor(220 * falloff);
-          data[idx + 1] = Math.floor(245 * falloff);
-          data[idx + 2] = Math.floor(255 * falloff);
-          data[idx + 3] = Math.floor(255 * falloff);
+          data[idx] = Math.floor(colR);
+          data[idx + 1] = Math.floor(colG);
+          data[idx + 2] = Math.floor(colB);
+          data[idx + 3] = Math.floor(falloff * 255);
         }
       }
       ctx.putImageData(img, 0, 0);
@@ -268,9 +425,12 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
     if (ctx) {
       const img = ctx.createImageData(width, height);
       const data = img.data;
-      const cellNoise = createCellular3D(seed + 55);
-      const noise = createNoise3D(seed + 77);
-      const hotNoise = createNoise3D(seed + 121);
+
+      const warpN = createNoise3D(seed + 211);
+      const plumeN = createNoise3D(seed + 233);
+      const subN = createNoise3D(seed + 257);
+      const amberN = createNoise3D(seed + 271);
+      const giantCells = createCellular3D(seed + 13);
 
       for (let y = 0; y < height; y++) {
         const phi = (y / height) * Math.PI;
@@ -283,28 +443,95 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
           const py = cosPhi;
           const pz = sinPhi * Math.sin(theta);
 
-          // Deep convective red giant: massive irregular convection plumes with dark obsidian lanes
-          const warp = domainWarp3D(noise, px * 3.5, py * 3.5, pz * 3.5, 0.45);
-          const cell = cellNoise(
-            (px + warp * 0.15) * 8.5,
-            (py + warp * 0.15) * 8.5,
-            (pz + warp * 0.15) * 8.5
+          // Massive domain warp for giant boiling convection plumes
+          const wx = fbm3D(warpN, px * 1.2, py * 1.2, pz * 1.2, 4);
+          const wy = fbm3D(warpN, px * 1.2 + 6.1, py * 1.2 + 2.3, pz * 1.2 + 9.4, 4);
+          const wz = fbm3D(warpN, px * 1.2 + 3.8, py * 1.2 + 7.7, pz * 1.2 + 1.2, 4);
+          const qx = px + wx * 0.52;
+          const qy = py + wy * 0.52;
+          const qz = pz + wz * 0.52;
+
+          // Giant convection plumes (low frequency)
+          const cell = giantCells(qx * 1.8, qy * 1.8, qz * 1.8);
+          // Narrow dark boundary lanes between giant plumes
+          const laneMask = smoothstep(0.03, 0.22, cell.diff); // 0 at lane, 1 inside plume
+          const plumeCore = 1.0 - smoothstep(0.08, 0.65, cell.f1); // 1 at center of plume
+
+          // Plume internal fluid flow
+          const plumeFlow = fbm3D(
+            plumeN,
+            qx * 2.8 + wx * 0.6,
+            qy * 2.8 + wy * 0.6,
+            qz * 2.8 + wz * 0.6,
+            3
           );
-          const primaryVal = clamp(cell.diff * 1.45, 0, 1);
+          const subFlow = fbm3D(subN, qx * 5.5, qy * 5.5, qz * 5.5, 2) * 0.15;
 
-          // Convective turbulence within plumes
-          const plumeTurb = fbm3D(noise, px * 16, py * 16, pz * 16, 3) * 0.5 + 0.5;
+          // Molten amber regions concentrated in plume centers
+          const amberSeed = fbm3D(amberN, qx * 1.6, qy * 1.6, qz * 1.6, 2);
+          const amber = smoothstep(
+            0.5,
+            0.8,
+            plumeCore * 0.55 + plumeFlow * 0.35 + amberSeed * 0.25
+          );
 
-          // Molten amber hot spots in cell centers
-          const hotCenter =
-            Math.pow(clamp(cell.diff * 1.35, 0, 1), 1.8) *
-            (fbm3D(hotNoise, px * 5, py * 5, pz * 5, 2) * 0.35 + 0.65);
+          // Overall temperature:
+          // In lanes (laneMask near 0): temp is 0.08 - 0.22 (cooling lanes)
+          // Plume body (laneMask near 1): temp is 0.35 - 0.65 (rich garnet to fiery red-orange)
+          // Plume core / amber: temp is 0.70 - 1.0 (molten amber to golden heat)
+          const temp = clamp(
+            0.12 + laneMask * 0.42 + plumeFlow * 0.18 + subFlow + amber * 0.38,
+            0,
+            1
+          );
+
+          // Colors: Obsidian cooling lane -> deep garnet -> burning red-orange -> molten amber-gold -> radiant core
+          const laneR = 45,
+            laneG = 10,
+            laneB = 10;
+          const garnetR = 175,
+            garnetG = 25,
+            garnetB = 25;
+          const orangeR = 240,
+            orangeG = 95,
+            orangeB = 15;
+          const amberR = 254,
+            amberG = 205,
+            amberB = 55;
+          const coreR = 255,
+            coreG = 245,
+            coreB = 175;
+
+          let r = 0,
+            g = 0,
+            b = 0;
+          if (temp < 0.28) {
+            const t = temp / 0.28;
+            r = lerp(laneR, garnetR, t);
+            g = lerp(laneG, garnetG, t);
+            b = lerp(laneB, garnetB, t);
+          } else if (temp < 0.62) {
+            const t = (temp - 0.28) / 0.34;
+            r = lerp(garnetR, orangeR, t);
+            g = lerp(garnetG, orangeR, t);
+            b = lerp(garnetB, orangeB, t);
+          } else if (temp < 0.88) {
+            const t = (temp - 0.62) / 0.26;
+            r = lerp(orangeR, amberR, t);
+            g = lerp(orangeG, amberR, t);
+            b = lerp(orangeB, amberB, t);
+          } else {
+            const t = (temp - 0.88) / 0.12;
+            r = lerp(amberR, coreR, t);
+            g = lerp(amberG, coreG, t);
+            b = lerp(amberB, coreB, t);
+          }
 
           const idx = (y * width + x) * 4;
-          data[idx] = Math.floor(primaryVal * 255);
-          data[idx + 1] = Math.floor(plumeTurb * 255);
-          data[idx + 2] = Math.floor(clamp(hotCenter, 0, 1) * 255);
-          data[idx + 3] = 255;
+          data[idx] = Math.floor(r);
+          data[idx + 1] = Math.floor(g);
+          data[idx + 2] = Math.floor(b);
+          data[idx + 3] = Math.floor(clamp(temp * 0.7 + amber * 0.3, 0, 1) * 255);
         }
       }
       ctx.putImageData(img, 0, 0);
@@ -335,17 +562,28 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
           if (r >= 1.0) continue;
 
           const angle = Math.atan2(dy, dx);
-          // Restrained, deep crimson-amber corona
-          const lobe = 1.0 + 0.1 * Math.sin(angle * 4 + seed * 0.15);
-          const normR = r / lobe;
-          if (normR >= 1.0) continue;
+          // Softer, broader, diffuse irregular envelope (2.5x larger scale height)
+          const lobe1 = Math.sin(angle * 2.0 + seed * 0.22) * 0.24;
+          const lobe2 = Math.cos(angle * 3.0 - seed * 0.18) * 0.15;
+          const lobe = 1.0 + lobe1 + lobe2;
+          const effH = r / Math.max(0.2, lobe);
 
-          const falloff = Math.pow(Math.max(0, 1.0 - normR), 2.2);
+          const envInner = Math.exp(-effH / 0.18) * 0.52;
+          const envOuter = Math.exp(-effH / 0.5) * 0.38;
+          const falloff = clamp(envInner + envOuter, 0, 1);
+
+          if (falloff <= 0.001) continue;
+
+          // Fiery garnet -> dark red-orange -> deep dusky crimson
+          const colR = lerp(230, 110, smoothstep(0.0, 0.5, effH));
+          const colG = lerp(60, 15, smoothstep(0.0, 0.5, effH));
+          const colB = lerp(15, 5, smoothstep(0.0, 0.5, effH));
+
           const idx = (y * size + x) * 4;
-          data[idx] = Math.floor(255 * falloff);
-          data[idx + 1] = Math.floor(120 * falloff);
-          data[idx + 2] = Math.floor(35 * falloff);
-          data[idx + 3] = Math.floor(255 * falloff);
+          data[idx] = Math.floor(colR);
+          data[idx + 1] = Math.floor(colG);
+          data[idx + 2] = Math.floor(colB);
+          data[idx + 3] = Math.floor(falloff * 255);
         }
       }
       ctx.putImageData(img, 0, 0);

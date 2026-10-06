@@ -12,12 +12,82 @@ import styles from "./Celestial3DLab.module.css";
 type CategoryFilter =
   | "ALL"
   | "STARS"
+  | "STARS_SCALE"
+  | "GOLDEN_CLOSE"
+  | "BLUE_CLOSE"
+  | "EMBER_CLOSE"
   | "ROCKY"
   | "BIOLOGICAL"
   | "ATMOSPHERIC"
   | "STRUCTURAL"
   | "SMALL BODIES"
   | "CONCEPTS";
+
+const STAR_SCALE_ITEMS: readonly CatalogItemEntry[] = [
+  {
+    id: "golden-detail",
+    name: "Golden Star (Detail)",
+    identity: { archetype: "golden-star", seed: 101 },
+    radius: 56,
+  },
+  {
+    id: "blue-detail",
+    name: "Blue-White Star (Detail)",
+    identity: { archetype: "blue-star", seed: 102 },
+    radius: 56,
+  },
+  {
+    id: "ember-detail",
+    name: "Ember Star (Detail)",
+    identity: { archetype: "ember-star", seed: 103 },
+    radius: 56,
+  },
+  {
+    id: "golden-84px",
+    name: "Golden (84px Node)",
+    identity: { archetype: "golden-star", seed: 101 },
+    radius: 42,
+  },
+  {
+    id: "blue-84px",
+    name: "Blue-White (84px Node)",
+    identity: { archetype: "blue-star", seed: 102 },
+    radius: 42,
+  },
+  {
+    id: "ember-84px",
+    name: "Ember (84px Node)",
+    identity: { archetype: "ember-star", seed: 103 },
+    radius: 42,
+  },
+];
+
+const GOLDEN_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "golden-star",
+    name: "Golden Star (Close-Up)",
+    identity: { archetype: "golden-star", seed: 101 },
+    radius: 110,
+  },
+];
+
+const BLUE_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "blue-star",
+    name: "Blue-White Star (Close-Up)",
+    identity: { archetype: "blue-star", seed: 102 },
+    radius: 110,
+  },
+];
+
+const EMBER_CLOSE_ITEM: readonly CatalogItemEntry[] = [
+  {
+    id: "ember-star",
+    name: "Ember Star (Close-Up)",
+    identity: { archetype: "ember-star", seed: 103 },
+    radius: 110,
+  },
+];
 
 const CONCEPT_ITEMS: readonly CatalogItemEntry[] = [
   { id: "rust", name: "Rust", identity: ENTRELIS_CONCEPT_IDENTITIES["rust"]! },
@@ -49,6 +119,18 @@ export const Celestial3DLab: React.FC = () => {
     }
     if (activeCategory === "ALL") {
       return CATALOG_ARCHETYPES;
+    }
+    if (activeCategory === "STARS_SCALE") {
+      return STAR_SCALE_ITEMS;
+    }
+    if (activeCategory === "GOLDEN_CLOSE") {
+      return GOLDEN_CLOSE_ITEM;
+    }
+    if (activeCategory === "BLUE_CLOSE") {
+      return BLUE_CLOSE_ITEM;
+    }
+    if (activeCategory === "EMBER_CLOSE") {
+      return EMBER_CLOSE_ITEM;
     }
     return CATALOG_ARCHETYPES.filter((item) => item.category === activeCategory);
   }, [activeCategory]);
@@ -112,6 +194,10 @@ export const Celestial3DLab: React.FC = () => {
   const categories: readonly { id: CategoryFilter; label: string }[] = [
     { id: "ALL", label: "All Catalog" },
     { id: "STARS", label: "Stars" },
+    { id: "STARS_SCALE", label: "Stars (84px Scale)" },
+    { id: "GOLDEN_CLOSE", label: "Golden Close" },
+    { id: "BLUE_CLOSE", label: "Blue-White Close" },
+    { id: "EMBER_CLOSE", label: "Ember Close" },
     { id: "ROCKY", label: "Rocky" },
     { id: "BIOLOGICAL", label: "Life" },
     { id: "ATMOSPHERIC", label: "Gas & Rings" },
@@ -147,7 +233,7 @@ export const Celestial3DLab: React.FC = () => {
             className={`${styles.label} ${hoveredId === pos.id ? styles.labelActive : ""}`}
             style={{
               left: `${pos.x}px`,
-              top: `${pos.y + 54}px`, // Centered beneath body
+              top: `${pos.y + (pos.radius ?? 50) + 14}px`, // Positioned cleanly beneath body
             }}
           >
             {pos.name}
