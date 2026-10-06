@@ -7,7 +7,7 @@ import type {
 
 /**
  * Generates a synthetic KnowledgeDataset fixture for performance benchmarking.
- * This is strictly a benchmark fixture and must never be committed to permanent seed data.
+ * This is strictly an isolated benchmark fixture and is never used in product routes.
  */
 export function generateSyntheticDataset(nodeCount: number): KnowledgeDataset {
   const concepts: Concept[] = [];
