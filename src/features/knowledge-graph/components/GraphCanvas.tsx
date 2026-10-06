@@ -395,9 +395,10 @@ export default function GraphCanvas({
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    onSelectConcept("rust");
     if (onResetCamera) {
       onResetCamera();
+    } else {
+      onSelectConcept("rust");
     }
   };
 

@@ -229,4 +229,37 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
     expect(screen.queryByText(/2D Graph/i)).toBeNull();
   });
+
+  it("creates exactly one history entry when clicking Return to Rust and restores prior concept on Back", () => {
+    // Start at /concept/memory
+    window.history.replaceState({ slug: "memory" }, "", "/concept/memory");
+    const pushStateSpy = vi.spyOn(window.history, "pushState");
+
+    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="memory" />);
+
+    expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
+    expect(document.title).toBe("Memory — Entrelis");
+
+    // Click Return to Rust
+    const returnBtn = screen.getByRole("button", { name: /Return to Rust/i });
+    fireEvent.click(returnBtn);
+
+    // Exactly one pushState call should be made to "/"
+    expect(pushStateSpy).toHaveBeenCalledTimes(1);
+    expect(pushStateSpy).toHaveBeenCalledWith({ slug: "rust" }, "", "/");
+
+    // Rust is now selected and root title is active
+    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+    expect(document.title).toBe("Entrelis — Everything is connected");
+
+    // Simulate browser Back (popstate) to /concept/memory
+    window.history.replaceState({ slug: "memory" }, "", "/concept/memory");
+    fireEvent(window, new PopStateEvent("popstate"));
+
+    // Memory is restored directly without intermediate /concept/rust stop
+    expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
+    expect(document.title).toBe("Memory — Entrelis");
+
+    pushStateSpy.mockRestore();
+  });
 });
