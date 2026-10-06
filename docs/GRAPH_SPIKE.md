@@ -94,6 +94,7 @@ A core Entrelis design principle is **spatial stability**: as a user navigates b
   - Simulation can be run for a fixed tick count (e.g. 100 ticks) and frozen immediately (`simulation.stop()`).
   - Node coordinates (`x, y`) can be directly saved, stored in fixtures/databases, and reused.
   - Supports smooth coordinate interpolation when progressively revealing new neighbors, ensuring the existing graph nodes remain locked or gently ease into position without chaotic spring bouncing.
+  - **Decoupled Simulation Lifecycle:** In the React prototype, force simulation creation is strictly isolated to dataset identity (`[dataset]`). Visual interaction state (hover, selection, neighbor highlighting) updates via canvas redraws against existing settled coordinates using a mutable callback ref (`drawRef`), ensuring that selecting or hovering nodes never restarts physical forces, resets settled positions, or interrupts active camera recentering animations.
 
 ---
 

@@ -185,63 +185,66 @@ export default function D3GraphView({ dataset }: Props) {
     ctx.restore();
   }, [selectedNodeId, hoveredNodeId, neighborIds]);
 
+  const drawRef = useRef(draw);
+  useEffect(() => {
+    drawRef.current = draw;
+  }, [draw]);
+
   // Concept selection with recenter animation
-  const selectConcept = useCallback(
-    (nodeId: string | null) => {
-      setSelectedNodeId(nodeId);
-      if (!nodeId) return;
+  const selectConcept = useCallback((nodeId: string | null) => {
+    setSelectedNodeId(nodeId);
+    if (!nodeId) return;
 
-      const node = nodesRef.current.find((n) => n.id === nodeId);
-      if (!node || typeof node.x !== "number" || typeof node.y !== "number") return;
+    const node = nodesRef.current.find((n) => n.id === nodeId);
+    if (!node || typeof node.x !== "number" || typeof node.y !== "number") return;
 
-      const currentK = transformRef.current.k;
-      const targetX = -node.x * currentK;
-      const targetY = -node.y * currentK;
+    const currentK = transformRef.current.k;
+    const targetX = -node.x * currentK;
+    const targetY = -node.y * currentK;
 
-      // Honor prefers-reduced-motion
-      const prefersReducedMotion =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Honor prefers-reduced-motion
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      if (prefersReducedMotion) {
-        transformRef.current.x = targetX;
-        transformRef.current.y = targetY;
-        draw();
-        return;
+    if (prefersReducedMotion) {
+      transformRef.current.x = targetX;
+      transformRef.current.y = targetY;
+      drawRef.current();
+      return;
+    }
+
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    const startX = transformRef.current.x;
+    const startY = transformRef.current.y;
+    const startTime = performance.now();
+    const duration = 300;
+
+    const animateRecenter = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Ease-out cubic: 1 - (1 - progress)^3
+      const ease = 1 - Math.pow(1 - progress, 3);
+
+      transformRef.current.x = startX + (targetX - startX) * ease;
+      transformRef.current.y = startY + (targetY - startY) * ease;
+      drawRef.current();
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animateRecenter);
+      } else {
+        animationFrameRef.current = null;
       }
+    };
 
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+    animationFrameRef.current = requestAnimationFrame(animateRecenter);
+  }, []);
 
-      const startX = transformRef.current.x;
-      const startY = transformRef.current.y;
-      const startTime = performance.now();
-      const duration = 300;
-
-      const animateRecenter = (now: number) => {
-        const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / duration);
-        // Ease-out cubic: 1 - (1 - progress)^3
-        const ease = 1 - Math.pow(1 - progress, 3);
-
-        transformRef.current.x = startX + (targetX - startX) * ease;
-        transformRef.current.y = startY + (targetY - startY) * ease;
-        draw();
-
-        if (progress < 1) {
-          animationFrameRef.current = requestAnimationFrame(animateRecenter);
-        } else {
-          animationFrameRef.current = null;
-        }
-      };
-
-      animationFrameRef.current = requestAnimationFrame(animateRecenter);
-    },
-    [draw]
-  );
-
-  // Setup simulation and resize
+  // Interaction state must not recreate the force simulation; selection and hover only redraw the existing coordinates.
   useEffect(() => {
     const { nodes, links } = createD3GraphData(dataset);
     nodesRef.current = nodes;
@@ -259,7 +262,7 @@ export default function D3GraphView({ dataset }: Props) {
       .force("collide", forceCollide(35));
 
     simulation.on("tick", () => {
-      draw();
+      drawRef.current();
     });
 
     const updateDimensions = () => {
@@ -276,7 +279,7 @@ export default function D3GraphView({ dataset }: Props) {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      draw();
+      drawRef.current();
     };
 
     updateDimensions();
@@ -287,14 +290,15 @@ export default function D3GraphView({ dataset }: Props) {
       window.removeEventListener("resize", updateDimensions);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
       }
     };
-  }, [dataset, draw]);
+  }, [dataset]);
 
-  // Redraw when selection changes
+  // Redraw when interaction or hover state changes without recreating simulation
   useEffect(() => {
     draw();
-  }, [selectedNodeId, hoveredNodeId, draw]);
+  }, [draw]);
 
   // Hit test helper
   const getNodeAtPoint = (clientX: number, clientY: number): D3SimulationNode | null => {
