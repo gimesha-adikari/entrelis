@@ -7,6 +7,7 @@ import type { CelestialBodyInstance } from "./archetypes/factory";
 import type { CelestialIdentity, GeometryLOD } from "./identity";
 import {
   ProductionCelestialController,
+  type ProductionCelestialControllerDependencies,
   projectUniverseNode,
   roleToGeometryLod,
 } from "./production-controller";
@@ -74,6 +75,9 @@ function makeRenderer() {
     setSize: vi.fn(),
     setClearColor: vi.fn(),
     render: vi.fn(),
+    clear: vi.fn(),
+    clearDepth: vi.fn(),
+    autoClear: true,
     dispose: vi.fn(),
   } as unknown as THREE.WebGLRenderer;
 }
@@ -469,8 +473,9 @@ describe("production celestial scene controller", () => {
       600,
       null
     );
-
-    expect(renderer.render).toHaveBeenCalledOnce();
+    // One render frame executed, rendering both universe and celestial scenes through shared renderer
+    expect(controller.getLifecycleStats().renderFrameCount).toBe(1);
+    expect(renderer.render).toHaveBeenCalledTimes(2);
   });
 
   it("does not render updates while the document is hidden", () => {
@@ -773,5 +778,46 @@ describe("production celestial scene controller", () => {
       warmEntries: 0,
       bodyDisposals: 2,
     });
+  });
+
+  it("renders both universe scene and celestial scene sequentially through the single shared renderer", () => {
+    const renderer = makeRenderer();
+    const mockUniverseRender = vi.fn();
+    const mockUniverseDispose = vi.fn();
+    const mockUniverseUpdate = vi.fn();
+    const mockUniverseResize = vi.fn();
+
+    const mockUniverseScene = {
+      scene: new THREE.Scene(),
+      camera: new THREE.OrthographicCamera(-1, 1, 1, -1),
+      render: mockUniverseRender,
+      dispose: mockUniverseDispose,
+      update: mockUniverseUpdate,
+      resize: mockUniverseResize,
+    } as unknown as ReturnType<
+      NonNullable<ProductionCelestialControllerDependencies["createUniverseScene"]>
+    >;
+
+    const createUniverseScene = vi.fn(() => mockUniverseScene);
+
+    const canvas = document.createElement("canvas");
+    const controller = new ProductionCelestialController(canvas, {
+      createRenderer: () => renderer,
+      createBody: (identity) => makeBody(identity),
+      createUniverseScene,
+    });
+
+    expect(createUniverseScene).toHaveBeenCalledOnce();
+    expect(controller.getLifecycleStats().universeActive).toBe(true);
+
+    showRustWithoutOwnership(controller);
+
+    expect(renderer.clear).toHaveBeenCalled();
+    expect(mockUniverseRender).toHaveBeenCalledWith(renderer);
+    expect(renderer.clearDepth).toHaveBeenCalled();
+    expect(renderer.render).toHaveBeenCalled();
+
+    controller.dispose();
+    expect(mockUniverseDispose).toHaveBeenCalledOnce();
   });
 });

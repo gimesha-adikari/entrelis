@@ -4,6 +4,10 @@ import type { ViewportTransform } from "../types";
 import { createCelestialObject, type CelestialBodyInstance } from "./archetypes/factory";
 import { getConceptCelestialIdentity, type GeometryLOD } from "./identity";
 import { addCelestialSceneLighting, resizeCelestialRenderer } from "./renderer-utils";
+import {
+  UniverseScene as Universe3DScene,
+  type UniverseSceneOptions as Universe3DSceneOptions,
+} from "./universe";
 
 const BODY_BASE_RADIUS = 50;
 const DEFAULT_TARGET_FPS = 30;
@@ -46,6 +50,7 @@ export interface ProductionCelestialControllerDependencies {
     lod: GeometryLOD,
     radius: number
   ) => CelestialBodyInstance;
+  readonly createUniverseScene?: (options: Universe3DSceneOptions) => Universe3DScene;
 }
 
 export interface ProductionCelestialLifecycleStats {
@@ -56,6 +61,8 @@ export interface ProductionCelestialLifecycleStats {
   readonly pendingCapacity: number;
   readonly preparingEntries: number;
   readonly rendererAvailable: boolean;
+  readonly universeActive: boolean;
+  readonly universeSceneChildren: number;
   readonly asyncShaderPreparationSupported: boolean;
   readonly parallelShaderCompileExtensionAvailable: boolean;
   readonly sceneChildren: number;
@@ -196,6 +203,8 @@ export class ProductionCelestialController {
   private readonly asyncShaderPreparationSupported: boolean;
   private readonly parallelShaderCompileExtensionAvailable: boolean;
   private renderer: THREE.WebGLRenderer | null = null;
+  private universeScene: Universe3DScene | null = null;
+  private latestTransform: ViewportTransform = { x: 0, y: 0, k: 1 };
   private motionQuery: MediaQueryList | null = null;
   private animationFrameId: number | null = null;
   private lastFrameTime = 0;
@@ -249,6 +258,7 @@ export class ProductionCelestialController {
 
   private readonly handleMotionChange = (event: MediaQueryListEvent): void => {
     this.prefersReducedMotion = event.matches;
+    this.universeScene?.setPrefersReducedMotion(this.prefersReducedMotion);
     if (this.prefersReducedMotion) {
       this.stopLoop();
       this.renderFrame(0);
@@ -308,6 +318,26 @@ export class ProductionCelestialController {
       document.addEventListener("visibilitychange", this.handleVisibilityChange);
     }
 
+    if (this.renderer) {
+      try {
+        const createUniverse =
+          dependencies.createUniverseScene ?? ((opts) => new Universe3DScene(opts));
+        const effectiveDpr =
+          typeof window === "undefined"
+            ? 1
+            : Math.min(window.devicePixelRatio || 1, RENDERER_DPR_LIMIT);
+        this.universeScene = createUniverse({
+          width: canvas.clientWidth || 1,
+          height: canvas.clientHeight || 1,
+          isMobile: (canvas.clientWidth || 1) <= 768,
+          pixelRatio: effectiveDpr,
+          prefersReducedMotion: this.prefersReducedMotion,
+        });
+      } catch {
+        this.universeScene = null;
+      }
+    }
+
     this.camera.position.set(0, 0, 500);
     this.resize(canvas.clientWidth || 1, canvas.clientHeight || 1);
   }
@@ -326,6 +356,8 @@ export class ProductionCelestialController {
       pendingCapacity: MAX_PENDING_ENTRIES,
       preparingEntries: this.preparingPendingEntry ? 1 : 0,
       rendererAvailable: this.renderer !== null,
+      universeActive: this.universeScene !== null,
+      universeSceneChildren: this.universeScene?.scene.children.length ?? 0,
       asyncShaderPreparationSupported: this.asyncShaderPreparationSupported,
       parallelShaderCompileExtensionAvailable: this.parallelShaderCompileExtensionAvailable,
       sceneChildren: this.scene.children.length,
@@ -391,6 +423,9 @@ export class ProductionCelestialController {
 
     this.resize(width, height);
     if (!this.renderer) return;
+
+    this.latestTransform = transform;
+    this.universeScene?.update(0, this.elapsedTime, transform);
 
     const visibleIds = new Set<string>();
 
@@ -743,6 +778,11 @@ export class ProductionCelestialController {
     this.width = width;
     this.height = height;
     resizeCelestialRenderer(this.camera, this.renderer, width, height);
+    const dpr =
+      typeof window === "undefined"
+        ? 1
+        : Math.min(window.devicePixelRatio || 1, RENDERER_DPR_LIMIT);
+    this.universeScene?.resize(width, height, dpr);
   }
 
   private startLoop(): void {
@@ -792,9 +832,22 @@ export class ProductionCelestialController {
       entry.body.update(deltaSec, this.elapsedTime);
       entry.body.setHover(entry.hovered, this.prefersReducedMotion);
     }
+    if (this.universeScene) {
+      this.universeScene.update(deltaSec, this.elapsedTime, this.latestTransform);
+    }
     if (this.renderer) {
       const renderStartedAt = performance.now();
       try {
+        this.renderer.autoClear = false;
+        if (typeof this.renderer.clear === "function") {
+          this.renderer.clear();
+        }
+        if (this.universeScene) {
+          this.universeScene.render(this.renderer);
+        }
+        if (typeof this.renderer.clearDepth === "function") {
+          this.renderer.clearDepth();
+        }
         this.renderer.render(this.scene, this.camera);
       } finally {
         const renderDuration = performance.now() - renderStartedAt;
@@ -813,6 +866,9 @@ export class ProductionCelestialController {
     this.cancelScheduledPreparation();
     document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     this.motionQuery?.removeEventListener?.("change", this.handleMotionChange);
+
+    this.universeScene?.dispose();
+    this.universeScene = null;
 
     for (const entry of this.activeEntries.values()) {
       this.scene.remove(entry.body.group);

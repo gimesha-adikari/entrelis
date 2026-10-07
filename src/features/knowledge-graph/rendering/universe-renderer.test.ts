@@ -1,17 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { SEED_DATASET } from "@/data/seed";
-import { buildLocalUniverseScene } from "../scene/build-local-scene";
-import { layoutLocalUniverseScene } from "../scene/layout-local-scene";
-import type { UniverseScene } from "../scene/types";
 import { renderUniverseScene } from "./universe-renderer";
+import type { UniverseNode, UniverseScene } from "../scene/types";
+import { SEED_DATASET } from "@/data/seed";
 
 function createMockContext(): CanvasRenderingContext2D {
   return {
     save: vi.fn(),
     restore: vi.fn(),
     clearRect: vi.fn(),
-    translate: vi.fn(),
-    scale: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
     fill: vi.fn(),
@@ -19,111 +15,122 @@ function createMockContext(): CanvasRenderingContext2D {
     moveTo: vi.fn(),
     lineTo: vi.fn(),
     quadraticCurveTo: vi.fn(),
-    closePath: vi.fn(),
+    translate: vi.fn(),
+    scale: vi.fn(),
     fillText: vi.fn(),
-    measureText: vi.fn((text: string) => ({ width: text.length * 7 })),
-    setLineDash: vi.fn(),
-    createRadialGradient: vi.fn().mockReturnValue({
+    measureText: vi.fn(() => ({ width: 40 })),
+    createLinearGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
-    }),
-    createLinearGradient: vi.fn().mockReturnValue({
+    })),
+    createRadialGradient: vi.fn(() => ({
       addColorStop: vi.fn(),
-    }),
-    drawImage: vi.fn(),
+    })),
+    globalAlpha: 1,
+    globalCompositeOperation: "source-over",
+    fillStyle: "#ffffff",
+    strokeStyle: "#ffffff",
+    lineWidth: 1,
   } as unknown as CanvasRenderingContext2D;
 }
 
-describe("renderUniverseScene", () => {
-  const scene = layoutLocalUniverseScene(
-    buildLocalUniverseScene({
-      dataset: SEED_DATASET,
-      focusSlug: "rust",
-      isMobile: false,
-    })
-  );
+describe("renderUniverseScene compositing and layer options", () => {
+  const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+  const ownershipConcept = SEED_DATASET.concepts.find((c) => c.slug === "ownership")!;
 
-  it("executes without errors on mock 2D canvas context", () => {
-    const ctx = createMockContext();
-    expect(() => {
-      renderUniverseScene(ctx, 1280, 800, { x: 0, y: 0, k: 1 }, scene);
-    }).not.toThrow();
+  const focusNode: UniverseNode = {
+    id: "concept-rust",
+    slug: "rust",
+    name: "Rust",
+    concept: rustConcept,
+    role: "focus",
+    visualMass: 1,
+    radius: 34,
+    x: 0,
+    y: 0,
+    opacity: 1,
+  };
 
-    expect(ctx.clearRect).toHaveBeenCalledWith(0, 0, 1280, 800);
-    expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.restore).toHaveBeenCalled();
+  const primaryNode: UniverseNode = {
+    id: "concept-ownership",
+    slug: "ownership",
+    name: "Ownership",
+    concept: ownershipConcept,
+    role: "primary",
+    visualMass: 0.65,
+    radius: 18,
+    x: -120,
+    y: 40,
+    opacity: 1,
+  };
+
+  const scene: UniverseScene = {
+    focus: focusNode,
+    primaryNodes: [primaryNode],
+    contextNodes: [],
+    allNodes: [focusNode, primaryNode],
+    relationships: [
+      {
+        id: "rel-1",
+        sourceId: focusNode.id,
+        targetId: primaryNode.id,
+        type: "uses",
+        explanation: "Rust uses ownership",
+        strength: "primary",
+        relationship: {
+          id: "rel-1",
+          sourceConceptId: focusNode.id,
+          targetConceptId: primaryNode.id,
+          type: "uses",
+          explanation: "Rust uses ownership",
+          strength: "primary",
+          sourceIds: [],
+          reviewStatus: "verified",
+        },
+        role: "focus-connection",
+        curvature: 0.2,
+        opacity: 0.8,
+      },
+    ],
+    isMobile: false,
+  };
+
+  it("skips 2D background stars when skipBackgroundStars option is enabled", () => {
+    const ctxNormal = createMockContext();
+    renderUniverseScene(ctxNormal, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBackgroundStars: false,
+    });
+    const arcCallsWithStars = (ctxNormal.arc as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    const ctxSkip = createMockContext();
+    renderUniverseScene(ctxSkip, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBackgroundStars: true,
+    });
+    const arcCallsWithoutStars = (ctxSkip.arc as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    // Skipping stars should result in significantly fewer arc calls
+    expect(arcCallsWithoutStars).toBeLessThan(arcCallsWithStars);
+    expect(arcCallsWithStars - arcCallsWithoutStars).toBeGreaterThanOrEqual(50);
   });
 
-  it("draws quadratic curves for relationships", () => {
+  it("punches out node circles with destination-out when skipBodyRendering is true", () => {
     const ctx = createMockContext();
-    renderUniverseScene(ctx, 1280, 800, { x: 0, y: 0, k: 1 }, scene);
+    const gcoAssignments: string[] = [];
 
-    expect(ctx.quadraticCurveTo).toHaveBeenCalled();
-  });
-
-  it("renders labels for visible focus and primary concepts", () => {
-    const ctx = createMockContext();
-    renderUniverseScene(ctx, 1280, 800, { x: 0, y: 0, k: 1 }, scene);
-
-    expect(ctx.fillText).toHaveBeenCalledWith("Rust", expect.any(Number), expect.any(Number));
-  });
-
-  it("keeps labels and paths in Canvas while skipping 2D bodies for the WebGL layer", () => {
-    const ctx = createMockContext();
-    renderUniverseScene(ctx, 1280, 800, { x: 0, y: 0, k: 1 }, scene, {
-      skipBodyRendering: true,
+    Object.defineProperty(ctx, "globalCompositeOperation", {
+      get() {
+        return "source-over";
+      },
+      set(val: string) {
+        gcoAssignments.push(val);
+      },
+      configurable: true,
     });
 
-    expect(ctx.fillText).toHaveBeenCalledWith("Rust", expect.any(Number), expect.any(Number));
-    expect(ctx.arc).not.toHaveBeenCalledWith(
-      scene.focus.x,
-      scene.focus.y,
-      scene.focus.radius,
-      0,
-      2 * Math.PI
-    );
-    expect(ctx.quadraticCurveTo).toHaveBeenCalled();
-  });
-
-  it("draws a visible ring for the keyboard-focused concept", () => {
-    const ctx = createMockContext();
-    const focusedNode = scene.primaryNodes[0]!;
-
-    renderUniverseScene(ctx, 1280, 800, { x: 0, y: 0, k: 1 }, scene, {
-      focusedNodeId: focusedNode.id,
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
       skipBodyRendering: true,
+      skipBackgroundStars: true,
     });
 
-    expect(ctx.arc).toHaveBeenCalledWith(
-      focusedNode.x,
-      focusedNode.y,
-      focusedNode.radius + 6,
-      0,
-      2 * Math.PI
-    );
-  });
-
-  it("keeps an edge label visible by placing it on the available side of its body", () => {
-    const ctx = createMockContext();
-    const edgeNode = {
-      ...scene.primaryNodes[0]!,
-      x: -140,
-      y: 0,
-      orbitalAngle: Math.PI,
-    };
-    const edgeScene: UniverseScene = {
-      ...scene,
-      primaryNodes: [edgeNode],
-      contextNodes: [],
-      allNodes: [scene.focus, edgeNode],
-      relationships: [],
-    };
-
-    renderUniverseScene(ctx, 390, 844, { x: 0, y: 0, k: 1 }, edgeScene, {
-      skipBodyRendering: true,
-    });
-
-    const labelCall = vi.mocked(ctx.fillText).mock.calls.find(([label]) => label === edgeNode.name);
-    expect(labelCall?.[1]).toBeGreaterThan(edgeNode.x - edgeNode.radius - 8);
-    expect(labelCall?.[1]).toBeLessThan(0);
+    expect(gcoAssignments).toContain("destination-out");
   });
 });

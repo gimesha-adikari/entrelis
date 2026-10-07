@@ -96,6 +96,7 @@ export default function GraphCanvas({
       focusedNodeId,
       isMobile,
       skipBodyRendering: hasProductionRenderer,
+      skipBackgroundStars: hasProductionRenderer,
     });
 
     productionCelestialLayerRef.current?.update(

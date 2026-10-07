@@ -13,6 +13,7 @@ export interface UniverseRenderOptions {
   isMobile?: boolean;
   skipNodeRendering?: boolean;
   skipBodyRendering?: boolean;
+  skipBackgroundStars?: boolean;
 }
 
 interface StarPoint {
@@ -88,17 +89,19 @@ export function renderUniverseScene(
 
   // 1. Static Screen-Space Celestial Atmosphere (Deep Space)
   // Drawn BEFORE camera translate/scale so stars remain stationary in deep space during interaction
-  const stars = isMobile ? MOBILE_STARS : DESKTOP_STARS;
-  ctx.save();
-  for (const star of stars) {
-    const sx = star.u * width;
-    const sy = star.v * height;
-    ctx.beginPath();
-    ctx.arc(sx, sy, star.r, 0, 2 * Math.PI);
-    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
-    ctx.fill();
+  if (!options.skipBackgroundStars) {
+    const stars = isMobile ? MOBILE_STARS : DESKTOP_STARS;
+    ctx.save();
+    for (const star of stars) {
+      const sx = star.u * width;
+      const sy = star.v * height;
+      ctx.beginPath();
+      ctx.arc(sx, sy, star.r, 0, 2 * Math.PI);
+      ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+      ctx.fill();
+    }
+    ctx.restore();
   }
-  ctx.restore();
 
   // Apply pan/zoom camera transform to world space
   ctx.translate(width / 2 + transform.x * effectiveDpr, height / 2 + transform.y * effectiveDpr);
@@ -214,6 +217,23 @@ export function renderUniverseScene(
   const orderedNodes = [...scene.contextNodes, ...scene.primaryNodes, scene.focus];
   const skipBodies = options.skipBodyRendering ?? false;
   const focusGlow = getFocusGlowSprite();
+
+  // When 3D bodies are rendered in WebGL behind Canvas 2D, punch out node circles
+  // so relationship paths terminate cleanly at body perimeters without crossing faces.
+  if (skipBodies) {
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-out";
+    for (const node of orderedNodes) {
+      if (typeof node.x !== "number" || typeof node.y !== "number") continue;
+      const opacity = node.opacity ?? 1.0;
+      if (opacity <= 0.01) continue;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = "#000000";
+      ctx.fill();
+    }
+    ctx.restore();
+  }
 
   for (const node of orderedNodes) {
     if (typeof node.x !== "number" || typeof node.y !== "number") continue;
