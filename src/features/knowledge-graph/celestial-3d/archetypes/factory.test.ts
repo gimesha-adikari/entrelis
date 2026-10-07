@@ -5,6 +5,13 @@ import { createCelestialObject } from "./factory";
 import type { CelestialIdentity } from "../identity";
 import { disposeAllCelestialTextures } from "../procedural/textures";
 
+function getGeometryAspectRatio(geometry: THREE.BufferGeometry) {
+  geometry.computeBoundingBox();
+  const size = new THREE.Vector3();
+  geometry.boundingBox!.getSize(size);
+  return size.x / size.y;
+}
+
 function setupCanvas2DMock() {
   const originalCreateElement = document.createElement.bind(document);
   vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
@@ -98,18 +105,12 @@ describe("Asteroid Deformation and Celestial Object Factory", () => {
 
     const positions = (geometry: THREE.BufferGeometry) =>
       Array.from((geometry.attributes["position"] as THREE.BufferAttribute).array);
-    const aspectRatio = (geometry: THREE.BufferGeometry) => {
-      geometry.computeBoundingBox();
-      const size = new THREE.Vector3();
-      geometry.boundingBox!.getSize(size);
-      return size.x / size.y;
-    };
 
     expect(positions(carbonRepeat)).toEqual(positions(carbon));
     expect(positions(carbonOtherSeed)).not.toEqual(positions(carbon));
     expect(positions(mineral)).not.toEqual(positions(carbon));
-    expect(aspectRatio(carbon)).toBeLessThan(1.45);
-    expect(aspectRatio(mineral)).toBeGreaterThan(1.4);
+    expect(getGeometryAspectRatio(carbon)).toBeLessThan(1.45);
+    expect(getGeometryAspectRatio(mineral)).toBeGreaterThan(1.4);
 
     for (const geometry of [carbon, carbonRepeat, carbonOtherSeed, mineral]) {
       geometry.computeBoundingSphere();
@@ -134,27 +135,26 @@ describe("Asteroid Deformation and Celestial Object Factory", () => {
     const primaryMineral = deformAsteroidGeometry(42, 602, 2, "mineral");
     const focusMineral = deformAsteroidGeometry(42, 602, 3, "mineral");
 
-    const aspectRatio = (geometry: THREE.BufferGeometry) => {
-      geometry.computeBoundingBox();
-      const size = new THREE.Vector3();
-      geometry.boundingBox!.getSize(size);
-      return size.x / size.y;
-    };
+    const familyProfiles: readonly (readonly [
+      THREE.BufferGeometry,
+      THREE.BufferGeometry,
+      THREE.BufferGeometry,
+    ])[] = [
+      [contextCarbon, primaryCarbon, focusCarbon],
+      [contextMineral, primaryMineral, focusMineral],
+    ];
 
-    expect(Math.abs(aspectRatio(contextCarbon) - aspectRatio(focusCarbon))).toBeLessThan(0.2);
-    expect(Math.abs(aspectRatio(contextMineral) - aspectRatio(focusMineral))).toBeLessThan(0.2);
-    expect(primaryCarbon.attributes["position"]!.count).toBeGreaterThan(
-      contextCarbon.attributes["position"]!.count
-    );
-    expect(focusCarbon.attributes["position"]!.count).toBeGreaterThan(
-      primaryCarbon.attributes["position"]!.count
-    );
-    expect(primaryMineral.attributes["position"]!.count).toBeGreaterThan(
-      contextMineral.attributes["position"]!.count
-    );
-    expect(focusMineral.attributes["position"]!.count).toBeGreaterThan(
-      primaryMineral.attributes["position"]!.count
-    );
+    for (const [context, primary, focus] of familyProfiles) {
+      expect(
+        Math.abs(getGeometryAspectRatio(context) - getGeometryAspectRatio(focus))
+      ).toBeLessThan(0.2);
+      expect(primary.attributes["position"]!.count).toBeGreaterThan(
+        context.attributes["position"]!.count
+      );
+      expect(focus.attributes["position"]!.count).toBeGreaterThan(
+        primary.attributes["position"]!.count
+      );
+    }
 
     contextCarbon.dispose();
     primaryCarbon.dispose();
