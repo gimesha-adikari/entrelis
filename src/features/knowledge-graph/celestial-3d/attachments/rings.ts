@@ -37,20 +37,24 @@ export function createRingMesh(config: RingConfig, lod: GeometryLOD = "focus"): 
   const material = new THREE.MeshStandardMaterial({
     map: texture,
     transparent: true,
-    opacity: config.opacity,
+    opacity: 1.0, // Texture alpha directly encodes per-pixel density and opacity
     color: new THREE.Color(config.color ?? 0xffffff),
     side: THREE.DoubleSide,
     depthWrite: false, // Prevents transparent division gaps & voids from writing depth
     depthTest: true, // Correctly occluded behind the planet's opaque sphere
-    roughness: config.style === "dust" ? 0.92 : 0.8,
-    metalness: config.style === "ice" ? 0.12 : 0.04,
+    roughness: config.style === "dust" ? 0.9 : config.style === "ice" ? 0.45 : 0.6,
+    metalness: config.style === "ice" ? 0.06 : 0.02,
+    emissiveMap: texture,
+    emissive: new THREE.Color(
+      config.style === "ice" ? 0x949ba4 : config.style === "dust" ? 0x54473b : 0x8a929e
+    ),
   });
 
   const mesh = new THREE.Mesh(geometry, material);
   mesh.renderOrder = 1; // Renders after the opaque planet sphere (renderOrder 0)
 
   // In Three.js, RingGeometry lies in XY plane.
-  // Rotate around X axis to lie in equatorial plane, then tilt around Z/X axis.
+  // Rotate around X axis to lie in equatorial plane, then tilt around Z axis.
   mesh.rotation.x = Math.PI / 2.3;
   mesh.rotation.z = config.tilt;
 
@@ -69,10 +73,11 @@ export function createRingMesh(config: RingConfig, lod: GeometryLOD = "focus"): 
       6.12, // in Void Gap 3
     ];
 
+    // Dark, matte carbon-slate rock material so debris chunks remain secondary to the ring arcs
     const chunkMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(config.color ?? 0xd6d3d1),
-      roughness: 0.9,
-      metalness: 0.06,
+      color: new THREE.Color(0x64748b),
+      roughness: 0.95,
+      metalness: 0.02,
       depthTest: true,
       depthWrite: true,
     });
@@ -82,7 +87,8 @@ export function createRingMesh(config: RingConfig, lod: GeometryLOD = "focus"): 
       const rFraction = 0.25 + ((i * 37 + config.seed) % 50) / 100;
       const radius = config.innerRadius + ringSpan * rFraction;
 
-      const chunkSize = Math.max(1.8, Math.min(3.8, ringSpan * 0.1));
+      // Miniature debris gravel chunks (secondary to prominent arcs)
+      const chunkSize = Math.max(0.9, Math.min(1.8, ringSpan * 0.045));
       const chunkGeo = new THREE.DodecahedronGeometry(chunkSize, 0);
 
       // Irregular vertex perturbation for rocky asteroid shape

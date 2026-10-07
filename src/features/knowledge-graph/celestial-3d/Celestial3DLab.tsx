@@ -615,6 +615,11 @@ export const Celestial3DLab: React.FC = () => {
       },
     });
     controllerRef.current = controller;
+    if (typeof window !== "undefined") {
+      (
+        window as unknown as { __celestialController?: Celestial3DController }
+      ).__celestialController = controller;
+    }
 
     const handleResize = () => {
       const w = container.clientWidth || 800;
