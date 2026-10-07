@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
 import { UniverseScene } from "./UniverseScene";
 import type { ViewportTransform } from "../../types";
+import type { UniverseTravelState } from "./travel";
 
 function createMockRenderer(): THREE.WebGLRenderer {
   return {
@@ -53,6 +54,46 @@ describe("UniverseScene", () => {
     universe.dispose();
   });
 
+  it("applies selection travel displacement with ordered depth hierarchy", () => {
+    const universe = new UniverseScene({
+      width: 1280,
+      height: 800,
+      isMobile: false,
+      pixelRatio: 1,
+      prefersReducedMotion: false,
+    });
+
+    const transform: ViewportTransform = { x: 0, y: 0, k: 1.0 };
+    const travel: UniverseTravelState = {
+      active: true,
+      progress: 0.5,
+      directionX: 1,
+      directionY: 0,
+      distance: 350,
+      fromSlug: "rust",
+      toSlug: "ownership",
+    };
+
+    universe.update(0.033, 1.0, transform, travel);
+    const travelOffsets = universe.getTravelOffsets();
+
+    // Baseline parallax is zero because transform is (0, 0)
+    expect(universe.getParallaxOffsets().bright.x).toBe(0);
+
+    // Travel offsets exhibit ordered depth response
+    const magNeb = Math.hypot(travelOffsets.nebula.x, travelOffsets.nebula.y);
+    const magFar = Math.hypot(travelOffsets.far.x, travelOffsets.far.y);
+    const magMid = Math.hypot(travelOffsets.mid.x, travelOffsets.mid.y);
+    const magBright = Math.hypot(travelOffsets.bright.x, travelOffsets.bright.y);
+
+    expect(magNeb).toBeLessThan(magFar);
+    expect(magFar).toBeLessThan(magMid);
+    expect(magMid).toBeLessThan(magBright);
+    expect(travelOffsets.scale).toBeGreaterThan(1.01);
+
+    universe.dispose();
+  });
+
   it("freezes motion when prefersReducedMotion is enabled", () => {
     const universe = new UniverseScene({
       width: 1280,
@@ -62,8 +103,20 @@ describe("UniverseScene", () => {
       prefersReducedMotion: true,
     });
 
-    universe.update(0.033, 1.0, { x: 0, y: 0, k: 1 });
+    const travel: UniverseTravelState = {
+      active: true,
+      progress: 0.5,
+      directionX: 1,
+      directionY: 0,
+      distance: 350,
+      fromSlug: "rust",
+      toSlug: "ownership",
+    };
+
+    universe.update(0.033, 1.0, { x: 0, y: 0, k: 1 }, travel);
     expect(universe.motionStrength).toBe(0.0);
+    expect(universe.getTravelOffsets().scale).toBe(1.0);
+    expect(universe.getTravelOffsets().bright).toEqual({ x: 0, y: 0 });
 
     universe.setPrefersReducedMotion(false);
     universe.update(0.033, 1.0, { x: 0, y: 0, k: 1 });

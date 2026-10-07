@@ -13,6 +13,7 @@ import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import ProductionCelestialLayer, {
   type ProductionCelestialLayerHandle,
 } from "../celestial-3d/ProductionCelestialLayer";
+import type { UniverseTravelState } from "../celestial-3d/universe";
 import styles from "./KnowledgeGraph.module.css";
 
 import type { KnowledgeGraphIndex } from "../knowledge-index";
@@ -64,6 +65,7 @@ export default function GraphCanvas({
 
   // Currently displayed universe scene on the canvas
   const currentSceneRef = useRef<UniverseScene | null>(null);
+  const travelStateRef = useRef<UniverseTravelState | null>(null);
 
   // Build and lay out target scene using prebuilt index and exact available CSS dimensions
   const targetScene = useMemo<UniverseScene>(() => {
@@ -104,7 +106,8 @@ export default function GraphCanvas({
       transformRef.current,
       dimensions.width,
       dimensions.height,
-      hoveredNodeId
+      hoveredNodeId,
+      travelStateRef.current
     );
   }, [
     targetScene,
@@ -151,6 +154,7 @@ export default function GraphCanvas({
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
+      travelStateRef.current = null;
       currentSceneRef.current = targetScene;
       drawRef.current();
       return;
@@ -161,6 +165,15 @@ export default function GraphCanvas({
 
     // If already displaying this exact focus concept, just update scene and redraw
     if (fromScene.focus.slug === toScene.focus.slug) {
+      travelStateRef.current = {
+        active: false,
+        progress: 1,
+        directionX: 0,
+        directionY: 0,
+        distance: 0,
+        fromSlug: toScene.focus.slug,
+        toSlug: toScene.focus.slug,
+      };
       currentSceneRef.current = toScene;
       drawRef.current();
       return;
@@ -172,12 +185,52 @@ export default function GraphCanvas({
       animationFrameRef.current = null;
     }
 
+    // Derive travel direction from actual scene/navigation geometry
+    const targetNodeInFrom = fromScene.allNodes.find(
+      (node) => node.slug === toScene.focus.slug || node.id === toScene.focus.id
+    );
+    const originNodeInTo = toScene.allNodes.find(
+      (node) => node.slug === fromScene.focus.slug || node.id === fromScene.focus.id
+    );
+
+    let dirX = 0;
+    let dirY = 0;
+    let distance = 0;
+
+    if (targetNodeInFrom) {
+      dirX = targetNodeInFrom.x - fromScene.focus.x;
+      dirY = targetNodeInFrom.y - fromScene.focus.y;
+    } else if (originNodeInTo) {
+      dirX = -(originNodeInTo.x - toScene.focus.x);
+      dirY = -(originNodeInTo.y - toScene.focus.y);
+    }
+
+    const distLen = Math.hypot(dirX, dirY);
+    if (distLen > 0) {
+      distance = distLen;
+      dirX /= distLen;
+      dirY /= distLen;
+    }
+
+    const fromSlug = fromScene.focus.slug;
+    const toSlug = toScene.focus.slug;
+
     const startTime = performance.now();
     const duration = SCENE_TRANSITION_DURATION_MS;
 
     const animateTransition = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
+
+      travelStateRef.current = {
+        active: progress < 1,
+        progress,
+        directionX: dirX,
+        directionY: dirY,
+        distance,
+        fromSlug,
+        toSlug,
+      };
 
       currentSceneRef.current = interpolateScenes(fromScene, toScene, progress);
       drawRef.current();
@@ -187,6 +240,15 @@ export default function GraphCanvas({
       } else {
         // Transition finished: stop RAF completely, ensure scene is static, CPU idle
         animationFrameRef.current = null;
+        travelStateRef.current = {
+          active: false,
+          progress: 1,
+          directionX: dirX,
+          directionY: dirY,
+          distance,
+          fromSlug,
+          toSlug,
+        };
         currentSceneRef.current = toScene;
         drawRef.current();
       }

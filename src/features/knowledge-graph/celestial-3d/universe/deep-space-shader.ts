@@ -4,6 +4,7 @@ export interface DeepSpaceMaterialUniforms {
   uTime: THREE.IUniform<number>;
   uResolution: THREE.IUniform<THREE.Vector2>;
   uParallaxOffset: THREE.IUniform<THREE.Vector2>;
+  uTravelOffset: THREE.IUniform<THREE.Vector2>;
   uMotionStrength: THREE.IUniform<number>;
 }
 
@@ -22,6 +23,7 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform vec2 uResolution;
   uniform vec2 uParallaxOffset;
+  uniform vec2 uTravelOffset;
   uniform float uMotionStrength;
 
   varying vec2 vUv;
@@ -46,7 +48,7 @@ const fragmentShader = /* glsl */ `
     );
   }
 
-  // 3-octave FBM for low-frequency deep space cloud structure
+  // 3-octave FBM for organic cloud structure
   float fbm(vec2 p) {
     float v = 0.0;
     v += 0.55 * noise(p);
@@ -58,33 +60,62 @@ const fragmentShader = /* glsl */ `
   }
 
   void main() {
-    // Screen aspect normalized coordinate with subtle parallax shift
-    vec2 aspectCoord = (vWorldPos + uParallaxOffset) / max(uResolution.y, 1.0);
+    // Screen aspect normalized coordinate with manual parallax + travel offset
+    vec2 totalOffset = uParallaxOffset + uTravelOffset;
+    vec2 aspectCoord = (vWorldPos + totalOffset) / max(uResolution.y, 1.0);
 
     // Imperceptible slow nebula drift
-    vec2 drift = vec2(uTime * 0.006, uTime * 0.0035) * uMotionStrength;
-    vec2 st = aspectCoord * 1.8 + drift;
+    vec2 drift = vec2(uTime * 0.004, uTime * 0.0025) * uMotionStrength;
 
-    // Macro nebula structure (low frequency)
-    float n1 = fbm(st);
-    float n2 = fbm(st * 1.4 + vec2(n1 * 0.45, -n1 * 0.35));
+    // Subtle domain shear during active selection travel
+    vec2 travelShear = vec2(uTravelOffset.y, -uTravelOffset.x) * 0.00015;
+    vec2 st = aspectCoord * 1.35 + drift + travelShear;
 
-    // Deep space palette: near-black, deep navy, dark violet, restrained indigo
-    vec3 cNearBlack = vec3(0.008, 0.012, 0.024);   // #020306 base
-    vec3 cNavy      = vec3(0.024, 0.040, 0.086);   // #060a16 deep navy lane
-    vec3 cViolet    = vec3(0.038, 0.026, 0.078);   // #0a0714 dark violet dust
-    vec3 cIndigo    = vec3(0.032, 0.062, 0.130);   // #081021 restrained indigo vein
+    // Domain-warped cosmic gas coordinates (Inigo Quilez warp formulation)
+    vec2 q = vec2(fbm(st * 0.85), fbm(st * 0.85 + vec2(5.2, 1.3)));
+    vec2 r = vec2(
+      fbm(st * 1.15 + 1.2 * q + vec2(1.7, 9.2)),
+      fbm(st * 1.15 + 1.2 * q + vec2(8.3, 2.8))
+    );
+    float gas = fbm(st * 1.35 + 1.3 * r);
 
-    // Layer blend: subtle cosmic clouds
-    vec3 color = cNearBlack;
-    color = mix(color, cNavy, smoothstep(0.25, 0.75, n1) * 0.65);
-    color = mix(color, cViolet, smoothstep(0.35, 0.85, n2) * 0.45);
-    color = mix(color, cIndigo, smoothstep(0.48, 0.90, n1 * n2) * 0.35);
+    // Macro cloud structure vs quiet empty voids
+    float cloud = smoothstep(0.32, 0.68, gas);
+    float violet = smoothstep(0.36, 0.72, q.y);
+    float filament = smoothstep(0.48, 0.78, r.x);
 
-    // Soft vignetting towards edges to center the scene focus
+    // Dark molecular absorption dust lanes (subtractive channels)
+    float dust = smoothstep(0.04, 0.26, abs(r.y - 0.46));
+
+    // Deep space palette: scientifically restrained, cinematic, clearly legible
+    vec3 cVoidBase = vec3(0.012, 0.016, 0.028); // #030407 near-black void
+    vec3 cNavy     = vec3(0.055, 0.110, 0.220); // #0e1c38 deep cosmic navy cloud
+    vec3 cViolet   = vec3(0.095, 0.055, 0.170); // #180e2b muted cosmic violet dust
+    vec3 cIndigo   = vec3(0.080, 0.145, 0.280); // #142547 luminous indigo filament
+    vec3 cCyan     = vec3(0.040, 0.110, 0.180); // #0a1c2e subtle cyan haze
+
+    vec3 color = cVoidBase;
+
+    // Blend navy cloud into active macro structures
+    color = mix(color, cNavy, cloud * 0.88);
+
+    // Blend muted cosmic violet in secondary folds
+    color = mix(color, cViolet, violet * cloud * 0.75);
+
+    // Luminous indigo filamentary ridges
+    color += cIndigo * (filament * cloud * 0.65);
+
+    // Subtractive dark molecular dust absorption lanes
+    color = mix(cVoidBase * 0.75, color, dust);
+
+    // Subtle unresolved star-cloud haze
+    float haze = pow(noise(st * 3.8 + r * 0.4), 3.0) * 0.45 * cloud * dust;
+    color += cCyan * haze;
+
+    // Soft vignetting towards edges
     vec2 centerOffset = (vUv - 0.5) * 2.0;
-    float vignette = 1.0 - dot(centerOffset, centerOffset) * 0.22;
-    color *= clamp(vignette, 0.75, 1.0);
+    float vignette = 1.0 - dot(centerOffset, centerOffset) * 0.20;
+    color *= clamp(vignette, 0.78, 1.0);
 
     gl_FragColor = vec4(color, 1.0);
   }
@@ -96,6 +127,7 @@ export function createDeepSpaceMaterial(): THREE.ShaderMaterial {
       uTime: { value: 0 },
       uResolution: { value: new THREE.Vector2(1280, 800) },
       uParallaxOffset: { value: new THREE.Vector2(0, 0) },
+      uTravelOffset: { value: new THREE.Vector2(0, 0) },
       uMotionStrength: { value: 1.0 },
     },
     vertexShader,

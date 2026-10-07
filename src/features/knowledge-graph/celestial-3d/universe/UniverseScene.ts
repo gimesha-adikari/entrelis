@@ -3,6 +3,7 @@ import type { ViewportTransform } from "../../types";
 import { createDeepSpaceMaterial } from "./deep-space-shader";
 import { createStarMaterial } from "./star-shader";
 import { generateStarFieldGeometry, type StarTier } from "./star-field-generator";
+import { computeTravelOffsets, type TravelOffsets, type UniverseTravelState } from "./travel";
 
 export interface UniverseSceneOptions {
   readonly width: number;
@@ -61,6 +62,14 @@ export class UniverseScene {
     far: { x: 0, y: 0 },
     mid: { x: 0, y: 0 },
     bright: { x: 0, y: 0 },
+  };
+
+  private currentTravelOffsets: TravelOffsets = {
+    nebula: { x: 0, y: 0 },
+    far: { x: 0, y: 0 },
+    mid: { x: 0, y: 0 },
+    bright: { x: 0, y: 0 },
+    scale: 1.0,
   };
 
   constructor(options: UniverseSceneOptions) {
@@ -131,6 +140,10 @@ export class UniverseScene {
     return this.currentOffsets;
   }
 
+  public getTravelOffsets(): TravelOffsets {
+    return this.currentTravelOffsets;
+  }
+
   public setPrefersReducedMotion(reduced: boolean): void {
     this.prefersReducedMotion = reduced;
     const strength = reduced ? 0.0 : 1.0;
@@ -158,16 +171,17 @@ export class UniverseScene {
     }
   }
 
-  public update(deltaSec: number, elapsedTime: number, transform: ViewportTransform): void {
+  public update(
+    deltaSec: number,
+    elapsedTime: number,
+    transform: ViewportTransform,
+    travel?: UniverseTravelState | null
+  ): void {
     const timeVal = this.prefersReducedMotion ? 0 : elapsedTime;
 
-    // Update background shader time & parallax
-    this.backgroundMaterial.uniforms["uTime"]!.value = timeVal;
-
+    // 1. Manual Viewport Parallax Offsets
     const nebX = transform.x * PARALLAX_RATES.nebula;
     const nebY = -transform.y * PARALLAX_RATES.nebula;
-    this.backgroundMaterial.uniforms["uParallaxOffset"]!.value.set(nebX, nebY);
-
     const farX = transform.x * PARALLAX_RATES.far;
     const farY = -transform.y * PARALLAX_RATES.far;
     const midX = transform.x * PARALLAX_RATES.mid;
@@ -182,22 +196,44 @@ export class UniverseScene {
       bright: { x: brightX, y: brightY },
     };
 
+    // 2. Selection-Driven Universe Travel Displacement & Scale
+    const travelOffsets = computeTravelOffsets(travel, this.prefersReducedMotion);
+    this.currentTravelOffsets = travelOffsets;
+
+    // Update background shader
+    this.backgroundMaterial.uniforms["uTime"]!.value = timeVal;
+    this.backgroundMaterial.uniforms["uParallaxOffset"]!.value.set(nebX, nebY);
+    this.backgroundMaterial.uniforms["uTravelOffset"]!.value.set(
+      travelOffsets.nebula.x,
+      travelOffsets.nebula.y
+    );
+
+    // Update star fields
     const farMat = this.starMaterials.get("far");
     if (farMat) {
       farMat.uniforms["uTime"]!.value = timeVal;
       farMat.uniforms["uParallaxOffset"]!.value.set(farX, farY);
+      farMat.uniforms["uTravelOffset"]!.value.set(travelOffsets.far.x, travelOffsets.far.y);
+      farMat.uniforms["uScale"]!.value = travelOffsets.scale;
     }
 
     const midMat = this.starMaterials.get("mid");
     if (midMat) {
       midMat.uniforms["uTime"]!.value = timeVal;
       midMat.uniforms["uParallaxOffset"]!.value.set(midX, midY);
+      midMat.uniforms["uTravelOffset"]!.value.set(travelOffsets.mid.x, travelOffsets.mid.y);
+      midMat.uniforms["uScale"]!.value = travelOffsets.scale;
     }
 
     const brightMat = this.starMaterials.get("bright");
     if (brightMat) {
       brightMat.uniforms["uTime"]!.value = timeVal;
       brightMat.uniforms["uParallaxOffset"]!.value.set(brightX, brightY);
+      brightMat.uniforms["uTravelOffset"]!.value.set(
+        travelOffsets.bright.x,
+        travelOffsets.bright.y
+      );
+      brightMat.uniforms["uScale"]!.value = travelOffsets.scale;
     }
   }
 

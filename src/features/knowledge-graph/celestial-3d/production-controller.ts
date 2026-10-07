@@ -7,6 +7,7 @@ import { addCelestialSceneLighting, resizeCelestialRenderer } from "./renderer-u
 import {
   UniverseScene as Universe3DScene,
   type UniverseSceneOptions as Universe3DSceneOptions,
+  type UniverseTravelState,
 } from "./universe";
 
 const BODY_BASE_RADIUS = 50;
@@ -62,6 +63,7 @@ export interface ProductionCelestialLifecycleStats {
   readonly preparingEntries: number;
   readonly rendererAvailable: boolean;
   readonly universeActive: boolean;
+  readonly travelActive?: boolean;
   readonly universeSceneChildren: number;
   readonly asyncShaderPreparationSupported: boolean;
   readonly parallelShaderCompileExtensionAvailable: boolean;
@@ -240,6 +242,7 @@ export class ProductionCelestialController {
   private rendererCallTotalMs = 0;
   private rendererCallMaxMs = 0;
   private rendererCallLastMs = 0;
+  private latestTravel: UniverseTravelState | null = null;
 
   private readonly handleVisibilityChange = (): void => {
     this.isTabHidden = document.hidden;
@@ -357,6 +360,7 @@ export class ProductionCelestialController {
       preparingEntries: this.preparingPendingEntry ? 1 : 0,
       rendererAvailable: this.renderer !== null,
       universeActive: this.universeScene !== null,
+      travelActive: this.latestTravel?.active ?? false,
       universeSceneChildren: this.universeScene?.scene.children.length ?? 0,
       asyncShaderPreparationSupported: this.asyncShaderPreparationSupported,
       parallelShaderCompileExtensionAvailable: this.parallelShaderCompileExtensionAvailable,
@@ -396,13 +400,14 @@ export class ProductionCelestialController {
     transform: ViewportTransform,
     width: number,
     height: number,
-    hoveredNodeId: string | null
+    hoveredNodeId: string | null,
+    travel?: UniverseTravelState | null
   ): void {
     if (this.isDisposed) return;
     const updateStartedAt = performance.now();
 
     try {
-      this.updateScene(displayedScene, transform, width, height, hoveredNodeId);
+      this.updateScene(displayedScene, transform, width, height, hoveredNodeId, travel);
     } finally {
       const updateDuration = performance.now() - updateStartedAt;
       this.controllerUpdateCount += 1;
@@ -417,7 +422,8 @@ export class ProductionCelestialController {
     transform: ViewportTransform,
     width: number,
     height: number,
-    hoveredNodeId: string | null
+    hoveredNodeId: string | null,
+    travel?: UniverseTravelState | null
   ): void {
     if (this.isDisposed) return;
 
@@ -425,7 +431,10 @@ export class ProductionCelestialController {
     if (!this.renderer) return;
 
     this.latestTransform = transform;
-    this.universeScene?.update(0, this.elapsedTime, transform);
+    if (travel !== undefined) {
+      this.latestTravel = travel;
+    }
+    this.universeScene?.update(0, this.elapsedTime, transform, this.latestTravel);
 
     const visibleIds = new Set<string>();
 
@@ -833,7 +842,12 @@ export class ProductionCelestialController {
       entry.body.setHover(entry.hovered, this.prefersReducedMotion);
     }
     if (this.universeScene) {
-      this.universeScene.update(deltaSec, this.elapsedTime, this.latestTransform);
+      this.universeScene.update(
+        deltaSec,
+        this.elapsedTime,
+        this.latestTransform,
+        this.latestTravel
+      );
     }
     if (this.renderer) {
       const renderStartedAt = performance.now();

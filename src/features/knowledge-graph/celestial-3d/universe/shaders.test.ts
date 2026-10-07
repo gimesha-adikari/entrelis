@@ -10,6 +10,7 @@ describe("Deep-Space Shader Material", () => {
     expect(mat.uniforms["uTime"]).toBeDefined();
     expect(mat.uniforms["uResolution"]).toBeDefined();
     expect(mat.uniforms["uParallaxOffset"]).toBeDefined();
+    expect(mat.uniforms["uTravelOffset"]).toBeDefined();
     expect(mat.uniforms["uMotionStrength"]).toBeDefined();
 
     expect(mat.depthWrite).toBe(false);
@@ -37,6 +38,8 @@ describe("Star Shader Material", () => {
     expect(mat.uniforms["uMotionStrength"]).toBeDefined();
     expect(mat.uniforms["uPixelRatio"]).toBeDefined();
     expect(mat.uniforms["uParallaxOffset"]).toBeDefined();
+    expect(mat.uniforms["uTravelOffset"]).toBeDefined();
+    expect(mat.uniforms["uScale"]).toBeDefined();
 
     expect(mat.transparent).toBe(true);
     expect(mat.depthWrite).toBe(false);

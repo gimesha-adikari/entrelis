@@ -820,4 +820,50 @@ describe("production celestial scene controller", () => {
     controller.dispose();
     expect(mockUniverseDispose).toHaveBeenCalledOnce();
   });
+
+  it("forwards selection travel state to universe scene during update", () => {
+    const renderer = makeRenderer();
+    const mockUniverseUpdate = vi.fn();
+    const mockUniverseScene = {
+      scene: new THREE.Scene(),
+      camera: new THREE.OrthographicCamera(-1, 1, 1, -1),
+      render: vi.fn(),
+      dispose: vi.fn(),
+      update: mockUniverseUpdate,
+      resize: vi.fn(),
+    } as unknown as ReturnType<
+      NonNullable<ProductionCelestialControllerDependencies["createUniverseScene"]>
+    >;
+
+    const canvas = document.createElement("canvas");
+    const controller = new ProductionCelestialController(canvas, {
+      createRenderer: () => renderer,
+      createBody: (identity) => makeBody(identity),
+      createUniverseScene: () => mockUniverseScene,
+    });
+
+    const rustNode = makeNode("rust", "focus", 0, 0);
+    const scene = makeScene(rustNode);
+    const travel = {
+      active: true,
+      progress: 0.5,
+      directionX: 1,
+      directionY: 0,
+      distance: 300,
+      fromSlug: "rust",
+      toSlug: "ownership",
+    };
+
+    controller.update(scene, { x: 10, y: 20, k: 1 }, 800, 600, null, travel);
+
+    expect(mockUniverseUpdate).toHaveBeenCalledWith(
+      0,
+      expect.any(Number),
+      { x: 10, y: 20, k: 1 },
+      travel
+    );
+    expect(controller.getLifecycleStats().travelActive).toBe(true);
+
+    controller.dispose();
+  });
 });

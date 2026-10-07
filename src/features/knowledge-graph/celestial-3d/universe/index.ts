@@ -9,3 +9,10 @@ export {
 export { createDeepSpaceMaterial } from "./deep-space-shader";
 export { createStarMaterial } from "./star-shader";
 export { SeededPRNG } from "./prng";
+export {
+  computeTravelOffsets,
+  getConceptUniverseAnchor,
+  type UniverseTravelState,
+  type TravelOffsets,
+  TRAVEL_RATES,
+} from "./travel";
