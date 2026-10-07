@@ -106,6 +106,15 @@ describe("production celestial scene controller", () => {
     vi.restoreAllMocks();
   });
 
+  function makeTrackedScene(createRenderer: () => THREE.WebGLRenderer = makeRenderer) {
+    const tracked = makeTrackedController(createRenderer);
+    controller = tracked.controller;
+    const rust = makeNode("rust", "focus", 0, 0);
+    const ownership = makeNode("ownership", "primary", 100, -50);
+    controller.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    return { ...tracked, rust, ownership };
+  }
+
   it.each([
     ["focus", "focus"],
     ["primary", "primary"],
@@ -292,17 +301,16 @@ describe("production celestial scene controller", () => {
   });
 
   it("replaces a body when its celestial identity changes", () => {
-    const tracked = makeTrackedController();
-    controller = tracked.controller;
-    const { createdBodies, createBody } = tracked;
-
-    const rust = makeNode("rust", "focus", 0, 0);
-    const ownership = makeNode("ownership", "primary", 100, -50);
-    controller.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const {
+      controller: activeController,
+      createdBodies,
+      createBody,
+      ownership,
+    } = makeTrackedScene();
     const originalOwnershipBody = createdBodies.find((body) => body.identity.seed === 108)!;
 
     const changedIdentityNode = { ...makeNode("memory", "primary", 120, -60), id: ownership.id };
-    controller.update(
+    activeController.update(
       makeScene(makeNode("rust", "focus", 0, 0), [changedIdentityNode]),
       { x: 0, y: 0, k: 1 },
       800,
@@ -320,17 +328,16 @@ describe("production celestial scene controller", () => {
   it("disposes a concept when it leaves the displayed scene and keeps the active object count bounded", () => {
     const renderer = makeRenderer();
     const createRenderer = vi.fn(() => renderer);
-    const tracked = makeTrackedController(createRenderer);
-    controller = tracked.controller;
-    const { createdBodies, createBody } = tracked;
-
-    const rust = makeNode("rust", "focus", 0, 0);
-    const ownership = makeNode("ownership", "primary", 100, -50);
-    controller.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const {
+      controller: activeController,
+      createdBodies,
+      createBody,
+      rust,
+    } = makeTrackedScene(createRenderer);
     const ownershipBody = createdBodies[1];
 
     const sceneWithoutOwnership = makeScene(makeNode("rust", "focus", 0, 0));
-    controller.update(sceneWithoutOwnership, { x: 10, y: 5, k: 1.2 }, 800, 600, null);
+    activeController.update(sceneWithoutOwnership, { x: 10, y: 5, k: 1.2 }, 800, 600, null);
 
     const renderedScene = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
     const visibleBodyIds = renderedScene.children
@@ -340,7 +347,7 @@ describe("production celestial scene controller", () => {
     expect(ownershipBody?.dispose).toHaveBeenCalledOnce();
     expect(createRenderer).toHaveBeenCalledOnce();
 
-    controller.update(
+    activeController.update(
       makeScene(makeNode("rust", "focus", 0, 0), [makeNode("ownership", "context", 50, 25)]),
       { x: 10, y: 5, k: 1.2 },
       800,
