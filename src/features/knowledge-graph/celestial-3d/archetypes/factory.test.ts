@@ -249,6 +249,24 @@ describe("Asteroid Deformation and Celestial Object Factory", () => {
     body.dispose();
   });
 
+  it("sets hover state immediately when reduced motion is requested", () => {
+    const body = createCelestialObject({ archetype: "golden-star", seed: 101 }, "focus", 50);
+    const atmosphere = createCelestialObject({ archetype: "life-world", seed: 301 }, "focus", 50);
+
+    body.setHover(true, true);
+    atmosphere.setHover(true, true);
+    expect(body.starShaderMaterial?.uniforms["uHover"]?.value).toBe(1);
+    expect(atmosphere.atmosphereMaterial?.uniforms["uIntensity"]?.value).toBe(0.95);
+
+    body.setHover(false, true);
+    atmosphere.setHover(false, true);
+    expect(body.starShaderMaterial?.uniforms["uHover"]?.value).toBe(0);
+    expect(atmosphere.atmosphereMaterial?.uniforms["uIntensity"]?.value).toBe(0.8);
+
+    body.dispose();
+    atmosphere.dispose();
+  });
+
   it("creates a ringed world with attached ring mesh", () => {
     const ringedIdentity: CelestialIdentity = {
       archetype: "storm-giant",

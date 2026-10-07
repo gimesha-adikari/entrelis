@@ -9,8 +9,10 @@ import {
 
 export interface UniverseRenderOptions {
   hoveredNodeId?: string | null;
+  focusedNodeId?: string | null;
   isMobile?: boolean;
   skipNodeRendering?: boolean;
+  skipBodyRendering?: boolean;
 }
 
 interface StarPoint {
@@ -19,6 +21,13 @@ interface StarPoint {
   readonly r: number;
   readonly alpha: number;
 }
+
+interface HorizontalWorldBounds {
+  readonly left: number;
+  readonly right: number;
+}
+
+type LabelAlignment = "center" | "left" | "right";
 
 /**
  * Deterministically generates star positions using a stable pseudo-random LCG.
@@ -94,6 +103,7 @@ export function renderUniverseScene(
   // Apply pan/zoom camera transform to world space
   ctx.translate(width / 2 + transform.x * effectiveDpr, height / 2 + transform.y * effectiveDpr);
   ctx.scale(transform.k * effectiveDpr, transform.k * effectiveDpr);
+  const horizontalBounds = getHorizontalWorldBounds(width, transform, effectiveDpr);
 
   // Node lookup map for fast relationship endpoint resolution
   const nodeMap = new Map<string, UniverseNode>();
@@ -202,6 +212,7 @@ export function renderUniverseScene(
 
   // Draw order: context nodes (background) -> primary nodes (midground) -> focus node (foreground)
   const orderedNodes = [...scene.contextNodes, ...scene.primaryNodes, scene.focus];
+  const skipBodies = options.skipBodyRendering ?? false;
   const focusGlow = getFocusGlowSprite();
 
   for (const node of orderedNodes) {
@@ -213,7 +224,32 @@ export function renderUniverseScene(
     ctx.globalAlpha = opacity;
 
     const isHovered = hoveredNodeId === node.id;
+    const isFocused = options.focusedNodeId === node.id;
     const palette = getConceptCelestialPalette(node.concept.id);
+
+    if (isFocused) {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.radius + 6, 0, 2 * Math.PI);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.95)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    if (skipBodies) {
+      if (node.role === "focus" || node.role === "primary" || isHovered) {
+        renderNodeLabel(
+          ctx,
+          node,
+          isMobile,
+          node.role === "focus",
+          transform.k,
+          horizontalBounds,
+          false
+        );
+      }
+      ctx.restore();
+      continue;
+    }
 
     if (node.role === "focus") {
       // --- FOCUS CELESTIAL BODY ---
@@ -280,7 +316,7 @@ export function renderUniverseScene(
       ctx.fill();
 
       // 6. Label
-      renderNodeLabel(ctx, node, isMobile, true, transform.k);
+      renderNodeLabel(ctx, node, isMobile, true, transform.k, horizontalBounds);
     } else if (node.role === "primary") {
       // --- PRIMARY NEIGHBOR BODY ---
       // 1. Accent-tinted halo
@@ -344,7 +380,7 @@ export function renderUniverseScene(
 
       // 6. Label
       if (!isMobile || isHovered) {
-        renderNodeLabel(ctx, node, isMobile, false, transform.k);
+        renderNodeLabel(ctx, node, isMobile, false, transform.k, horizontalBounds);
       }
     } else {
       // --- CONTEXT CELESTIAL BODY ---
@@ -380,7 +416,7 @@ export function renderUniverseScene(
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        renderNodeLabel(ctx, node, isMobile, false, transform.k);
+        renderNodeLabel(ctx, node, isMobile, false, transform.k, horizontalBounds);
       }
     }
 
@@ -398,9 +434,11 @@ function renderNodeLabel(
   node: UniverseNode,
   isMobile: boolean,
   isFocus: boolean,
-  zoomK: number
+  zoomK: number,
+  horizontalBounds: HorizontalWorldBounds,
+  hideAtLowZoom = true
 ): void {
-  if (!isFocus && zoomK < 0.6) return;
+  if (!isFocus && hideAtLowZoom && zoomK < 0.6) return;
 
   const fontSize = isFocus ? (isMobile ? 14 : 16) : isMobile ? 11 : 12;
   const fontWeight = isFocus ? "600" : "500";
@@ -412,10 +450,14 @@ function renderNodeLabel(
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 1;
 
+  let labelX = node.x;
+  let labelY = node.y;
+  let alignment: LabelAlignment = "center";
+  let baseline: CanvasTextBaseline = "middle";
+
   if (isFocus) {
-    ctx.textAlign = "center";
-    ctx.textBaseline = "top";
-    ctx.fillText(node.name, node.x, node.y + node.radius + (isMobile ? 8 : 12));
+    baseline = "top";
+    labelY = node.y + node.radius + (isMobile ? 8 : 12);
   } else {
     // Sector-based directional offset so labels don't bunch mechanically beneath bodies
     const angle = node.orbitalAngle ?? 0;
@@ -423,26 +465,83 @@ function renderNodeLabel(
 
     if (normAngle >= -Math.PI / 4 && normAngle <= Math.PI / 4) {
       // Right sector: label to the right
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(node.name, node.x + node.radius + 8, node.y);
+      alignment = "left";
+      labelX = node.x + node.radius + 8;
     } else if (normAngle > Math.PI / 4 && normAngle < (3 * Math.PI) / 4) {
       // Bottom sector: label below
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.fillText(node.name, node.x, node.y + node.radius + 8);
+      baseline = "top";
+      labelY = node.y + node.radius + 8;
     } else if (normAngle < -Math.PI / 4 && normAngle > -(3 * Math.PI) / 4) {
       // Top sector: label above
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.fillText(node.name, node.x, node.y - node.radius - 8);
+      baseline = "bottom";
+      labelY = node.y - node.radius - 8;
     } else {
       // Left sector: label to the left
-      ctx.textAlign = "right";
-      ctx.textBaseline = "middle";
-      ctx.fillText(node.name, node.x - node.radius - 8, node.y);
+      alignment = "right";
+      labelX = node.x - node.radius - 8;
     }
   }
 
+  const placement = fitLabelWithinHorizontalBounds(
+    ctx,
+    node,
+    labelX,
+    alignment,
+    zoomK,
+    horizontalBounds
+  );
+  ctx.textAlign = placement.alignment;
+  ctx.textBaseline = baseline;
+  ctx.fillText(node.name, placement.x, labelY);
+
   ctx.shadowBlur = 0;
+}
+
+function getHorizontalWorldBounds(
+  width: number,
+  transform: ViewportTransform,
+  effectiveDpr: number
+): HorizontalWorldBounds {
+  const scale = transform.k * effectiveDpr;
+  const cameraOffset = width / 2 + transform.x * effectiveDpr;
+  return {
+    left: -cameraOffset / scale,
+    right: (width - cameraOffset) / scale,
+  };
+}
+
+function fitLabelWithinHorizontalBounds(
+  ctx: CanvasRenderingContext2D,
+  node: UniverseNode,
+  x: number,
+  alignment: LabelAlignment,
+  zoomK: number,
+  bounds: HorizontalWorldBounds
+): { readonly x: number; readonly alignment: LabelAlignment } {
+  if (node.x < bounds.left || node.x > bounds.right) return { x, alignment };
+
+  const textWidth = ctx.measureText(node.name).width;
+  const margin = 6 / Math.max(zoomK, 0.01);
+  const left = bounds.left + margin;
+  const right = bounds.right - margin;
+
+  if (alignment === "left" && x + textWidth > right) {
+    const oppositeX = node.x - node.radius - 8;
+    if (oppositeX - textWidth >= left) return { x: oppositeX, alignment: "right" };
+  } else if (alignment === "right" && x - textWidth < left) {
+    const oppositeX = node.x + node.radius + 8;
+    if (oppositeX + textWidth <= right) return { x: oppositeX, alignment: "left" };
+  }
+
+  const minimumX =
+    alignment === "left" ? left : alignment === "right" ? left + textWidth : left + textWidth / 2;
+  const maximumX =
+    alignment === "left"
+      ? right - textWidth
+      : alignment === "right"
+        ? right
+        : right - textWidth / 2;
+  if (minimumX <= maximumX) return { x: Math.max(minimumX, Math.min(x, maximumX)), alignment };
+
+  return { x: (left + right) / 2, alignment: "center" };
 }

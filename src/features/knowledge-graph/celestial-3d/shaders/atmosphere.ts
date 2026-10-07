@@ -32,6 +32,7 @@ export function createAtmosphereMaterial(params: AtmosphereMaterialParams): THRE
     uniform float uIntensity;
     uniform vec3 uLightDir;
     uniform float uLitRimBoost;
+    uniform float uNodeOpacity;
 
     varying vec3 vNormal;
 
@@ -44,7 +45,7 @@ export function createAtmosphereMaterial(params: AtmosphereMaterialParams): THRE
       float NdotL = max(0.0, dot(vNormal, uLightDir));
       float scatter = clamp(fresnel * (1.0 + NdotL * uLitRimBoost) * uIntensity, 0.0, 1.0);
 
-      gl_FragColor = vec4(uColor, scatter);
+      gl_FragColor = vec4(uColor, scatter * uNodeOpacity);
     }
   `;
 
@@ -55,6 +56,7 @@ export function createAtmosphereMaterial(params: AtmosphereMaterialParams): THRE
       uIntensity: { value: params.intensity ?? 0.8 },
       uLightDir: { value: lightDir },
       uLitRimBoost: { value: params.litRimBoost ?? 1.2 },
+      uNodeOpacity: { value: 1.0 },
     },
     vertexShader,
     fragmentShader,

@@ -14,6 +14,9 @@ import {
   createAsteroidTextures,
   createRingTexture,
   disposeAllCelestialTextures,
+  getCachedTexture,
+  releaseCelestialTextures,
+  retainCelestialTextures,
 } from "./textures";
 
 const pixels = new WeakMap<HTMLCanvasElement, Uint8ClampedArray>();
@@ -262,4 +265,22 @@ describe("Structural texture identity and lifecycle", () => {
       }
     }
   );
+
+  it("keeps a shared texture cached until its last body releases it", () => {
+    const texture = createMetallicWorldTextures(2048, "context").diffuse;
+    const disposeSpy = vi.spyOn(texture, "dispose");
+    const cacheKey = "metallic:diff:2048:context";
+
+    retainCelestialTextures([texture]);
+    retainCelestialTextures([texture]);
+    releaseCelestialTextures([texture]);
+
+    expect(disposeSpy).not.toHaveBeenCalled();
+    expect(getCachedTexture(cacheKey)).toBe(texture);
+
+    releaseCelestialTextures([texture]);
+
+    expect(disposeSpy).toHaveBeenCalledOnce();
+    expect(getCachedTexture(cacheKey)).toBeUndefined();
+  });
 });

@@ -44,6 +44,7 @@ export function createStarSurfaceMaterial(
     uniform vec3 uRimColor;
     uniform float uRimStrength;
     uniform float uHover;
+    uniform float uNodeOpacity;
 
     varying vec2 vUv;
     varying vec3 vNormal;
@@ -70,7 +71,7 @@ export function createStarSurfaceMaterial(
       // Very subtle hover gain (+2.5%)
       float hoverGain = 1.0 + uHover * 0.025;
 
-      gl_FragColor = vec4(surfaceColor * uIntensity * hoverGain, 1.0);
+      gl_FragColor = vec4(surfaceColor * uIntensity * hoverGain, uNodeOpacity);
     }
   `;
 
@@ -85,6 +86,7 @@ export function createStarSurfaceMaterial(
       uRimColor: { value: new THREE.Color(config.rimColor ?? 0x7dd3fc) },
       uRimStrength: { value: config.rimStrength ?? 0.0 },
       uHover: { value: config.hover ?? 0.0 },
+      uNodeOpacity: { value: 1.0 },
     },
     vertexShader,
     fragmentShader,

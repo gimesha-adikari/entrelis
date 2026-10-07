@@ -9,7 +9,10 @@ import { layoutLocalUniverseScene } from "../scene/layout-local-scene";
 import { interpolateScenes, SCENE_TRANSITION_DURATION_MS } from "../scene/transition-scene";
 import { renderUniverseScene } from "../rendering/universe-renderer";
 import { hitTestUniverseNode } from "../rendering/hit-test";
-import { CelestialNode } from "../celestial";
+import { getConceptCelestialIdentity } from "../celestial-3d/identity";
+import ProductionCelestialLayer, {
+  type ProductionCelestialLayerHandle,
+} from "../celestial-3d/ProductionCelestialLayer";
 import styles from "./KnowledgeGraph.module.css";
 
 import type { KnowledgeGraphIndex } from "../knowledge-index";
@@ -31,14 +34,16 @@ export default function GraphCanvas({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const layerRef = useRef<HTMLDivElement>(null);
+  const productionCelestialLayerRef = useRef<ProductionCelestialLayerHandle>(null);
 
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [hasProductionRenderer, setHasProductionRenderer] = useState(false);
 
   // Reactive dimensions tracked via ResizeObserver
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
-    width: typeof window !== "undefined" ? window.innerWidth : 1280,
-    height: typeof window !== "undefined" ? window.innerHeight : 800,
+    width: 1280,
+    height: 800,
   });
 
   const isMobile = dimensions.width <= 768;
@@ -88,15 +93,27 @@ export default function GraphCanvas({
 
     renderUniverseScene(ctx, width, height, transformRef.current, scene, {
       hoveredNodeId,
+      focusedNodeId,
       isMobile,
-      skipNodeRendering: true,
+      skipBodyRendering: hasProductionRenderer,
     });
 
-    if (layerRef.current) {
-      layerRef.current.style.transformOrigin = `${dimensions.width / 2}px ${dimensions.height / 2}px`;
-      layerRef.current.style.transform = `translate(${transformRef.current.x}px, ${transformRef.current.y}px) scale(${transformRef.current.k})`;
-    }
-  }, [targetScene, hoveredNodeId, isMobile, dimensions.width, dimensions.height]);
+    productionCelestialLayerRef.current?.update(
+      scene,
+      transformRef.current,
+      dimensions.width,
+      dimensions.height,
+      hoveredNodeId
+    );
+  }, [
+    targetScene,
+    hoveredNodeId,
+    focusedNodeId,
+    isMobile,
+    dimensions.width,
+    dimensions.height,
+    hasProductionRenderer,
+  ]);
 
   const drawRef = useRef(draw);
   useEffect(() => {
@@ -445,9 +462,7 @@ export default function GraphCanvas({
     }
     // Reset camera transform
     transformRef.current = { x: 0, y: 0, k: 1 };
-    if (layerRef.current) {
-      layerRef.current.style.transform = "none";
-    }
+    drawRef.current();
     if (onResetCamera) {
       onResetCamera();
     } else {
@@ -472,27 +487,39 @@ export default function GraphCanvas({
         aria-hidden="true"
       />
 
-      {/* Hybrid DOM/SVG Celestial Node Layer */}
-      <div ref={layerRef} className={styles.celestialLayer}>
+      <ProductionCelestialLayer
+        ref={productionCelestialLayerRef}
+        onRendererAvailabilityChange={setHasProductionRenderer}
+      />
+
+      {/* Keyboard and screen-reader controls mirror the visible concept scene. */}
+      <div className={styles.srOnly} role="group" aria-label="Visible concepts">
         {targetScene.allNodes.map((node) => {
-          const screenX = dimensions.width / 2 + (node.x ?? 0);
-          const screenY = dimensions.height / 2 + (node.y ?? 0);
+          const identity = getConceptCelestialIdentity(node.slug);
 
           return (
-            <CelestialNode
+            <button
               key={node.id}
-              id={node.id}
-              name={node.concept.name}
-              slug={node.concept.slug}
-              role={node.role}
-              x={screenX}
-              y={screenY}
-              isSelected={node.id === targetScene.focus.id}
-              isHovered={node.id === hoveredNodeId}
-              isMobile={isMobile}
+              type="button"
+              aria-label={`${node.name}, ${node.role} concept`}
+              data-testid={`concept-accessible-control-${node.id}`}
+              data-concept-id={node.id}
+              data-concept-slug={node.slug}
+              data-role={node.role}
+              data-celestial-archetype={identity.archetype}
+              data-celestial-seed={identity.seed}
               onClick={() => onSelectConcept(node.slug)}
-              onHover={(hoverId) => setHoveredNodeId(hoverId)}
-            />
+              onFocus={() => {
+                setFocusedNodeId(node.id);
+                setHoveredNodeId(node.id);
+              }}
+              onBlur={() => {
+                setFocusedNodeId(null);
+                setHoveredNodeId(null);
+              }}
+            >
+              {node.name}
+            </button>
           );
         })}
       </div>

@@ -48,19 +48,16 @@
   cursor: grabbing;
 }
 
-.celestialLayer {
+.productionCelestialCanvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  display: block;
   pointer-events: none;
   overflow: hidden;
   z-index: 5;
-}
-
-.celestialLayer > * {
-  pointer-events: auto;
 }
 
 /* Header branding in top-left */
@@ -390,6 +387,7 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+  pointer-events: none;
 }
 
 /* Mobile responsive adjustments (<= 768px / 375x812) */

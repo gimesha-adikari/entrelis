@@ -21,6 +21,7 @@ import { createMoonGroup, type MoonInstance } from "../attachments/moons";
 import { createDebrisGroup, type DebrisInstance } from "../attachments/debris";
 import { deformAsteroidGeometry } from "./asteroid";
 import { createLcg } from "../procedural/noise3d";
+import { releaseCelestialTextures, retainCelestialTextures } from "../procedural/textures";
 
 export interface CelestialBodyInstance {
   readonly group: THREE.Group;
@@ -43,9 +44,27 @@ export interface CelestialBodyInstance {
   readonly moonInstances: readonly MoonInstance[];
   readonly debrisInstances: readonly DebrisInstance[];
 
-  setHover(isHovered: boolean): void;
+  setHover(isHovered: boolean, immediate?: boolean): void;
   update(deltaSec: number, elapsedTime: number): void;
   dispose(): void;
+}
+
+function collectMaterialTextures(materials: readonly THREE.Material[]): THREE.Texture[] {
+  const textures = new Set<THREE.Texture>();
+  const collect = (value: unknown): void => {
+    if (value instanceof THREE.Texture) {
+      textures.add(value);
+    }
+  };
+
+  for (const material of materials) {
+    for (const value of Object.values(material)) collect(value);
+    if (material instanceof THREE.ShaderMaterial) {
+      for (const uniform of Object.values(material.uniforms)) collect(uniform.value);
+    }
+  }
+
+  return [...textures];
 }
 
 /**
@@ -450,6 +469,10 @@ export function createCelestialObject(
     group.add(debInst.group);
   }
 
+  const cachedTextures = collectMaterialTextures(materialsToDispose);
+  retainCelestialTextures(cachedTextures);
+  let isDisposed = false;
+
   return {
     group,
     primaryMesh,
@@ -467,14 +490,17 @@ export function createCelestialObject(
     moonInstances,
     debrisInstances,
 
-    setHover(isHovered: boolean) {
+    setHover(isHovered: boolean, immediate = false) {
       if (starShaderMaterial) {
         const targetHover = isHovered ? 1.0 : 0.0;
         const currentHover = (starShaderMaterial.uniforms["uHover"]?.value as number) ?? 0.0;
-        starShaderMaterial.uniforms["uHover"]!.value =
-          currentHover + (targetHover - currentHover) * 0.2;
+        starShaderMaterial.uniforms["uHover"]!.value = immediate
+          ? targetHover
+          : currentHover + (targetHover - currentHover) * 0.2;
         const targetCoronaHover = isHovered ? 1.035 : 1.0;
-        coronaHoverScale = coronaHoverScale + (targetCoronaHover - coronaHoverScale) * 0.2;
+        coronaHoverScale = immediate
+          ? targetCoronaHover
+          : coronaHoverScale + (targetCoronaHover - coronaHoverScale) * 0.2;
       } else {
         const mat = primaryMesh.material as THREE.MeshStandardMaterial;
         if (mat && typeof mat.emissiveIntensity === "number") {
@@ -485,15 +511,18 @@ export function createCelestialObject(
             : identity.archetype === "volcanic-rocky"
               ? 0.85
               : 0.0;
-          mat.emissiveIntensity += (targetEmissive - mat.emissiveIntensity) * 0.15;
+          mat.emissiveIntensity = immediate
+            ? targetEmissive
+            : mat.emissiveIntensity + (targetEmissive - mat.emissiveIntensity) * 0.15;
         }
       }
 
       if (atmosphereMaterial) {
         const targetIntensity = isHovered ? 0.95 : 0.8;
         const current = (atmosphereMaterial.uniforms["uIntensity"]?.value as number) ?? 0.8;
-        atmosphereMaterial.uniforms["uIntensity"]!.value =
-          current + (targetIntensity - current) * 0.15;
+        atmosphereMaterial.uniforms["uIntensity"]!.value = immediate
+          ? targetIntensity
+          : current + (targetIntensity - current) * 0.15;
       }
     },
 
@@ -534,10 +563,13 @@ export function createCelestialObject(
     },
 
     dispose() {
+      if (isDisposed) return;
+      isDisposed = true;
       for (const m of moonInstances) m.dispose();
       for (const d of debrisInstances) d.dispose();
       for (const g of geometriesToDispose) g.dispose();
       for (const m of materialsToDispose) m.dispose();
+      releaseCelestialTextures(cachedTextures);
       group.clear();
     },
   };

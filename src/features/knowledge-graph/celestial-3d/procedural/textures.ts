@@ -6,9 +6,49 @@ import type { GeometryLOD, RingConfig } from "../identity";
  * Global cache for procedural CanvasTextures keyed by archetype + seed + lod + type.
  */
 const textureCache = new Map<string, THREE.CanvasTexture>();
+const textureReferenceCounts = new WeakMap<THREE.Texture, number>();
+const textureKeys = new WeakMap<THREE.Texture, Set<string>>();
+
+function cacheTexture(key: string, texture: THREE.CanvasTexture): void {
+  textureCache.set(key, texture);
+  const keys = textureKeys.get(texture) ?? new Set<string>();
+  keys.add(key);
+  textureKeys.set(texture, keys);
+}
+
+/** Retain cached textures for the lifetime of one factory-created body. */
+export function retainCelestialTextures(textures: readonly THREE.Texture[]): void {
+  for (const texture of new Set(textures)) {
+    if (!textureKeys.has(texture)) continue;
+    textureReferenceCounts.set(texture, (textureReferenceCounts.get(texture) ?? 0) + 1);
+  }
+}
+
+/** Release cached textures once no active body still references them. */
+export function releaseCelestialTextures(textures: readonly THREE.Texture[]): void {
+  for (const texture of new Set(textures)) {
+    const keys = textureKeys.get(texture);
+    if (!keys) continue;
+
+    const referenceCount = textureReferenceCounts.get(texture) ?? 0;
+    if (referenceCount > 1) {
+      textureReferenceCounts.set(texture, referenceCount - 1);
+      continue;
+    }
+
+    for (const key of keys) {
+      if (textureCache.get(key) === texture) textureCache.delete(key);
+    }
+    textureReferenceCounts.delete(texture);
+    textureKeys.delete(texture);
+    texture.dispose();
+  }
+}
 
 export function disposeAllCelestialTextures(): void {
   for (const texture of textureCache.values()) {
+    textureReferenceCounts.delete(texture);
+    textureKeys.delete(texture);
     texture.dispose();
   }
   textureCache.clear();
@@ -166,7 +206,7 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
     surface.wrapS = THREE.RepeatWrapping;
     surface.wrapT = THREE.ClampToEdgeWrapping;
     surface.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(surfaceKey, surface);
+    cacheTexture(surfaceKey, surface);
   }
 
   if (!corona) {
@@ -260,7 +300,7 @@ export function createGoldenStarTextures(seed: number, lod: GeometryLOD = "focus
     }
     corona = new THREE.CanvasTexture(canvas);
     corona.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(coronaKey, corona);
+    cacheTexture(coronaKey, corona);
   }
 
   return { surface, corona };
@@ -361,7 +401,7 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
     surface.wrapS = THREE.RepeatWrapping;
     surface.wrapT = THREE.ClampToEdgeWrapping;
     surface.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(surfaceKey, surface);
+    cacheTexture(surfaceKey, surface);
   }
 
   if (!corona) {
@@ -445,7 +485,7 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
     }
     corona = new THREE.CanvasTexture(canvas);
     corona.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(coronaKey, corona);
+    cacheTexture(coronaKey, corona);
   }
 
   return { surface, corona };
@@ -561,7 +601,7 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
     surface.wrapS = THREE.RepeatWrapping;
     surface.wrapT = THREE.ClampToEdgeWrapping;
     surface.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(surfaceKey, surface);
+    cacheTexture(surfaceKey, surface);
   }
 
   if (!corona) {
@@ -630,7 +670,7 @@ export function createEmberStarTextures(seed: number, lod: GeometryLOD = "focus"
     }
     corona = new THREE.CanvasTexture(canvas);
     corona.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(coronaKey, corona);
+    cacheTexture(coronaKey, corona);
   }
 
   return { surface, corona };
@@ -850,25 +890,25 @@ export function createVolcanicRockyTextures(
     diffuse.wrapS = THREE.RepeatWrapping;
     diffuse.wrapT = THREE.ClampToEdgeWrapping;
     diffuse.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(diffKey, diffuse);
+    cacheTexture(diffKey, diffuse);
 
     bump = new THREE.CanvasTexture(bumpCanvas);
     bump.wrapS = THREE.RepeatWrapping;
     bump.wrapT = THREE.ClampToEdgeWrapping;
     bump.colorSpace = THREE.NoColorSpace;
-    textureCache.set(bumpKey, bump);
+    cacheTexture(bumpKey, bump);
 
     roughness = new THREE.CanvasTexture(roughCanvas);
     roughness.wrapS = THREE.RepeatWrapping;
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(roughKey, roughness);
+    cacheTexture(roughKey, roughness);
 
     emissive = new THREE.CanvasTexture(emissCanvas);
     emissive.wrapS = THREE.RepeatWrapping;
     emissive.wrapT = THREE.ClampToEdgeWrapping;
     emissive.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(emissKey, emissive);
+    cacheTexture(emissKey, emissive);
   }
 
   return { diffuse, bump, roughness, emissive };
@@ -1046,19 +1086,19 @@ export function createMineralDesertTextures(
     diffuse.wrapS = THREE.RepeatWrapping;
     diffuse.wrapT = THREE.ClampToEdgeWrapping;
     diffuse.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(diffKey, diffuse);
+    cacheTexture(diffKey, diffuse);
 
     bump = new THREE.CanvasTexture(bumpCanvas);
     bump.wrapS = THREE.RepeatWrapping;
     bump.wrapT = THREE.ClampToEdgeWrapping;
     bump.colorSpace = THREE.NoColorSpace;
-    textureCache.set(bumpKey, bump);
+    cacheTexture(bumpKey, bump);
 
     roughness = new THREE.CanvasTexture(roughCanvas);
     roughness.wrapS = THREE.RepeatWrapping;
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(roughKey, roughness);
+    cacheTexture(roughKey, roughness);
   }
 
   return { diffuse, bump, roughness };
@@ -1272,25 +1312,25 @@ export function createLifeWorldTextures(
     surface.wrapS = THREE.RepeatWrapping;
     surface.wrapT = THREE.ClampToEdgeWrapping;
     surface.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(surfKey, surface);
+    cacheTexture(surfKey, surface);
 
     roughness = new THREE.CanvasTexture(roughCanvas);
     roughness.wrapS = THREE.RepeatWrapping;
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(roughKey, roughness);
+    cacheTexture(roughKey, roughness);
 
     bump = new THREE.CanvasTexture(bumpCanvas);
     bump.wrapS = THREE.RepeatWrapping;
     bump.wrapT = THREE.ClampToEdgeWrapping;
     bump.colorSpace = THREE.NoColorSpace;
-    textureCache.set(bumpKey, bump);
+    cacheTexture(bumpKey, bump);
 
     clouds = new THREE.CanvasTexture(cloudCanvas);
     clouds.wrapS = THREE.RepeatWrapping;
     clouds.wrapT = THREE.ClampToEdgeWrapping;
     clouds.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(cloudKey, clouds);
+    cacheTexture(cloudKey, clouds);
   }
 
   return { surface, clouds, roughness, bump };
@@ -1461,7 +1501,7 @@ export function createBlueAtmosphericTexture(
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
-  textureCache.set(key, texture);
+  cacheTexture(key, texture);
   return texture;
 }
 
@@ -1523,7 +1563,7 @@ export function createBlueAtmosphericCloudTexture(
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
-  textureCache.set(key, texture);
+  cacheTexture(key, texture);
   return texture;
 }
 
@@ -1874,7 +1914,7 @@ export function createStormGiantTexture(
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.colorSpace = THREE.SRGBColorSpace;
-  textureCache.set(key, texture);
+  cacheTexture(key, texture);
   return texture;
 }
 
@@ -2034,31 +2074,31 @@ export function createMetallicWorldTextures(
     diffuse.wrapS = THREE.RepeatWrapping;
     diffuse.wrapT = THREE.ClampToEdgeWrapping;
     diffuse.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(diffKey, diffuse);
+    cacheTexture(diffKey, diffuse);
 
     metalness = new THREE.CanvasTexture(metalCanvas);
     metalness.wrapS = THREE.RepeatWrapping;
     metalness.wrapT = THREE.ClampToEdgeWrapping;
     metalness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(metalKey, metalness);
+    cacheTexture(metalKey, metalness);
 
     roughness = new THREE.CanvasTexture(roughCanvas);
     roughness.wrapS = THREE.RepeatWrapping;
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(roughKey, roughness);
+    cacheTexture(roughKey, roughness);
 
     bump = new THREE.CanvasTexture(bumpCanvas);
     bump.wrapS = THREE.RepeatWrapping;
     bump.wrapT = THREE.ClampToEdgeWrapping;
     bump.colorSpace = THREE.NoColorSpace;
-    textureCache.set(bumpKey, bump);
+    cacheTexture(bumpKey, bump);
 
     emissive = new THREE.CanvasTexture(emissCanvas);
     emissive.wrapS = THREE.RepeatWrapping;
     emissive.wrapT = THREE.ClampToEdgeWrapping;
     emissive.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(emissKey, emissive);
+    cacheTexture(emissKey, emissive);
   }
 
   return { diffuse, roughness, metalness, bump, emissive };
@@ -2210,7 +2250,7 @@ export function createCrystalWorldTextures(
     normal.wrapS = THREE.RepeatWrapping;
     normal.wrapT = THREE.ClampToEdgeWrapping;
     normal.colorSpace = THREE.NoColorSpace;
-    textureCache.set(normalKey, normal);
+    cacheTexture(normalKey, normal);
 
     diffCtx.putImageData(diffImg, 0, 0);
     roughCtx.putImageData(roughImg, 0, 0);
@@ -2219,13 +2259,13 @@ export function createCrystalWorldTextures(
     diffuse.wrapS = THREE.RepeatWrapping;
     diffuse.wrapT = THREE.ClampToEdgeWrapping;
     diffuse.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(diffKey, diffuse);
+    cacheTexture(diffKey, diffuse);
 
     roughness = new THREE.CanvasTexture(roughCanvas);
     roughness.wrapS = THREE.RepeatWrapping;
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(roughKey, roughness);
+    cacheTexture(roughKey, roughness);
   }
 
   return { diffuse, roughness, normal };
@@ -2337,19 +2377,19 @@ export function createAsteroidTextures(
     diffuse.wrapS = THREE.RepeatWrapping;
     diffuse.wrapT = THREE.ClampToEdgeWrapping;
     diffuse.colorSpace = THREE.SRGBColorSpace;
-    textureCache.set(diffKey, diffuse);
+    cacheTexture(diffKey, diffuse);
 
     roughness = new THREE.CanvasTexture(roughCanvas);
     roughness.wrapS = THREE.RepeatWrapping;
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
-    textureCache.set(roughKey, roughness);
+    cacheTexture(roughKey, roughness);
 
     bump = new THREE.CanvasTexture(bumpCanvas);
     bump.wrapS = THREE.RepeatWrapping;
     bump.wrapT = THREE.ClampToEdgeWrapping;
     bump.colorSpace = THREE.NoColorSpace;
-    textureCache.set(bumpKey, bump);
+    cacheTexture(bumpKey, bump);
   }
 
   return { diffuse, roughness, bump };
@@ -2550,6 +2590,6 @@ export function createRingTexture(config: RingConfig): THREE.CanvasTexture {
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.RepeatWrapping; // Angular v wraps around 360°
   texture.colorSpace = THREE.SRGBColorSpace;
-  textureCache.set(key, texture);
+  cacheTexture(key, texture);
   return texture;
 }

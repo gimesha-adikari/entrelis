@@ -32,6 +32,26 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.getByText(/Selected concept: Rust/i)).toBeDefined();
   });
 
+  it("keeps one production WebGL canvas and accessible concept controls with stable 3D identities", () => {
+    const { container } = render(
+      <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />
+    );
+
+    expect(container.querySelectorAll("canvas[data-production-celestial-layer]")).toHaveLength(1);
+    expect(container.querySelectorAll('[data-testid^="celestial-node-"]')).toHaveLength(0);
+
+    const rustControl = screen.getByRole("button", { name: "Rust, focus concept" });
+    expect(rustControl.getAttribute("data-celestial-archetype")).toBe("volcanic-rocky");
+    expect(rustControl.getAttribute("data-celestial-seed")).toBe("42");
+
+    const ownershipControl = screen.getByRole("button", { name: "Ownership, primary concept" });
+    expect(ownershipControl.getAttribute("data-celestial-archetype")).toBe("ember-star");
+    expect(ownershipControl.getAttribute("data-celestial-seed")).toBe("108");
+    fireEvent.click(ownershipControl);
+
+    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
+  });
+
   it("does not run a permanent requestAnimationFrame loop while idle", () => {
     let activeRafCount = 0;
     const rafSpy = vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
