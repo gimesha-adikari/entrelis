@@ -16,6 +16,8 @@ import {
   disposeAllCelestialTextures,
 } from "./textures";
 
+const pixels = new WeakMap<HTMLCanvasElement, Uint8ClampedArray>();
+
 function setupCanvas2DMock() {
   const originalCreateElement = document.createElement.bind(document);
   vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
@@ -35,7 +37,7 @@ function setupCanvas2DMock() {
               height: h,
               data: new Uint8ClampedArray(w * h * 4),
             }),
-            putImageData: vi.fn(),
+            putImageData: (image: ImageData) => pixels.set(canvas, image.data.slice()),
             createRadialGradient: vi.fn().mockReturnValue({
               addColorStop: vi.fn(),
             }),
@@ -128,7 +130,7 @@ describe("Procedural Texture Engines", () => {
     expect(stormGiant).toBeDefined();
   });
 
-  it("generates metallic world textures with high metalness and silicon wafer bump maps", () => {
+  it("generates metallic world textures with regional PBR and recessed plate seams", () => {
     const metallic = createMetallicWorldTextures(501, "focus");
 
     expect(metallic.diffuse).toBeDefined();
@@ -142,7 +144,7 @@ describe("Procedural Texture Engines", () => {
 
     expect(crystal.diffuse).toBeDefined();
     expect(crystal.roughness).toBeDefined();
-    expect(crystal.bump).toBeDefined();
+    expect(crystal.normal).toBeDefined();
   });
 
   it("generates carbon and mineral asteroid textures", () => {
@@ -183,4 +185,81 @@ describe("Procedural Texture Engines", () => {
     expect(dustRing).toBeDefined();
     expect(brokenRing).toBeDefined();
   });
+});
+
+describe("Structural macro hierarchy", () => {
+  beforeEach(() => {
+    setupCanvas2DMock();
+    disposeAllCelestialTextures();
+  });
+  afterEach(() => {
+    disposeAllCelestialTextures();
+    vi.restoreAllMocks();
+  });
+
+  it("keeps metallic equatorial seams sparse enough for broad provinces", () => {
+    const texture = createMetallicWorldTextures(2048, "focus").bump;
+    const data = pixels.get(texture.image as HTMLCanvasElement)!;
+    const width = texture.image.width;
+    const row = texture.image.height / 2;
+    let transitions = 0;
+    for (let x = 1; x < width; x++) {
+      const a = data[(row * width + x - 1) * 4]! < 100;
+      const b = data[(row * width + x) * 4]! < 100;
+      if (a !== b) transitions++;
+    }
+    expect(transitions).toBeLessThanOrEqual(20);
+  });
+
+  it("leaves most crystal surface as quiet bright ice rather than a dense fissure mesh", () => {
+    const texture = createCrystalWorldTextures(4096, "focus").diffuse;
+    const data = pixels.get(texture.image as HTMLCanvasElement)!;
+    let bright = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i]! > 150) bright++;
+    }
+    expect(bright / (data.length / 4)).toBeGreaterThan(0.7);
+  });
+});
+
+describe("Structural texture identity and lifecycle", () => {
+  beforeEach(() => {
+    setupCanvas2DMock();
+    disposeAllCelestialTextures();
+  });
+  afterEach(() => {
+    disposeAllCelestialTextures();
+    vi.restoreAllMocks();
+  });
+
+  it.each([createMetallicWorldTextures, createCrystalWorldTextures])(
+    "reproduces every map after cache disposal and varies with the concept seed",
+    (generate) => {
+      const first = generate(2048, "context");
+      const bytes = Object.values(first).map((t) => pixels.get(t.image as HTMLCanvasElement)!);
+      const disposal = Object.values(first).map((t) => vi.spyOn(t, "dispose"));
+      const cached = generate(2048, "context");
+      expect(cached.diffuse).toBe(first.diffuse);
+      disposeAllCelestialTextures();
+      for (const spy of disposal) expect(spy).toHaveBeenCalledOnce();
+      const regenerated = generate(2048, "context");
+      Object.values(regenerated).forEach((t, i) => {
+        expect(pixels.get(t.image as HTMLCanvasElement)).toEqual(bytes[i]);
+      });
+      const different = generate(4096, "context");
+      expect(pixels.get(different.diffuse.image as HTMLCanvasElement)).not.toEqual(bytes[0]);
+    }
+  );
+
+  it.each(["focus", "primary", "context"] as const)(
+    "uses bounded %s texture sizes for both worlds",
+    (lod) => {
+      const expected = lod === "focus" ? [512, 256] : lod === "primary" ? [256, 128] : [64, 32];
+      for (const generate of [createMetallicWorldTextures, createCrystalWorldTextures]) {
+        for (const map of Object.values(generate(2048, lod))) {
+          expect([map.image.width, map.image.height]).toEqual(expected);
+        }
+      }
+    }
+  );
 });

@@ -350,11 +350,11 @@ export function createCelestialObject(
         metalnessMap: tex.metalness,
         roughnessMap: tex.roughness,
         bumpMap: tex.bump,
-        bumpScale: 1.1,
-        metalness: 0.68,
+        bumpScale: radius * 0.012,
+        metalness: 1.0,
         emissiveMap: tex.emissive,
-        emissive: 0x22d3ee,
-        emissiveIntensity: 1.25,
+        emissive: 0xffffff,
+        emissiveIntensity: 0.45,
       });
       materialsToDispose.push(mat);
       primaryMesh = new THREE.Mesh(geo, mat);
@@ -366,22 +366,21 @@ export function createCelestialObject(
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         roughnessMap: tex.roughness,
-        bumpMap: tex.bump,
-        bumpScale: 1.2,
-        metalness: 0.08,
+        normalMap: tex.normal,
+        metalness: 0.04,
       });
       materialsToDispose.push(mat);
       primaryMesh = new THREE.Mesh(geo, mat);
       tiltZ = 0.38; // 22°
       baseRotationSpeed = (2 * Math.PI) / 72;
 
-      // Frosty Haze Atmosphere Shell
+      // Restrained cold limb, subordinate to the solid fractured surface
       const atmGeo = new THREE.SphereGeometry(radius * 1.018, sphereSegments.w, sphereSegments.h);
       geometriesToDispose.push(atmGeo);
       atmosphereMaterial = createAtmosphereMaterial({
         color: 0x7dd3fc,
         fresnelPower: 3.4,
-        intensity: 0.8,
+        intensity: 0.12,
       });
       materialsToDispose.push(atmosphereMaterial);
       atmosphereShell = new THREE.Mesh(atmGeo, atmosphereMaterial);

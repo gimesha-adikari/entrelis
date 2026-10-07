@@ -1,12 +1,5 @@
 import * as THREE from "three";
-import {
-  createNoise3D,
-  fbm3D,
-  ridgedFbm3D,
-  createCellular3D,
-  createCellularManhattan3D,
-  domainWarp3D,
-} from "./noise3d";
+import { createNoise3D, fbm3D, ridgedFbm3D, createLcg, domainWarp3D } from "./noise3d";
 import type { GeometryLOD, RingConfig } from "../identity";
 
 /**
@@ -1948,9 +1941,16 @@ export function createMetallicWorldTextures(
     const emissCtx = emissCanvas.getContext("2d")!;
     const emissImg = emissCtx.createImageData(width, height);
 
-    const manhattanCell = createCellularManhattan3D(seed);
-    const macroPanelNoise = createNoise3D(seed + 41);
-    const traceGateNoise = createNoise3D(seed + 89);
+    // Eight engineered provinces from a shallow BSP, not a cellular lattice.
+    // Orthogonal cuts stop at their parent province, creating offset T junctions.
+    const rnd = createLcg(seed + 41);
+    const cuts = Array.from({ length: 7 }, () => (rnd() - 0.5) * 0.8);
+    const plateTones = Array.from({ length: 8 }, () => 155 + rnd() * 75);
+    const plateRoughness = Array.from({ length: 8 }, () => 96 + rnd() * 65);
+    const angle = rnd() * Math.PI * 2;
+    const ca = Math.cos(angle),
+      sa = Math.sin(angle);
+    const grain = createNoise3D(seed + 89);
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
@@ -1963,49 +1963,37 @@ export function createMetallicWorldTextures(
         const py = cosPhi;
         const pz = sinPhi * Math.sin(theta);
 
-        // Macro wafer & chassis partitioning: lower frequency 5.5 scale for clear macro blocks
-        const grid = manhattanCell(px * 5.5, py * 5.5, pz * 5.5);
-        const macroPanel = fbm3D(macroPanelNoise, px * 2.0, py * 2.0, pz * 2.0, 2);
-
-        // Edge detection between die wafer blocks
-        const isBorder = grid.diff < 0.12;
-
-        // Base metallic albedo:
-        // Polished steel / titanium plates: rgb(130, 150, 172) to rgb(185, 202, 218)
-        // Graphite chassis frames: rgb(52, 64, 78) to rgb(75, 88, 102)
-        let r: number;
-        let g: number;
-        let b: number;
-        let metalVal: number;
-        let roughVal: number;
-
-        if (isBorder) {
-          // Recessed graphite seam / structural channel
-          r = lerp(48, 68, grid.diff / 0.12);
-          g = lerp(58, 80, grid.diff / 0.12);
-          b = lerp(70, 95, grid.diff / 0.12);
-          metalVal = 145; // lower metalness in matte seam
-          roughVal = 180; // higher roughness in seam
-        } else {
-          // Polished wafer plate face
-          const plateTier = clamp(macroPanel * 0.5 + 0.5, 0, 1);
-          r = lerp(128, 185, plateTier);
-          g = lerp(148, 202, plateTier);
-          b = lerp(172, 220, plateTier);
-          metalVal = 220; // high specular metallic
-          roughVal = 65; // mirror wafer polish (~0.25)
+        const q = [px * ca + pz * sa, py, -px * sa + pz * ca];
+        let node = 0;
+        let plate = 0;
+        let distance = 2;
+        for (let depth = 0; depth < 3; depth++) {
+          const d = q[depth]! - cuts[node]!;
+          distance = Math.min(distance, Math.abs(d));
+          const side = d > 0 ? 1 : 0;
+          plate = plate * 2 + side;
+          node = node * 2 + 1 + side;
         }
-
-        // Clean, sparse cyan circuit conduits along selected seams
-        const traceGate = fbm3D(traceGateNoise, px * 3.5, py * 3.5, pz * 3.5, 2);
-        const isCyanBus = isBorder && traceGate > 0.32;
-
-        if (isCyanBus) {
-          r = 34;
-          g = 211;
-          b = 238; // Clean cyan #22d3ee
-          roughVal = 40;
-        }
+        const seam = 1 - smoothstep(0.012, 0.032, distance);
+        const bevel = 1 - smoothstep(0.032, 0.06, distance);
+        // Quiet directional brushing is subordinate to the eight plate regions.
+        const brush =
+          Math.sin((q[1]! + q[2]! * 0.13) * 280) * 1.5 + grain(px * 24, py * 24, pz * 24) * 1.8;
+        const tone = plateTones[plate]! + brush;
+        let r = lerp(tone, 40, seam);
+        let g = lerp(tone + 7, 48, seam);
+        let b = lerp(tone + 13, 57, seam);
+        const metalVal = lerp(175 + (plate % 3) * 15, 55, seam);
+        const roughVal = lerp(plateRoughness[plate]!, 210, seam);
+        // One interrupted conduit on the main structural cut, never every seam.
+        const bus =
+          (1 - smoothstep(0.004, 0.012, Math.abs(q[0]! - cuts[0]!))) *
+          smoothstep(-0.35, -0.28, q[1]!) *
+          (1 - smoothstep(0.32, 0.4, q[1]!)) *
+          smoothstep(0.18, 0.25, q[2]!);
+        r = lerp(r, 56, bus);
+        g = lerp(g, 153, bus);
+        b = lerp(b, 171, bus);
 
         const idx = (y * width + x) * 4;
         diffImg.data[idx] = Math.floor(r);
@@ -2023,15 +2011,15 @@ export function createMetallicWorldTextures(
         roughImg.data[idx + 2] = roughVal;
         roughImg.data[idx + 3] = 255;
 
-        const bumpVal = isBorder ? 20 : 190;
+        const bumpVal = lerp(188 + (plate % 3) * 6, 45, seam) - bevel * 9;
         bumpImg.data[idx] = bumpVal;
         bumpImg.data[idx + 1] = bumpVal;
         bumpImg.data[idx + 2] = bumpVal;
         bumpImg.data[idx + 3] = 255;
 
-        emissImg.data[idx] = isCyanBus ? 34 : 0;
-        emissImg.data[idx + 1] = isCyanBus ? 211 : 0;
-        emissImg.data[idx + 2] = isCyanBus ? 238 : 0;
+        emissImg.data[idx] = bus * 48;
+        emissImg.data[idx + 1] = bus * 150;
+        emissImg.data[idx + 2] = bus * 170;
         emissImg.data[idx + 3] = 255;
       }
     }
@@ -2079,7 +2067,7 @@ export function createMetallicWorldTextures(
 export interface CrystalTextures {
   readonly diffuse: THREE.CanvasTexture;
   readonly roughness: THREE.CanvasTexture;
-  readonly bump: THREE.CanvasTexture;
+  readonly normal: THREE.CanvasTexture;
 }
 
 export function createCrystalWorldTextures(
@@ -2088,13 +2076,13 @@ export function createCrystalWorldTextures(
 ): CrystalTextures {
   const diffKey = `crystal:diff:${seed}:${lod}`;
   const roughKey = `crystal:rough:${seed}:${lod}`;
-  const bumpKey = `crystal:bump:${seed}:${lod}`;
+  const normalKey = `crystal:normal:${seed}:${lod}`;
 
   let diffuse = textureCache.get(diffKey);
   let roughness = textureCache.get(roughKey);
-  let bump = textureCache.get(bumpKey);
+  let normal = textureCache.get(normalKey);
 
-  if (!diffuse || !roughness || !bump) {
+  if (!diffuse || !roughness || !normal) {
     const { width, height } = getResolution(lod);
 
     const diffCanvas = document.createElement("canvas");
@@ -2109,15 +2097,31 @@ export function createCrystalWorldTextures(
     const roughCtx = roughCanvas.getContext("2d")!;
     const roughImg = roughCtx.createImageData(width, height);
 
-    const bumpCanvas = document.createElement("canvas");
-    bumpCanvas.width = width;
-    bumpCanvas.height = height;
-    const bumpCtx = bumpCanvas.getContext("2d")!;
-    const bumpImg = bumpCtx.createImageData(width, height);
+    const normalCanvas = document.createElement("canvas");
+    normalCanvas.width = width;
+    normalCanvas.height = height;
+    const normalCtx = normalCanvas.getContext("2d")!;
+    const normalImg = normalCtx.createImageData(width, height);
 
-    // Voronoi fracture network: 4.5 frequency for broad, readable crystalline plates
-    const fractureNoise = createCellular3D(seed);
-    const fieldNoise = createNoise3D(seed + 109);
+    // Fourteen support planes on the sphere form large angular slabs. The
+    // winning dot product selects a face; pairwise boundaries are planar,
+    // without the rounded distance contours of the former noise cells.
+    const rnd = createLcg(seed + 109);
+    const angle = rnd() * Math.PI * 2;
+    const slabs = Array.from({ length: 14 }, (_, i) => {
+      const y = 1 - (2 * (i + 0.5)) / 14;
+      const radius = Math.sqrt(1 - y * y);
+      const theta = i * 2.399963229728653 + angle + (rnd() - 0.5) * 0.28;
+      return {
+        x: radius * Math.cos(theta),
+        y,
+        z: radius * Math.sin(theta),
+        tone: rnd(),
+        rough: 106 + rnd() * 52,
+        offset: (rnd() - 0.5) * 0.12,
+      };
+    });
+    const fieldNoise = createNoise3D(seed + 307);
 
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
@@ -2130,40 +2134,65 @@ export function createCrystalWorldTextures(
         const py = cosPhi;
         const pz = sinPhi * Math.sin(theta);
 
-        // 1. Broad polygonal ice plates
-        const cell = fractureNoise(px * 4.5, py * 4.5, pz * 4.5);
-        // Fissure trench profile: cell.diff < 0.28 is inside deep fissure
-        const fissureFactor = smoothstep(0.02, 0.28, cell.diff);
-
-        // 2. Crystalline field variation across plate interiors
-        const crystalField = fbm3D(fieldNoise, px * 2.5, py * 2.5, pz * 2.5, 2);
-        const fieldT = clamp(crystalField * 0.5 + 0.5, 0, 1);
-
-        let r: number;
-        let g: number;
-        let b: number;
-        let roughVal: number;
-        let bumpVal: number;
-
-        if (fissureFactor < 0.85) {
-          // Deep sapphire fissure chasm (rgb 3, 105, 161) to trench wall (rgb 14, 165, 233)
-          const depthT = fissureFactor / 0.85;
-          r = lerp(3, 14, depthT);
-          g = lerp(105, 165, depthT);
-          b = lerp(161, 233, depthT);
-          roughVal = 40; // glassy fissure ice
-          bumpVal = Math.floor(depthT * 80);
-        } else {
-          // Broad smooth ice plate: translucent ice blue (175, 222, 248) to pale aquamarine (215, 238, 252)
-          const plateT = (fissureFactor - 0.85) / 0.15;
-          r = lerp(175, 215, fieldT * plateT);
-          g = lerp(222, 238, fieldT * plateT);
-          b = lerp(248, 252, fieldT * plateT);
-          roughVal = 35; // smooth mirror-glaze glassy plates (roughness ~0.14)
-          bumpVal = Math.floor(lerp(180, 240, fieldT));
+        // Piecewise-linear shear kinks the fracture planes into irregular
+        // tectonic slabs, instead of exposing a uniform polygon tiling.
+        const qx = px + 0.18 * Math.abs(py + pz * 0.4);
+        const qy = py + 0.16 * Math.abs(pz - px * 0.3);
+        const qz = pz + 0.12 * Math.abs(px + py * 0.6);
+        let best = -2,
+          second = -2,
+          slab = 0,
+          neighbor = 0;
+        for (let i = 0; i < slabs.length; i++) {
+          const face = slabs[i]!;
+          const score = qx * face.x + qy * face.y + qz * face.z + face.offset;
+          if (score > best) {
+            second = best;
+            neighbor = slab;
+            best = score;
+            slab = i;
+          } else if (score > second) {
+            second = score;
+            neighbor = i;
+          }
         }
+        const face = slabs[slab]!;
+        const adjacent = slabs[neighbor]!;
+        // Distance to the exact shared plane; a few deep faults, smaller branches.
+        const separation = Math.hypot(
+          face.x - adjacent.x,
+          face.y - adjacent.y,
+          face.z - adjacent.z
+        );
+        const distance = (best - second) / separation;
+        const major = (slab + neighbor) % 3 === 0;
+        const fissureWidth = major ? 0.036 : 0.009;
+        const split = px * 0.7 + py * 0.5 - pz * 0.35 + face.offset * 3;
+        const branch =
+          slab % 3 === 0 && pz > -0.2 ? 1 - smoothstep(0.002, 0.009, Math.abs(split)) : 0;
+        const ice =
+          smoothstep(fissureWidth * 0.15, fissureWidth * 1.8, distance) * (1 - branch * 0.65);
+        const field = fieldNoise(px * 2, py * 2, pz * 2) * 2;
+        const facetShade = split > 0 ? 7 : -7;
+        const r = lerp(7, 172 + face.tone * 69 + field + facetShade, ice);
+        const g = lerp(32, 204 + face.tone * 40 + field + facetShade, ice);
+        const b = lerp(82, 230 + face.tone * 17 + field + facetShade * 0.4, ice);
+        const roughVal = lerp(130, face.rough, ice);
+        // Tangent-space normal tilts toward each slab's support plane. This
+        // adds restrained flat facets without changing the spherical silhouette.
+        const tangentX = -Math.sin(theta) * face.x + Math.cos(theta) * face.z;
+        const tangentY =
+          -cosPhi * Math.cos(theta) * face.x + sinPhi * face.y - cosPhi * Math.sin(theta) * face.z;
+        const nx = (tangentX * 0.9 + (split > 0 ? 0.09 : -0.09)) * ice;
+        const ny = tangentY * 0.9 * ice;
+        const nz = Math.sqrt(1 - nx * nx - ny * ny);
 
         const idx = (y * width + x) * 4;
+        normalImg.data[idx] = (nx * 0.5 + 0.5) * 255;
+        normalImg.data[idx + 1] = (ny * 0.5 + 0.5) * 255;
+        normalImg.data[idx + 2] = (nz * 0.5 + 0.5) * 255;
+        normalImg.data[idx + 3] = 255;
+
         diffImg.data[idx] = Math.floor(r);
         diffImg.data[idx + 1] = Math.floor(g);
         diffImg.data[idx + 2] = Math.floor(b);
@@ -2173,17 +2202,18 @@ export function createCrystalWorldTextures(
         roughImg.data[idx + 1] = roughVal;
         roughImg.data[idx + 2] = roughVal;
         roughImg.data[idx + 3] = 255;
-
-        bumpImg.data[idx] = bumpVal;
-        bumpImg.data[idx + 1] = bumpVal;
-        bumpImg.data[idx + 2] = bumpVal;
-        bumpImg.data[idx + 3] = 255;
       }
     }
 
+    normalCtx.putImageData(normalImg, 0, 0);
+    normal = new THREE.CanvasTexture(normalCanvas);
+    normal.wrapS = THREE.RepeatWrapping;
+    normal.wrapT = THREE.ClampToEdgeWrapping;
+    normal.colorSpace = THREE.NoColorSpace;
+    textureCache.set(normalKey, normal);
+
     diffCtx.putImageData(diffImg, 0, 0);
     roughCtx.putImageData(roughImg, 0, 0);
-    bumpCtx.putImageData(bumpImg, 0, 0);
 
     diffuse = new THREE.CanvasTexture(diffCanvas);
     diffuse.wrapS = THREE.RepeatWrapping;
@@ -2196,15 +2226,9 @@ export function createCrystalWorldTextures(
     roughness.wrapT = THREE.ClampToEdgeWrapping;
     roughness.colorSpace = THREE.NoColorSpace;
     textureCache.set(roughKey, roughness);
-
-    bump = new THREE.CanvasTexture(bumpCanvas);
-    bump.wrapS = THREE.RepeatWrapping;
-    bump.wrapT = THREE.ClampToEdgeWrapping;
-    bump.colorSpace = THREE.NoColorSpace;
-    textureCache.set(bumpKey, bump);
   }
 
-  return { diffuse, roughness, bump };
+  return { diffuse, roughness, normal };
 }
 
 /**

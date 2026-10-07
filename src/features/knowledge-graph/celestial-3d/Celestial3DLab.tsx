@@ -39,6 +39,12 @@ type CategoryFilter =
   | "ROCKY"
   | "BIOLOGICAL"
   | "ATMOSPHERIC"
+  | "METALLIC_CLOSE"
+  | "CRYSTAL_CLOSE"
+  | "STRUCTURAL_84PX"
+  | "STRUCTURAL_CONFUSION_84PX"
+  | "METALLIC_ROT"
+  | "CRYSTAL_ROT"
   | "STRUCTURAL"
   | "SMALL BODIES"
   | "CONCEPTS";
@@ -493,6 +499,47 @@ const RINGED_ROT_ITEM: readonly CatalogItemEntry[] = [
   },
 ];
 
+// Review the actual curated identities, so approval also covers the seven-concept gallery.
+const METALLIC_REVIEW: CatalogItemEntry = {
+  id: "metallic-review",
+  name: "Metallic / Artificial World",
+  identity: ENTRELIS_CONCEPT_IDENTITIES["cpus"]!,
+  radius: 170,
+};
+const CRYSTAL_REVIEW: CatalogItemEntry = {
+  id: "crystal-review",
+  name: "Crystal / Ice World",
+  identity: ENTRELIS_CONCEPT_IDENTITIES["transistors"]!,
+  radius: 170,
+};
+const STRUCTURAL_REVIEW_ITEMS: Partial<Record<CategoryFilter, readonly CatalogItemEntry[]>> = {
+  METALLIC_CLOSE: [METALLIC_REVIEW],
+  CRYSTAL_CLOSE: [CRYSTAL_REVIEW],
+  METALLIC_ROT: [METALLIC_REVIEW],
+  CRYSTAL_ROT: [CRYSTAL_REVIEW],
+  STRUCTURAL_84PX: [
+    { ...METALLIC_REVIEW, radius: 42 },
+    { ...CRYSTAL_REVIEW, radius: 42 },
+  ],
+  STRUCTURAL_CONFUSION_84PX: [
+    {
+      id: "mineral-structural",
+      name: "Mineral / Desert World",
+      identity: { archetype: "mineral-rocky", seed: 202 },
+      radius: 42,
+      category: "CONFUSION_TEST",
+    },
+    { ...METALLIC_REVIEW, radius: 42 },
+    { ...CRYSTAL_REVIEW, radius: 42 },
+    {
+      id: "blue-star-structural",
+      name: "Blue-White Star",
+      identity: { archetype: "blue-star", seed: 102 },
+      radius: 42,
+    },
+  ],
+};
+
 const CONCEPT_ITEMS: readonly CatalogItemEntry[] = [
   { id: "rust", name: "Rust", identity: ENTRELIS_CONCEPT_IDENTITIES["rust"]! },
   { id: "ownership", name: "Ownership", identity: ENTRELIS_CONCEPT_IDENTITIES["ownership"]! },
@@ -519,6 +566,8 @@ export const Celestial3DLab: React.FC = () => {
 
   // Filter items based on active category
   const filteredItems = useMemo((): readonly CatalogItemEntry[] => {
+    const structuralReview = STRUCTURAL_REVIEW_ITEMS[activeCategory];
+    if (structuralReview) return structuralReview;
     if (activeCategory === "CONCEPTS") {
       return CONCEPT_ITEMS;
     }
@@ -663,6 +712,12 @@ export const Celestial3DLab: React.FC = () => {
 
   const categories: readonly { id: CategoryFilter; label: string }[] = [
     { id: "ALL", label: "All Catalog" },
+    { id: "METALLIC_CLOSE", label: "Metallic Close" },
+    { id: "CRYSTAL_CLOSE", label: "Crystal Close" },
+    { id: "STRUCTURAL_84PX", label: "Structural 84px" },
+    { id: "STRUCTURAL_CONFUSION_84PX", label: "Structural Confusion 84px" },
+    { id: "METALLIC_ROT", label: "Metallic Rotation" },
+    { id: "CRYSTAL_ROT", label: "Crystal Rotation" },
     { id: "BLUE_ATM_CLOSE", label: "Blue Atm Close" },
     { id: "STORM_GIANT_CLOSE", label: "Storm Giant Close" },
     { id: "ICY_RING_CLOSE", label: "Icy Ring Close" },
