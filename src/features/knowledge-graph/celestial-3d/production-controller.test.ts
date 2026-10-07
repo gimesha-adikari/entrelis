@@ -11,10 +11,16 @@ import {
   roleToGeometryLod,
 } from "./production-controller";
 
-function makeNode(slug: string, role: UniverseNode["role"], x: number, y: number): UniverseNode {
+function makeNode(
+  slug: string,
+  role: UniverseNode["role"],
+  x: number,
+  y: number,
+  id?: string
+): UniverseNode {
   const concept = SEED_DATASET.concepts.find((item) => item.slug === slug)!;
   return {
-    id: concept.id,
+    id: id ?? concept.id,
     slug,
     name: concept.name,
     concept,
@@ -323,9 +329,14 @@ describe("production celestial scene controller", () => {
     expect(replacementBody).not.toBe(originalOwnershipBody);
     expect(replacementBody.identity).toMatchObject({ archetype: "blue-atmospheric", seed: 256 });
     expect(originalOwnershipBody.dispose).toHaveBeenCalledOnce();
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      identityReplacements: 1,
+      bodyCreates: 3,
+      bodyDisposals: 1,
+    });
   });
 
-  it("disposes a concept when it leaves the displayed scene and keeps the active object count bounded", () => {
+  it("removes an exited body from the scene and reuses it when the concept re-enters", () => {
     const renderer = makeRenderer();
     const createRenderer = vi.fn(() => renderer);
     const {
@@ -335,6 +346,7 @@ describe("production celestial scene controller", () => {
       rust,
     } = makeTrackedScene(createRenderer);
     const ownershipBody = createdBodies[1];
+    ownershipBody!.primaryMesh.rotation.y = 0.73;
 
     const sceneWithoutOwnership = makeScene(makeNode("rust", "focus", 0, 0));
     activeController.update(sceneWithoutOwnership, { x: 10, y: 5, k: 1.2 }, 800, 600, null);
@@ -344,7 +356,7 @@ describe("production celestial scene controller", () => {
       .filter((child) => child.userData["conceptId"])
       .map((child) => child.userData["conceptId"]);
     expect(visibleBodyIds).toEqual([rust.id]);
-    expect(ownershipBody?.dispose).toHaveBeenCalledOnce();
+    expect(ownershipBody?.dispose).not.toHaveBeenCalled();
     expect(createRenderer).toHaveBeenCalledOnce();
 
     activeController.update(
@@ -355,8 +367,177 @@ describe("production celestial scene controller", () => {
       null
     );
 
+    expect(createBody).toHaveBeenCalledTimes(2);
+    expect(createdBodies[1]).toBe(ownershipBody);
+    expect(ownershipBody?.dispose).not.toHaveBeenCalled();
+    expect(ownershipBody?.primaryMesh.rotation.y).toBe(0.73);
+    const restoredScene = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
+    expect(restoredScene.children).toContain(ownershipBody?.group);
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      activeEntries: 2,
+      warmEntries: 0,
+      warmCapacity: 8,
+      warmHits: 1,
+      warmMisses: 2,
+      warmParks: 1,
+      warmEvictions: 0,
+      bodyCreates: 2,
+      bodyDisposals: 0,
+    });
+  });
+
+  it("revives a warm body across role changes without constructing or disposing it", () => {
+    const {
+      controller: activeController,
+      createdBodies,
+      createBody,
+      ownership,
+    } = makeTrackedScene();
+    const ownershipBody = createdBodies[1]!;
+
+    activeController.update(
+      makeScene(makeNode("rust", "focus", 0, 0)),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      null
+    );
+    activeController.update(
+      makeScene(makeNode("rust", "focus", 0, 0), [
+        makeNode("ownership", "context", 90, 40, ownership.id),
+      ]),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      ownership.id
+    );
+
+    expect(createBody).toHaveBeenCalledTimes(2);
+    expect(createdBodies[1]).toBe(ownershipBody);
+    expect(ownershipBody.dispose).not.toHaveBeenCalled();
+    expect(ownershipBody.group.position.x).toBe(90);
+    expect(ownershipBody.group.position.y).toBe(-40);
+    expect(ownershipBody.group.scale.x).toBe(9 / 50);
+    expect(ownershipBody.setHover).toHaveBeenLastCalledWith(true, true);
+  });
+
+  it("evicts and disposes the least recently parked body when the warm cache is full", () => {
+    const { controller: activeController, createdBodies } = makeTrackedScene();
+    const rust = makeNode("rust", "focus", 0, 0);
+    const syntheticNodes = Array.from({ length: 9 }, (_, index) =>
+      makeNode("rust", "primary", index * 10, 0, `synthetic-${index}`)
+    );
+    activeController.update(makeScene(rust, syntheticNodes), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const bodyById = new Map(
+      createdBodies.map((body) => [body.group.userData["conceptId"] as string, body])
+    );
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+
+    expect(bodyById.get("synthetic-0")?.dispose).toHaveBeenCalledOnce();
+    for (const node of syntheticNodes.slice(1)) {
+      expect(bodyById.get(node.id)?.dispose).not.toHaveBeenCalled();
+    }
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      activeEntries: 1,
+      warmEntries: 8,
+      warmCapacity: 8,
+      warmParks: 10,
+      warmEvictions: 2,
+      bodyDisposals: 2,
+    });
+  });
+
+  it("disposes a stale warm body and constructs the current identity when a concept changes identity", () => {
+    const {
+      controller: activeController,
+      createdBodies,
+      createBody,
+      ownership,
+    } = makeTrackedScene();
+    const originalOwnershipBody = createdBodies[1]!;
+    activeController.update(
+      makeScene(makeNode("rust", "focus", 0, 0)),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      null
+    );
+
+    const changedIdentityNode = makeNode("memory", "primary", 120, -60, ownership.id);
+    activeController.update(
+      makeScene(makeNode("rust", "focus", 0, 0), [changedIdentityNode]),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      null
+    );
+
     expect(createBody).toHaveBeenCalledTimes(3);
-    expect(createdBodies[2]).not.toBe(ownershipBody);
-    expect(ownershipBody?.dispose).toHaveBeenCalledOnce();
+    expect(createdBodies[2]).not.toBe(originalOwnershipBody);
+    expect(createdBodies[2]?.identity).toMatchObject({ archetype: "blue-atmospheric", seed: 256 });
+    expect(originalOwnershipBody.dispose).toHaveBeenCalledOnce();
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      warmHits: 0,
+      warmMisses: 3,
+      identityReplacements: 0,
+      bodyCreates: 3,
+      bodyDisposals: 1,
+    });
+  });
+
+  it("keeps a restored body recent for LRU eviction", () => {
+    const { controller: activeController, createdBodies } = makeTrackedScene();
+    const rust = makeNode("rust", "focus", 0, 0);
+    const aToH = Array.from({ length: 8 }, (_, index) =>
+      makeNode("rust", "primary", index, 0, `concept-${String.fromCharCode(65 + index)}`)
+    );
+    activeController.update(makeScene(rust, aToH), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const bodyById = new Map(
+      createdBodies.map((body) => [body.group.userData["conceptId"] as string, body])
+    );
+    const nodeA = aToH[0]!;
+    const nodeI = makeNode("rust", "primary", 20, 0, "concept-I");
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    activeController.update(makeScene(rust, [nodeA]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    activeController.update(makeScene(rust, [nodeI]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const bodyI = createdBodies.at(-1)!;
+    bodyById.set("concept-I", bodyI);
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+
+    expect(bodyById.get("concept-A")?.dispose).not.toHaveBeenCalled();
+    expect(bodyById.get("concept-B")?.dispose).toHaveBeenCalledOnce();
+    expect(bodyI.dispose).not.toHaveBeenCalled();
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      warmEntries: 8,
+      warmEvictions: 2,
+    });
+  });
+
+  it("disposes active and warm bodies exactly once when the controller is disposed", () => {
+    const renderer = makeRenderer();
+    const { controller: activeController, createdBodies } = makeTrackedScene(() => renderer);
+    const ownershipBody = createdBodies[1]!;
+    activeController.update(
+      makeScene(makeNode("rust", "focus", 0, 0)),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      null
+    );
+
+    activeController.dispose();
+    activeController.dispose();
+
+    expect(createdBodies[0]?.dispose).toHaveBeenCalledOnce();
+    expect(ownershipBody.dispose).toHaveBeenCalledOnce();
+    expect(renderer.dispose).toHaveBeenCalledOnce();
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      activeEntries: 0,
+      warmEntries: 0,
+      bodyDisposals: 2,
+    });
   });
 });

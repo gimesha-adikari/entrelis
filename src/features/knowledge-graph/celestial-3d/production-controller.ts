@@ -7,6 +7,7 @@ import { addCelestialSceneLighting, resizeCelestialRenderer } from "./renderer-u
 
 const BODY_BASE_RADIUS = 50;
 const DEFAULT_TARGET_FPS = 30;
+const MAX_WARM_ENTRIES = 8;
 const RENDERER_DPR_LIMIT = 2;
 
 interface ProductionEntry {
@@ -35,6 +36,26 @@ export interface ProductionCelestialControllerDependencies {
     lod: GeometryLOD,
     radius: number
   ) => CelestialBodyInstance;
+}
+
+export interface ProductionCelestialLifecycleStats {
+  readonly activeEntries: number;
+  readonly warmEntries: number;
+  readonly warmCapacity: number;
+  readonly rendererAvailable: boolean;
+  readonly sceneChildren: number;
+  readonly renderCalls: number;
+  readonly triangles: number;
+  readonly geometries: number;
+  readonly textures: number;
+  readonly warmHits: number;
+  readonly warmMisses: number;
+  readonly warmParks: number;
+  readonly warmEvictions: number;
+  readonly bodyCreates: number;
+  readonly bodyCreateTotalMs: number;
+  readonly bodyDisposals: number;
+  readonly identityReplacements: number;
 }
 
 /** Select the construction LOD for a new body; live scene-role changes do not upgrade it. */
@@ -135,6 +156,8 @@ export class ProductionCelestialController {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
   private readonly activeEntries = new Map<string, ProductionEntry>();
+  /** Recently exited bodies in least-to-most-recent insertion order. */
+  private readonly warmEntries = new Map<string, ProductionEntry>();
   private readonly targetFps = DEFAULT_TARGET_FPS;
   private readonly createRenderer: (canvas: HTMLCanvasElement) => THREE.WebGLRenderer;
   private readonly createBody: NonNullable<ProductionCelestialControllerDependencies["createBody"]>;
@@ -148,6 +171,14 @@ export class ProductionCelestialController {
   private isDisposed = false;
   private isTabHidden = false;
   private prefersReducedMotion = false;
+  private warmHits = 0;
+  private warmMisses = 0;
+  private warmParks = 0;
+  private warmEvictions = 0;
+  private bodyCreates = 0;
+  private bodyCreateTotalMs = 0;
+  private bodyDisposals = 0;
+  private identityReplacements = 0;
 
   private readonly handleVisibilityChange = (): void => {
     this.isTabHidden = document.hidden;
@@ -227,6 +258,29 @@ export class ProductionCelestialController {
     return this.renderer !== null;
   }
 
+  /** Read-only lifecycle counters for bounded-cache tests and performance diagnostics. */
+  public getLifecycleStats(): ProductionCelestialLifecycleStats {
+    return {
+      activeEntries: this.activeEntries.size,
+      warmEntries: this.warmEntries.size,
+      warmCapacity: MAX_WARM_ENTRIES,
+      rendererAvailable: this.renderer !== null,
+      sceneChildren: this.scene.children.length,
+      renderCalls: this.renderer?.info?.render.calls ?? 0,
+      triangles: this.renderer?.info?.render.triangles ?? 0,
+      geometries: this.renderer?.info?.memory.geometries ?? 0,
+      textures: this.renderer?.info?.memory.textures ?? 0,
+      warmHits: this.warmHits,
+      warmMisses: this.warmMisses,
+      warmParks: this.warmParks,
+      warmEvictions: this.warmEvictions,
+      bodyCreates: this.bodyCreates,
+      bodyCreateTotalMs: this.bodyCreateTotalMs,
+      bodyDisposals: this.bodyDisposals,
+      identityReplacements: this.identityReplacements,
+    };
+  }
+
   public update(
     displayedScene: UniverseScene,
     transform: ViewportTransform,
@@ -250,8 +304,8 @@ export class ProductionCelestialController {
     for (const [id, entry] of this.activeEntries) {
       if (!visibleIds.has(id)) {
         this.scene.remove(entry.body.group);
-        entry.body.dispose();
         this.activeEntries.delete(id);
+        this.parkEntry(id, entry);
       }
     }
 
@@ -274,33 +328,33 @@ export class ProductionCelestialController {
     let entry = this.activeEntries.get(node.id);
 
     if (!entry) {
-      const body = this.createBody(identity, constructionLod, BODY_BASE_RADIUS)!;
-      entry = {
-        id: node.id,
-        identityKey,
-        constructionLod,
-        body,
-        materialOpacityStates: collectMaterialOpacityStates(body),
-        elapsedSeconds: 0,
-        hovered: false,
-        opacity: -1,
-      };
+      const warmEntry = this.warmEntries.get(node.id);
+      if (warmEntry) {
+        this.warmEntries.delete(node.id);
+        if (warmEntry.identityKey === identityKey) {
+          entry = warmEntry;
+          this.warmHits += 1;
+        } else {
+          this.warmMisses += 1;
+          this.disposeEntry(warmEntry);
+        }
+      } else {
+        this.warmMisses += 1;
+      }
+
+      entry ??= this.createEntry(node.id, identity, identityKey, constructionLod);
       this.activeEntries.set(node.id, entry);
-      body.group.userData["conceptId"] = node.id;
-      this.scene.add(body.group);
+      this.scene.add(entry.body.group);
     } else if (entry.identityKey !== identityKey) {
-      const nextBody = this.createBody(identity, constructionLod, BODY_BASE_RADIUS)!;
-      copyBodyOrientation(entry.body, nextBody);
-      nextBody.setHover(entry.hovered, this.prefersReducedMotion);
+      const nextEntry = this.createEntry(node.id, identity, identityKey, constructionLod);
+      copyBodyOrientation(entry.body, nextEntry.body);
+      nextEntry.body.setHover(entry.hovered, this.prefersReducedMotion);
       this.scene.remove(entry.body.group);
-      entry.body.dispose();
-      entry.body = nextBody;
-      entry.identityKey = identityKey;
-      entry.constructionLod = constructionLod;
-      entry.materialOpacityStates = collectMaterialOpacityStates(nextBody);
-      entry.opacity = -1;
-      nextBody.group.userData["conceptId"] = node.id;
-      this.scene.add(nextBody.group);
+      this.disposeEntry(entry);
+      this.identityReplacements += 1;
+      entry = nextEntry;
+      this.activeEntries.set(node.id, entry);
+      this.scene.add(entry.body.group);
     }
 
     entry.hovered = isHovered;
@@ -313,6 +367,59 @@ export class ProductionCelestialController {
       entry.opacity = node.opacity;
     }
     entry.body.setHover(isHovered, this.prefersReducedMotion);
+  }
+
+  private createEntry(
+    id: string,
+    identity: ReturnType<typeof getConceptCelestialIdentity>,
+    identityKey: string,
+    constructionLod: GeometryLOD
+  ): ProductionEntry {
+    const startedAt = performance.now();
+    this.bodyCreates += 1;
+    let body: CelestialBodyInstance;
+    try {
+      body = this.createBody(identity, constructionLod, BODY_BASE_RADIUS)!;
+    } finally {
+      this.bodyCreateTotalMs += performance.now() - startedAt;
+    }
+    body.group.userData["conceptId"] = id;
+    return {
+      id,
+      identityKey,
+      constructionLod,
+      body,
+      materialOpacityStates: collectMaterialOpacityStates(body),
+      elapsedSeconds: 0,
+      hovered: false,
+      opacity: -1,
+    };
+  }
+
+  private parkEntry(id: string, entry: ProductionEntry): void {
+    const duplicate = this.warmEntries.get(id);
+    if (duplicate) {
+      this.warmEntries.delete(id);
+      this.disposeEntry(duplicate);
+    }
+
+    this.warmEntries.set(id, entry);
+    this.warmParks += 1;
+    while (this.warmEntries.size > MAX_WARM_ENTRIES) {
+      const oldestId = this.warmEntries.keys().next().value as string | undefined;
+      if (oldestId === undefined) return;
+      const oldest = this.warmEntries.get(oldestId);
+      this.warmEntries.delete(oldestId);
+      if (oldest) {
+        this.disposeEntry(oldest);
+        this.warmEvictions += 1;
+      }
+    }
+  }
+
+  private disposeEntry(entry: ProductionEntry): void {
+    this.bodyDisposals += 1;
+    entry.body.dispose();
   }
 
   private resize(width: number, height: number): void {
@@ -381,9 +488,13 @@ export class ProductionCelestialController {
 
     for (const entry of this.activeEntries.values()) {
       this.scene.remove(entry.body.group);
-      entry.body.dispose();
+      this.disposeEntry(entry);
     }
     this.activeEntries.clear();
+    for (const entry of this.warmEntries.values()) {
+      this.disposeEntry(entry);
+    }
+    this.warmEntries.clear();
     this.renderer?.dispose();
     this.renderer = null;
   }
