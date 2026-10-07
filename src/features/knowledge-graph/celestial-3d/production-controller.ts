@@ -12,7 +12,8 @@ const RENDERER_DPR_LIMIT = 2;
 interface ProductionEntry {
   readonly id: string;
   identityKey: string;
-  lod: GeometryLOD;
+  /** LOD used to construct this identity; role changes alone do not replace the body. */
+  constructionLod: GeometryLOD;
   body: CelestialBodyInstance;
   materialOpacityStates: readonly MaterialOpacityState[];
   elapsedSeconds: number;
@@ -36,7 +37,7 @@ export interface ProductionCelestialControllerDependencies {
   ) => CelestialBodyInstance;
 }
 
-/** Map production scene roles directly onto the catalog's existing geometry levels. */
+/** Select the construction LOD for a new body; live scene-role changes do not upgrade it. */
 export function roleToGeometryLod(role: UniverseNode["role"]): GeometryLOD {
   return role;
 }
@@ -269,15 +270,15 @@ export class ProductionCelestialController {
   ): void {
     const identity = getConceptCelestialIdentity(node.slug);
     const identityKey = getIdentityKey(identity);
-    const lod = roleToGeometryLod(node.role);
+    const constructionLod = roleToGeometryLod(node.role);
     let entry = this.activeEntries.get(node.id);
 
     if (!entry) {
-      const body = this.createBody(identity, lod, BODY_BASE_RADIUS)!;
+      const body = this.createBody(identity, constructionLod, BODY_BASE_RADIUS)!;
       entry = {
         id: node.id,
         identityKey,
-        lod,
+        constructionLod,
         body,
         materialOpacityStates: collectMaterialOpacityStates(body),
         elapsedSeconds: 0,
@@ -287,15 +288,15 @@ export class ProductionCelestialController {
       this.activeEntries.set(node.id, entry);
       body.group.userData["conceptId"] = node.id;
       this.scene.add(body.group);
-    } else if (entry.identityKey !== identityKey || entry.lod !== lod) {
-      const nextBody = this.createBody(identity, lod, BODY_BASE_RADIUS)!;
+    } else if (entry.identityKey !== identityKey) {
+      const nextBody = this.createBody(identity, constructionLod, BODY_BASE_RADIUS)!;
       copyBodyOrientation(entry.body, nextBody);
       nextBody.setHover(entry.hovered, this.prefersReducedMotion);
       this.scene.remove(entry.body.group);
       entry.body.dispose();
       entry.body = nextBody;
       entry.identityKey = identityKey;
-      entry.lod = lod;
+      entry.constructionLod = constructionLod;
       entry.materialOpacityStates = collectMaterialOpacityStates(nextBody);
       entry.opacity = -1;
       nextBody.group.userData["conceptId"] = node.id;

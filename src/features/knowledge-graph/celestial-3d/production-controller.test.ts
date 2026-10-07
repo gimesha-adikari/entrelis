@@ -228,8 +228,12 @@ describe("production celestial scene controller", () => {
     }
   });
 
-  it("retains curated identity and axial phase when a primary concept is promoted to focus", () => {
-    const createRenderer = vi.fn(() => makeRenderer());
+  it.each([
+    ["primary", "focus"],
+    ["focus", "primary"],
+    ["primary", "context"],
+    ["context", "primary"],
+  ] as const)("reuses the same body when its role changes from %s to %s", (fromRole, toRole) => {
     const createdBodies: Array<{ lod: GeometryLOD; body: CelestialBodyInstance }> = [];
     const createBody = vi.fn((identity: CelestialIdentity, lod: GeometryLOD) => {
       const body = makeBody(identity);
@@ -238,36 +242,72 @@ describe("production celestial scene controller", () => {
     });
 
     controller = new ProductionCelestialController(document.createElement("canvas"), {
-      createRenderer,
+      createRenderer: makeRenderer,
+      createBody,
+    });
+
+    const ownership = makeNode("ownership", fromRole, 100, -50);
+    const firstScene =
+      fromRole === "focus"
+        ? makeScene(ownership, [makeNode("rust", "primary", -100, 0)])
+        : makeScene(makeNode("rust", "focus", -100, 0), [ownership]);
+    controller.update(firstScene, { x: 0, y: 0, k: 1 }, 800, 600, null);
+
+    const originalBody = createdBodies.find((entry) => entry.body.identity.seed === 108)!.body;
+    originalBody.primaryMesh.rotation.y = 0.73;
+
+    const nextOwnership = makeNode("ownership", toRole, 25, 40);
+    const nextScene =
+      toRole === "focus"
+        ? makeScene(nextOwnership, [makeNode("rust", "primary", -100, 0)])
+        : makeScene(makeNode("rust", "focus", -100, 0), [nextOwnership]);
+    controller.update(nextScene, { x: 0, y: 0, k: 1 }, 800, 600, null);
+
+    const createdOwnershipEntry = createdBodies.find((entry) => entry.body.identity.seed === 108)!;
+    expect(createdBodies).toHaveLength(2);
+    expect(createdOwnershipEntry.body).toBe(originalBody);
+    expect(createdOwnershipEntry.lod).toBe(fromRole);
+    expect(originalBody.primaryMesh.rotation.y).toBe(0.73);
+    expect(originalBody.group.position.x).toBe(25);
+    expect(originalBody.group.position.y).toBe(-40);
+    expect(originalBody.group.scale.x).toBe(
+      toRole === "focus" ? 34 / 50 : toRole === "primary" ? 18 / 50 : 9 / 50
+    );
+    expect(originalBody.dispose).not.toHaveBeenCalled();
+  });
+
+  it("replaces a body when its celestial identity changes", () => {
+    const createdBodies: CelestialBodyInstance[] = [];
+    const createBody = vi.fn((identity: CelestialIdentity) => {
+      const body = makeBody(identity);
+      createdBodies.push(body);
+      return body;
+    });
+
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: makeRenderer,
       createBody,
     });
 
     const rust = makeNode("rust", "focus", 0, 0);
-    const ownershipPrimary = makeNode("ownership", "primary", 100, -50);
-    controller.update(makeScene(rust, [ownershipPrimary]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const ownership = makeNode("ownership", "primary", 100, -50);
+    controller.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    const originalOwnershipBody = createdBodies.find((body) => body.identity.seed === 108)!;
 
-    const primaryEntry = createdBodies.find(
-      (entry) => entry.lod === "primary" && entry.body.identity.seed === 108
-    )!;
-    primaryEntry.body.primaryMesh.rotation.y = 0.73;
-
-    const ownershipFocus = makeNode("ownership", "focus", 0, 0);
+    const changedIdentityNode = { ...makeNode("memory", "primary", 120, -60), id: ownership.id };
     controller.update(
-      makeScene(ownershipFocus, [makeNode("rust", "primary", -100, 0)]),
+      makeScene(makeNode("rust", "focus", 0, 0), [changedIdentityNode]),
       { x: 0, y: 0, k: 1 },
       800,
       600,
       null
     );
 
-    const promotedEntry = createdBodies.find(
-      (entry) => entry.lod === "focus" && entry.body.identity.seed === 108
-    )!;
-    expect(primaryEntry.body.identity).toMatchObject({ archetype: "ember-star", seed: 108 });
-    expect(promotedEntry.body.identity).toMatchObject({ archetype: "ember-star", seed: 108 });
-    expect(promotedEntry.body.primaryMesh.rotation.y).toBe(0.73);
-    expect(primaryEntry.body.dispose).toHaveBeenCalledOnce();
-    expect(createRenderer).toHaveBeenCalledOnce();
+    const replacementBody = createdBodies.at(-1)!;
+    expect(createBody).toHaveBeenCalledTimes(3);
+    expect(replacementBody).not.toBe(originalOwnershipBody);
+    expect(replacementBody.identity).toMatchObject({ archetype: "blue-atmospheric", seed: 256 });
+    expect(originalOwnershipBody.dispose).toHaveBeenCalledOnce();
   });
 
   it("disposes a concept when it leaves the displayed scene and keeps the active object count bounded", () => {
@@ -300,5 +340,17 @@ describe("production celestial scene controller", () => {
     expect(visibleBodyIds).toEqual([rust.id]);
     expect(ownershipBody?.dispose).toHaveBeenCalledOnce();
     expect(createRenderer).toHaveBeenCalledOnce();
+
+    controller.update(
+      makeScene(makeNode("rust", "focus", 0, 0), [makeNode("ownership", "context", 50, 25)]),
+      { x: 10, y: 5, k: 1.2 },
+      800,
+      600,
+      null
+    );
+
+    expect(createBody).toHaveBeenCalledTimes(3);
+    expect(createdBodies[2]).not.toBe(ownershipBody);
+    expect(ownershipBody?.dispose).toHaveBeenCalledOnce();
   });
 });
