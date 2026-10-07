@@ -94,6 +94,32 @@ async function flushPreparationTasks(): Promise<void> {
   }
 }
 
+function makeDeferredPreparationHarness(deferInitially = true) {
+  const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
+  let deferPreparation = deferInitially;
+  const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>((object) => {
+    if (deferPreparation) {
+      return new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve));
+    }
+    return Promise.resolve(object);
+  });
+  const renderer = makeAsyncShaderRenderer(compileAsync);
+  const createRenderer = vi.fn(() => renderer);
+  const { controller, createdBodies } = makeTrackedController(createRenderer);
+
+  return {
+    controller,
+    createdBodies,
+    compileAsync,
+    renderer,
+    createRenderer,
+    preparationResolvers,
+    setDeferred: (deferred: boolean) => {
+      deferPreparation = deferred;
+    },
+  };
+}
+
 function showRustWithoutOwnership(controller: ProductionCelestialController) {
   controller.update(
     makeScene(makeNode("rust", "focus", 0, 0)),
@@ -145,6 +171,15 @@ describe("production celestial scene controller", () => {
     const ownership = makeNode("ownership", "primary", 100, -50);
     controller.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
     return { ...tracked, rust, ownership };
+  }
+
+  async function beginPendingNode(slug: string, id?: string) {
+    const harness = makeDeferredPreparationHarness();
+    controller = harness.controller;
+    const node = makeNode(slug, "focus", 0, 0, id);
+    controller.update(makeScene(node), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    return { ...harness, node };
   }
 
   it.each([
@@ -218,18 +253,15 @@ describe("production celestial scene controller", () => {
   });
 
   it("keeps a cold body out of the rendered scene until async shader preparation completes", async () => {
-    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
-    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
-      () => new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve))
-    );
-    const renderer = makeAsyncShaderRenderer(compileAsync);
-    const createRenderer = vi.fn(() => renderer);
-    const { controller: activeController, createdBodies } = makeTrackedController(createRenderer);
-    controller = activeController;
-    const rust = makeNode("rust", "focus", 0, 0);
-
-    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
-    await flushPreparationTasks();
+    const {
+      controller: activeController,
+      createdBodies,
+      compileAsync,
+      renderer,
+      createRenderer,
+      preparationResolvers,
+      node: rust,
+    } = await beginPendingNode("rust");
     expect(compileAsync).toHaveBeenCalledTimes(1);
 
     const rustGroup = createdBodies[0]!.group;
@@ -275,17 +307,14 @@ describe("production celestial scene controller", () => {
   });
 
   it("disposes a pending cold body when its node leaves before preparation completes", async () => {
-    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
-    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
-      () => new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve))
-    );
-    const renderer = makeAsyncShaderRenderer(compileAsync);
-    const { controller: activeController, createdBodies } = makeTrackedController(() => renderer);
-    controller = activeController;
-    const rust = makeNode("rust", "focus", 0, 0);
-
-    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
-    await flushPreparationTasks();
+    const {
+      controller: activeController,
+      createdBodies,
+      compileAsync,
+      renderer,
+      preparationResolvers,
+      node: rust,
+    } = await beginPendingNode("rust");
     expect(compileAsync).toHaveBeenCalledOnce();
 
     const pendingBody = createdBodies[0]!;
@@ -307,18 +336,16 @@ describe("production celestial scene controller", () => {
   });
 
   it("does not activate a pending body after the same concept ID changes identity", async () => {
-    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
-    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
-      () => new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve))
-    );
-    const renderer = makeAsyncShaderRenderer(compileAsync);
-    const { controller: activeController, createdBodies } = makeTrackedController(() => renderer);
-    controller = activeController;
-    const rust = makeNode("rust", "focus", 0, 0, "identity-changing-node");
+    const {
+      controller: activeController,
+      createdBodies,
+      compileAsync,
+      renderer,
+      preparationResolvers,
+      node: rust,
+    } = await beginPendingNode("rust", "identity-changing-node");
     const ownership = makeNode("ownership", "focus", 0, 0, rust.id);
 
-    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
-    await flushPreparationTasks();
     const staleBody = createdBodies[0]!;
 
     activeController.update(makeScene(ownership), { x: 0, y: 0, k: 1 }, 800, 600, null);
@@ -361,17 +388,14 @@ describe("production celestial scene controller", () => {
   });
 
   it("disposes active, warm, and pending entries exactly once with their single renderer", async () => {
-    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
-    let deferPreparation = false;
-    const compileAsync = vi.fn((object: THREE.Object3D) => {
-      if (deferPreparation) {
-        return new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve));
-      }
-      return Promise.resolve(object);
-    });
-    const renderer = makeAsyncShaderRenderer(compileAsync);
-    const createRenderer = vi.fn(() => renderer);
-    const { controller: activeController, createdBodies } = makeTrackedController(createRenderer);
+    const {
+      controller: activeController,
+      createdBodies,
+      renderer,
+      createRenderer,
+      preparationResolvers,
+      setDeferred,
+    } = makeDeferredPreparationHarness(false);
     controller = activeController;
     const rust = makeNode("rust", "focus", 0, 0);
     const ownership = makeNode("ownership", "primary", 100, -50);
@@ -383,7 +407,7 @@ describe("production celestial scene controller", () => {
     const ownershipBody = createdBodies[1]!;
 
     activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
-    deferPreparation = true;
+    setDeferred(true);
     const memory = makeNode("memory", "primary", 100, -50);
     activeController.update(makeScene(rust, [memory]), { x: 0, y: 0, k: 1 }, 800, 600, null);
     await flushPreparationTasks();
