@@ -130,6 +130,16 @@ function showRustWithoutOwnership(controller: ProductionCelestialController) {
   );
 }
 
+async function addOwnershipNeighbor(
+  controller: ProductionCelestialController,
+  focus: UniverseNode
+): Promise<UniverseNode> {
+  const ownership = makeNode("ownership", "primary", 100, -50);
+  controller.update(makeScene(focus, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+  await flushPreparationTasks();
+  return ownership;
+}
+
 function makeTrackedController(createRenderer = makeRenderer) {
   const createdBodies: CelestialBodyInstance[] = [];
   const createBody = vi.fn((identity: CelestialIdentity) => {
@@ -273,9 +283,7 @@ describe("production celestial scene controller", () => {
       parallelShaderCompileExtensionAvailable: false,
     });
 
-    const ownership = makeNode("ownership", "primary", 100, -50);
-    activeController.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
-    await flushPreparationTasks();
+    const ownership = await addOwnershipNeighbor(activeController, rust);
 
     expect(compileAsync).toHaveBeenCalledTimes(2);
     const sceneDuringPreparation = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
@@ -398,10 +406,7 @@ describe("production celestial scene controller", () => {
     } = makeDeferredPreparationHarness(false);
     controller = activeController;
     const rust = makeNode("rust", "focus", 0, 0);
-    const ownership = makeNode("ownership", "primary", 100, -50);
-
-    activeController.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
-    await flushPreparationTasks();
+    await addOwnershipNeighbor(activeController, rust);
     expect(activeController.getLifecycleStats().activeEntries).toBe(2);
     const rustBody = createdBodies[0]!;
     const ownershipBody = createdBodies[1]!;
