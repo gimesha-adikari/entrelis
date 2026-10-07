@@ -78,6 +78,16 @@ function makeRenderer() {
   } as unknown as THREE.WebGLRenderer;
 }
 
+function showRustWithoutOwnership(controller: ProductionCelestialController) {
+  controller.update(
+    makeScene(makeNode("rust", "focus", 0, 0)),
+    { x: 0, y: 0, k: 1 },
+    800,
+    600,
+    null
+  );
+}
+
 function makeTrackedController(createRenderer = makeRenderer) {
   const createdBodies: CelestialBodyInstance[] = [];
   const createBody = vi.fn((identity: CelestialIdentity) => {
@@ -395,13 +405,7 @@ describe("production celestial scene controller", () => {
     } = makeTrackedScene();
     const ownershipBody = createdBodies[1]!;
 
-    activeController.update(
-      makeScene(makeNode("rust", "focus", 0, 0)),
-      { x: 0, y: 0, k: 1 },
-      800,
-      600,
-      null
-    );
+    showRustWithoutOwnership(activeController);
     activeController.update(
       makeScene(makeNode("rust", "focus", 0, 0), [
         makeNode("ownership", "context", 90, 40, ownership.id),
@@ -456,13 +460,7 @@ describe("production celestial scene controller", () => {
       ownership,
     } = makeTrackedScene();
     const originalOwnershipBody = createdBodies[1]!;
-    activeController.update(
-      makeScene(makeNode("rust", "focus", 0, 0)),
-      { x: 0, y: 0, k: 1 },
-      800,
-      600,
-      null
-    );
+    showRustWithoutOwnership(activeController);
 
     const changedIdentityNode = makeNode("memory", "primary", 120, -60, ownership.id);
     activeController.update(
@@ -520,13 +518,7 @@ describe("production celestial scene controller", () => {
     const renderer = makeRenderer();
     const { controller: activeController, createdBodies } = makeTrackedScene(() => renderer);
     const ownershipBody = createdBodies[1]!;
-    activeController.update(
-      makeScene(makeNode("rust", "focus", 0, 0)),
-      { x: 0, y: 0, k: 1 },
-      800,
-      600,
-      null
-    );
+    showRustWithoutOwnership(activeController);
 
     activeController.dispose();
     activeController.dispose();
