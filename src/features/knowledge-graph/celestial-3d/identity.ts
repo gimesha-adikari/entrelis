@@ -39,11 +39,11 @@ export interface MoonConfig {
 }
 
 export interface DebrisConfig {
-  readonly count: number; // 2–5 fragments
+  readonly count: number; // 3–7 fragments before LOD adjustment
   readonly seed: number;
-  readonly minDistance: number;
-  readonly maxDistance: number;
-  readonly scale: number;
+  readonly minDistance: number; // world units at a 50-unit parent radius
+  readonly maxDistance: number; // rescaled to the actual parent radius
+  readonly scale: number; // fragment radius relative to the parent radius
 }
 
 export interface CelestialIdentity {
@@ -295,12 +295,13 @@ export const CATALOG_ARCHETYPES: readonly CatalogItem[] = [
     identity: {
       archetype: "asteroid",
       seed: 603,
+      asteroidVariant: "carbon",
       debris: {
         count: 4,
         seed: 603,
-        minDistance: 75,
-        maxDistance: 110,
-        scale: 0.18,
+        minDistance: 68,
+        maxDistance: 81,
+        scale: 0.12,
       },
     },
   },

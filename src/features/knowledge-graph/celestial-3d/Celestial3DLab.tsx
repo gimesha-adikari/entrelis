@@ -45,6 +45,13 @@ type CategoryFilter =
   | "STRUCTURAL_CONFUSION_84PX"
   | "METALLIC_ROT"
   | "CRYSTAL_ROT"
+  | "ASTEROID_CARBON_CLOSE"
+  | "ASTEROID_MINERAL_CLOSE"
+  | "ASTEROID_DEBRIS_CLOSE"
+  | "ASTEROIDS_84PX"
+  | "ASTEROID_SILHOUETTES"
+  | "ASTEROID_CARBON_ROT"
+  | "ASTEROID_MINERAL_ROT"
   | "STRUCTURAL"
   | "SMALL BODIES"
   | "CONCEPTS";
@@ -540,6 +547,108 @@ const STRUCTURAL_REVIEW_ITEMS: Partial<Record<CategoryFilter, readonly CatalogIt
   ],
 };
 
+const CARBON_ASTEROID_IDENTITY: CatalogItemEntry["identity"] = {
+  archetype: "asteroid",
+  seed: 601,
+  asteroidVariant: "carbon",
+};
+
+const MINERAL_ASTEROID_IDENTITY: CatalogItemEntry["identity"] = {
+  archetype: "asteroid",
+  seed: 602,
+  asteroidVariant: "mineral",
+};
+
+const ASTEROID_DEBRIS_IDENTITY: CatalogItemEntry["identity"] = {
+  archetype: "asteroid",
+  seed: 603,
+  asteroidVariant: "carbon",
+  debris: {
+    count: 4,
+    seed: 603,
+    minDistance: 68,
+    maxDistance: 81,
+    scale: 0.12,
+  },
+};
+
+const SMALL_BODY_REVIEW_ITEMS: Partial<Record<CategoryFilter, readonly CatalogItemEntry[]>> = {
+  ASTEROID_CARBON_CLOSE: [
+    {
+      id: "carbon-asteroid-close",
+      name: "Carbon Asteroid",
+      identity: CARBON_ASTEROID_IDENTITY,
+      radius: 110,
+    },
+  ],
+  ASTEROID_MINERAL_CLOSE: [
+    {
+      id: "mineral-asteroid-close",
+      name: "Mineral Asteroid",
+      identity: MINERAL_ASTEROID_IDENTITY,
+      radius: 110,
+    },
+  ],
+  ASTEROID_DEBRIS_CLOSE: [
+    {
+      id: "asteroid-debris-close",
+      name: "Asteroid + Debris",
+      identity: ASTEROID_DEBRIS_IDENTITY,
+      radius: 100,
+    },
+  ],
+  ASTEROIDS_84PX: [
+    {
+      id: "carbon-asteroid-84px",
+      name: "Carbon Asteroid (84px)",
+      identity: CARBON_ASTEROID_IDENTITY,
+      radius: 42,
+    },
+    {
+      id: "mineral-asteroid-84px",
+      name: "Mineral Asteroid (84px)",
+      identity: MINERAL_ASTEROID_IDENTITY,
+      radius: 42,
+    },
+    {
+      id: "asteroid-debris-84px",
+      name: "Asteroid + Debris (84px)",
+      identity: ASTEROID_DEBRIS_IDENTITY,
+      radius: 42,
+    },
+  ],
+  ASTEROID_SILHOUETTES: [
+    {
+      id: "carbon-asteroid-silhouette",
+      name: "Carbon Asteroid",
+      identity: CARBON_ASTEROID_IDENTITY,
+      radius: 90,
+    },
+    {
+      id: "mineral-asteroid-silhouette",
+      name: "Mineral Asteroid",
+      identity: MINERAL_ASTEROID_IDENTITY,
+      radius: 90,
+    },
+  ],
+  ASTEROID_CARBON_ROT: [
+    {
+      id: "carbon-asteroid-rotation",
+      name: "Carbon Asteroid Rotation",
+      identity: CARBON_ASTEROID_IDENTITY,
+      radius: 90,
+    },
+  ],
+  ASTEROID_MINERAL_ROT: [
+    {
+      id: "mineral-asteroid-rotation",
+      name: "Mineral Asteroid Rotation",
+      identity: MINERAL_ASTEROID_IDENTITY,
+      radius: 90,
+    },
+  ],
+};
+
 const CONCEPT_ITEMS: readonly CatalogItemEntry[] = [
   { id: "rust", name: "Rust", identity: ENTRELIS_CONCEPT_IDENTITIES["rust"]! },
   { id: "ownership", name: "Ownership", identity: ENTRELIS_CONCEPT_IDENTITIES["ownership"]! },
@@ -568,6 +677,8 @@ export const Celestial3DLab: React.FC = () => {
   const filteredItems = useMemo((): readonly CatalogItemEntry[] => {
     const structuralReview = STRUCTURAL_REVIEW_ITEMS[activeCategory];
     if (structuralReview) return structuralReview;
+    const smallBodyReview = SMALL_BODY_REVIEW_ITEMS[activeCategory];
+    if (smallBodyReview) return smallBodyReview;
     if (activeCategory === "CONCEPTS") {
       return CONCEPT_ITEMS;
     }
@@ -718,6 +829,13 @@ export const Celestial3DLab: React.FC = () => {
     { id: "STRUCTURAL_CONFUSION_84PX", label: "Structural Confusion 84px" },
     { id: "METALLIC_ROT", label: "Metallic Rotation" },
     { id: "CRYSTAL_ROT", label: "Crystal Rotation" },
+    { id: "ASTEROID_CARBON_CLOSE", label: "Carbon Asteroid Close" },
+    { id: "ASTEROID_MINERAL_CLOSE", label: "Mineral Asteroid Close" },
+    { id: "ASTEROID_DEBRIS_CLOSE", label: "Asteroid + Debris Close" },
+    { id: "ASTEROIDS_84PX", label: "Asteroids (84px)" },
+    { id: "ASTEROID_SILHOUETTES", label: "Asteroid Silhouettes" },
+    { id: "ASTEROID_CARBON_ROT", label: "Carbon Rotation" },
+    { id: "ASTEROID_MINERAL_ROT", label: "Mineral Rotation" },
     { id: "BLUE_ATM_CLOSE", label: "Blue Atm Close" },
     { id: "STORM_GIANT_CLOSE", label: "Storm Giant Close" },
     { id: "ICY_RING_CLOSE", label: "Icy Ring Close" },

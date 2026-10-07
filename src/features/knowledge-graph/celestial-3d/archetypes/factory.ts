@@ -20,6 +20,7 @@ import { createRingMesh } from "../attachments/rings";
 import { createMoonGroup, type MoonInstance } from "../attachments/moons";
 import { createDebrisGroup, type DebrisInstance } from "../attachments/debris";
 import { deformAsteroidGeometry } from "./asteroid";
+import { createLcg } from "../procedural/noise3d";
 
 export interface CelestialBodyInstance {
   readonly group: THREE.Group;
@@ -397,7 +398,8 @@ export function createCelestialObject(
   else {
     // archetype === "asteroid"
     const variant = identity.asteroidVariant ?? "carbon";
-    const geo = deformAsteroidGeometry(radius, seed, lod === "context" ? 1 : 2);
+    const detail = lod === "context" ? 1 : lod === "primary" ? 2 : 3;
+    const geo = deformAsteroidGeometry(radius, seed, detail, variant);
     geometriesToDispose.push(geo);
 
     const tex = createAsteroidTextures(seed, lod, variant);
@@ -410,8 +412,9 @@ export function createCelestialObject(
     });
     materialsToDispose.push(mat);
     primaryMesh = new THREE.Mesh(geo, mat);
-    tiltZ = 0.45;
-    baseRotationSpeed = (2 * Math.PI) / 80;
+    const tiltRandom = createLcg(seed + (variant === "carbon" ? 811 : 1229));
+    tiltZ = (variant === "carbon" ? 0.39 : 0.2) + (tiltRandom() - 0.5) * 0.08;
+    baseRotationSpeed = (2 * Math.PI) / (variant === "carbon" ? 80 : 62);
     primaryMesh.rotation.z = tiltZ;
     group.add(primaryMesh);
   }
@@ -442,7 +445,7 @@ export function createCelestialObject(
 
   // ATTACHMENT: DEBRIS
   if (identity.debris) {
-    const debInst = createDebrisGroup(identity.debris, radius);
+    const debInst = createDebrisGroup(identity.debris, radius, lod);
     debrisInstances.push(debInst);
     group.add(debInst.group);
   }

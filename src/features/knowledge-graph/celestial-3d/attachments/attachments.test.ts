@@ -133,7 +133,7 @@ describe("Celestial 3D Attachments", () => {
     moon.dispose();
   });
 
-  it("creates a debris group with 2 to 5 miniature irregular fragments", () => {
+  it("creates a debris group with 3 to 7 miniature irregular fragments", () => {
     const debris = createDebrisGroup(
       {
         count: 4,
@@ -146,8 +146,99 @@ describe("Celestial 3D Attachments", () => {
     );
 
     expect(debris.group).toBeInstanceOf(THREE.Group);
-    expect(debris.fragments.length).toBe(4);
+    expect(debris.fragments.length).toBeGreaterThanOrEqual(3);
+    expect(debris.fragments.length).toBeLessThanOrEqual(7);
 
     debris.dispose();
+  });
+
+  it("scales fragment count by LOD while keeping it sparse", () => {
+    const config = { count: 4, seed: 88, minDistance: 68, maxDistance: 81, scale: 0.12 };
+    const context = createDebrisGroup(config, 50, "context");
+    const primary = createDebrisGroup(config, 50, "primary");
+    const focus = createDebrisGroup(config, 50, "focus");
+    const tooFew = createDebrisGroup({ ...config, count: 1 }, 50, "primary");
+    const tooMany = createDebrisGroup({ ...config, count: 12 }, 50, "primary");
+
+    expect(context.fragments.length).toBeGreaterThanOrEqual(3);
+    expect(context.fragments.length).toBeLessThan(primary.fragments.length);
+    expect(focus.fragments.length).toBeGreaterThan(primary.fragments.length);
+    expect(focus.fragments.length).toBeLessThanOrEqual(7);
+    expect(tooFew.fragments).toHaveLength(3);
+    expect(tooMany.fragments).toHaveLength(7);
+
+    context.dispose();
+    primary.dispose();
+    focus.dispose();
+    tooFew.dispose();
+    tooMany.dispose();
+  });
+
+  it("creates deterministic irregular fragments and scales their field with the parent", () => {
+    const config = { count: 4, seed: 88, minDistance: 68, maxDistance: 81, scale: 0.12 };
+    const first = createDebrisGroup(config, 50, "primary");
+    const repeat = createDebrisGroup(config, 50, "primary");
+    const larger = createDebrisGroup(config, 100, "primary");
+
+    expect(first.fragments).toHaveLength(repeat.fragments.length);
+    first.fragments.forEach((fragment, index) => {
+      const repeated = repeat.fragments[index]!;
+      expect(fragment.position.toArray()).toEqual(repeated.position.toArray());
+      expect(Array.from(fragment.geometry.attributes["position"]!.array)).toEqual(
+        Array.from(repeated.geometry.attributes["position"]!.array)
+      );
+    });
+    expect(first.fragments[0]!.geometry).not.toBe(first.fragments[1]!.geometry);
+    expect(Array.from(first.fragments[0]!.geometry.attributes["position"]!.array)).not.toEqual(
+      Array.from(first.fragments[1]!.geometry.attributes["position"]!.array)
+    );
+
+    const firstDistance = first.fragments[0]!.position.length();
+    const largerDistance = larger.fragments[0]!.position.length();
+    expect(largerDistance / firstDistance).toBeCloseTo(2, 5);
+
+    first.dispose();
+    repeat.dispose();
+    larger.dispose();
+  });
+
+  it("keeps debris stationary while fragment self-rotation stays subtle", () => {
+    const debris = createDebrisGroup(
+      { count: 4, seed: 88, minDistance: 68, maxDistance: 81, scale: 0.12 },
+      50,
+      "primary"
+    );
+    const positionsBefore = debris.fragments.map((fragment) => fragment.position.toArray());
+    const rotationsBefore = debris.fragments.map((fragment) => fragment.rotation.y);
+
+    debris.update(10);
+
+    expect(debris.group.rotation.y).toBe(0);
+    debris.fragments.forEach((fragment, index) => {
+      expect(fragment.position.toArray()).toEqual(positionsBefore[index]);
+      const rotationChange = fragment.rotation.y - rotationsBefore[index]!;
+      expect(rotationChange).toBeGreaterThan(0);
+      expect(rotationChange).toBeLessThan(0.2);
+    });
+
+    debris.dispose();
+  });
+
+  it("disposes each debris geometry and the shared material once", () => {
+    const debris = createDebrisGroup(
+      { count: 4, seed: 88, minDistance: 68, maxDistance: 81, scale: 0.12 },
+      50,
+      "primary"
+    );
+    const geometries = debris.fragments.map((fragment) => fragment.geometry);
+    const material = debris.fragments[0]!.material as THREE.Material;
+    const geometryDisposals = geometries.map((geometry) => vi.spyOn(geometry, "dispose"));
+    const materialDispose = vi.spyOn(material, "dispose");
+
+    expect(debris.fragments.every((fragment) => fragment.material === material)).toBe(true);
+    debris.dispose();
+
+    for (const dispose of geometryDisposals) expect(dispose).toHaveBeenCalledTimes(1);
+    expect(materialDispose).toHaveBeenCalledTimes(1);
   });
 });
