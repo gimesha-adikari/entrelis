@@ -3,6 +3,7 @@ import type { UniverseNode, UniverseScene } from "../scene/types";
 import type { ViewportTransform } from "../types";
 import { createCelestialObject, type CelestialBodyInstance } from "./archetypes/factory";
 import { getConceptCelestialIdentity, type GeometryLOD } from "./identity";
+import { addCelestialSceneLighting, resizeCelestialRenderer } from "./renderer-utils";
 
 const BODY_BASE_RADIUS = 50;
 const DEFAULT_TARGET_FPS = 30;
@@ -186,16 +187,7 @@ export class ProductionCelestialController {
         }));
     this.createBody = dependencies.createBody ?? createCelestialObject;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    this.scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xfff7ed, 3.2);
-    keyLight.position.set(-2.0, 2.4, 3.0).normalize();
-    this.scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.42);
-    fillLight.position.set(2.5, -1.5, -1.0).normalize();
-    this.scene.add(fillLight);
+    addCelestialSceneLighting(this.scene);
 
     if (dependencies.createRenderer || typeof WebGL2RenderingContext !== "undefined") {
       try {
@@ -326,12 +318,7 @@ export class ProductionCelestialController {
     if (width <= 0 || height <= 0 || (this.width === width && this.height === height)) return;
     this.width = width;
     this.height = height;
-    this.camera.left = -width / 2;
-    this.camera.right = width / 2;
-    this.camera.top = height / 2;
-    this.camera.bottom = -height / 2;
-    this.camera.updateProjectionMatrix();
-    this.renderer?.setSize(width, height, false);
+    resizeCelestialRenderer(this.camera, this.renderer, width, height);
   }
 
   private startLoop(): void {

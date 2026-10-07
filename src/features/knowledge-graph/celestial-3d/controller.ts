@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { CelestialIdentity, GeometryLOD } from "./identity";
 import { createCelestialObject, type CelestialBodyInstance } from "./archetypes/factory";
+import { addCelestialSceneLighting, resizeCelestialRenderer } from "./renderer-utils";
 import { disposeAllCelestialTextures } from "./procedural/textures";
 
 export interface CatalogItemEntry {
@@ -100,16 +101,7 @@ export class Celestial3DController {
     }
 
     // 2. Coherent Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    this.scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xfff7ed, 3.2);
-    keyLight.position.set(-2.0, 2.4, 3.0).normalize();
-    this.scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.42);
-    fillLight.position.set(2.5, -1.5, -1.0).normalize();
-    this.scene.add(fillLight);
+    addCelestialSceneLighting(this.scene);
 
     // 3. Load initial items (defaults to the 4 main proof archetypes if unspecified)
     if (initialItems && initialItems.length > 0) {
@@ -355,16 +347,7 @@ export class Celestial3DController {
   public resize(width: number, height: number): void {
     this.width = width;
     this.height = height;
-
-    this.camera.left = -width / 2;
-    this.camera.right = width / 2;
-    this.camera.top = height / 2;
-    this.camera.bottom = -height / 2;
-    this.camera.updateProjectionMatrix();
-
-    if (this.renderer) {
-      this.renderer.setSize(width, height, false);
-    }
+    resizeCelestialRenderer(this.camera, this.renderer, width, height);
 
     this.layoutBodies();
 
