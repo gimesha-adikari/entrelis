@@ -78,6 +78,22 @@ function makeRenderer() {
   } as unknown as THREE.WebGLRenderer;
 }
 
+function makeAsyncShaderRenderer(
+  compileAsync: THREE.WebGLRenderer["compileAsync"]
+): THREE.WebGLRenderer {
+  return {
+    ...makeRenderer(),
+    getContext: () => ({ getExtension: () => null }),
+    compileAsync,
+  } as unknown as THREE.WebGLRenderer;
+}
+
+async function flushPreparationTasks(): Promise<void> {
+  for (let index = 0; index < 4; index++) {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+}
+
 function showRustWithoutOwnership(controller: ProductionCelestialController) {
   controller.update(
     makeScene(makeNode("rust", "focus", 0, 0)),
@@ -199,6 +215,203 @@ describe("production celestial scene controller", () => {
     controller.update(makeScene(focus), { x: 0, y: 0, k: 1 }, 800, 600, focus.id);
 
     expect(body.setHover).toHaveBeenLastCalledWith(true, true);
+  });
+
+  it("keeps a cold body out of the rendered scene until async shader preparation completes", async () => {
+    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
+    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
+      () => new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve))
+    );
+    const renderer = makeAsyncShaderRenderer(compileAsync);
+    const createRenderer = vi.fn(() => renderer);
+    const { controller: activeController, createdBodies } = makeTrackedController(createRenderer);
+    controller = activeController;
+    const rust = makeNode("rust", "focus", 0, 0);
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    expect(compileAsync).toHaveBeenCalledTimes(1);
+
+    const rustGroup = createdBodies[0]!.group;
+    preparationResolvers[0]!(rustGroup);
+    await flushPreparationTasks();
+    expect(activeController.getLifecycleStats().activeEntries).toBe(1);
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      asyncShaderPreparationSupported: true,
+      parallelShaderCompileExtensionAvailable: false,
+    });
+
+    const ownership = makeNode("ownership", "primary", 100, -50);
+    activeController.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+
+    expect(compileAsync).toHaveBeenCalledTimes(2);
+    const sceneDuringPreparation = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
+    expect(sceneDuringPreparation.children).toContain(rustGroup);
+    expect(sceneDuringPreparation.children).not.toContain(createdBodies[1]!.group);
+
+    preparationResolvers[1]!(createdBodies[1]!.group);
+    await flushPreparationTasks();
+
+    const sceneAfterPreparation = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
+    expect(sceneAfterPreparation.children).toContain(createdBodies[1]!.group);
+    expect(
+      sceneAfterPreparation.children.filter((child) => child === createdBodies[1]!.group)
+    ).toHaveLength(1);
+    expect(activeController.getLifecycleStats().activeEntries).toBe(2);
+    expect(createRenderer).toHaveBeenCalledOnce();
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    activeController.update(
+      makeScene(rust, [makeNode("ownership", "context", 100, -50, ownership.id)]),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      null
+    );
+    expect(compileAsync).toHaveBeenCalledTimes(2);
+    expect(activeController.getLifecycleStats().activeEntries).toBe(2);
+    expect(createdBodies[1]!.dispose).not.toHaveBeenCalled();
+  });
+
+  it("disposes a pending cold body when its node leaves before preparation completes", async () => {
+    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
+    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
+      () => new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve))
+    );
+    const renderer = makeAsyncShaderRenderer(compileAsync);
+    const { controller: activeController, createdBodies } = makeTrackedController(() => renderer);
+    controller = activeController;
+    const rust = makeNode("rust", "focus", 0, 0);
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    expect(compileAsync).toHaveBeenCalledOnce();
+
+    const pendingBody = createdBodies[0]!;
+    activeController.update(
+      makeScene({ ...rust, radius: 0 }),
+      { x: 0, y: 0, k: 1 },
+      800,
+      600,
+      null
+    );
+    expect(pendingBody.dispose).toHaveBeenCalledOnce();
+
+    preparationResolvers[0]!(pendingBody.group);
+    await flushPreparationTasks();
+    expect(activeController.getLifecycleStats().activeEntries).toBe(0);
+    expect(pendingBody.dispose).toHaveBeenCalledOnce();
+    const lastRenderedScene = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
+    expect(lastRenderedScene.children).not.toContain(pendingBody.group);
+  });
+
+  it("does not activate a pending body after the same concept ID changes identity", async () => {
+    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
+    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
+      () => new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve))
+    );
+    const renderer = makeAsyncShaderRenderer(compileAsync);
+    const { controller: activeController, createdBodies } = makeTrackedController(() => renderer);
+    controller = activeController;
+    const rust = makeNode("rust", "focus", 0, 0, "identity-changing-node");
+    const ownership = makeNode("ownership", "focus", 0, 0, rust.id);
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    const staleBody = createdBodies[0]!;
+
+    activeController.update(makeScene(ownership), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    expect(staleBody.dispose).toHaveBeenCalledOnce();
+    preparationResolvers[0]!(staleBody.group);
+    await flushPreparationTasks();
+
+    expect(compileAsync).toHaveBeenCalledTimes(2);
+    expect(activeController.getLifecycleStats().activeEntries).toBe(0);
+    const currentBody = createdBodies[1]!;
+    expect(currentBody.identity).toMatchObject({ archetype: "ember-star", seed: 108 });
+    preparationResolvers[1]!(currentBody.group);
+    await flushPreparationTasks();
+
+    const renderedScene = vi.mocked(renderer.render).mock.calls.at(-1)?.[0] as THREE.Scene;
+    expect(renderedScene.children).toContain(currentBody.group);
+    expect(renderedScene.children).not.toContain(staleBody.group);
+    expect(staleBody.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("keeps pending entries within the desktop local-scene budget", () => {
+    const compileAsync = vi.fn<THREE.WebGLRenderer["compileAsync"]>(
+      () => new Promise<THREE.Object3D>(() => undefined)
+    );
+    const renderer = makeAsyncShaderRenderer(compileAsync);
+    const { controller: activeController } = makeTrackedController(() => renderer);
+    controller = activeController;
+    const rust = makeNode("rust", "focus", 0, 0);
+    const neighbors = Array.from({ length: 9 }, (_, index) =>
+      makeNode("ownership", "primary", index * 10, 0, `pending-${index}`)
+    );
+
+    activeController.update(makeScene(rust, neighbors), { x: 0, y: 0, k: 1 }, 800, 600, null);
+
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      activeEntries: 0,
+      pendingEntries: 10,
+      pendingCapacity: 10,
+    });
+  });
+
+  it("disposes active, warm, and pending entries exactly once with their single renderer", async () => {
+    const preparationResolvers: Array<(object: THREE.Object3D) => void> = [];
+    let deferPreparation = false;
+    const compileAsync = vi.fn((object: THREE.Object3D) => {
+      if (deferPreparation) {
+        return new Promise<THREE.Object3D>((resolve) => preparationResolvers.push(resolve));
+      }
+      return Promise.resolve(object);
+    });
+    const renderer = makeAsyncShaderRenderer(compileAsync);
+    const createRenderer = vi.fn(() => renderer);
+    const { controller: activeController, createdBodies } = makeTrackedController(createRenderer);
+    controller = activeController;
+    const rust = makeNode("rust", "focus", 0, 0);
+    const ownership = makeNode("ownership", "primary", 100, -50);
+
+    activeController.update(makeScene(rust, [ownership]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    expect(activeController.getLifecycleStats().activeEntries).toBe(2);
+    const rustBody = createdBodies[0]!;
+    const ownershipBody = createdBodies[1]!;
+
+    activeController.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    deferPreparation = true;
+    const memory = makeNode("memory", "primary", 100, -50);
+    activeController.update(makeScene(rust, [memory]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    const memoryBody = createdBodies[2]!;
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      activeEntries: 1,
+      warmEntries: 1,
+      pendingEntries: 1,
+      preparingEntries: 1,
+    });
+
+    activeController.dispose();
+    expect(rustBody.dispose).toHaveBeenCalledOnce();
+    expect(ownershipBody.dispose).toHaveBeenCalledOnce();
+    expect(memoryBody.dispose).toHaveBeenCalledOnce();
+    expect(renderer.dispose).toHaveBeenCalledOnce();
+    expect(createRenderer).toHaveBeenCalledOnce();
+    expect(activeController.getLifecycleStats()).toMatchObject({
+      activeEntries: 0,
+      warmEntries: 0,
+      pendingEntries: 0,
+      bodyDisposals: 3,
+    });
+
+    preparationResolvers[0]!(memoryBody.group);
+    await flushPreparationTasks();
+    expect(memoryBody.dispose).toHaveBeenCalledOnce();
+    expect(activeController.getLifecycleStats().activeEntries).toBe(0);
   });
 
   it("renders once to clear bodies when the displayed scene becomes empty", () => {

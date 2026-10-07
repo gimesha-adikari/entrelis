@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { UniverseNode, UniverseScene } from "../scene/types";
+import { DESKTOP_SCENE_BUDGET, type UniverseNode, type UniverseScene } from "../scene/types";
 import type { ViewportTransform } from "../types";
 import { createCelestialObject, type CelestialBodyInstance } from "./archetypes/factory";
 import { getConceptCelestialIdentity, type GeometryLOD } from "./identity";
@@ -8,6 +8,7 @@ import { addCelestialSceneLighting, resizeCelestialRenderer } from "./renderer-u
 const BODY_BASE_RADIUS = 50;
 const DEFAULT_TARGET_FPS = 30;
 const MAX_WARM_ENTRIES = 8;
+const MAX_PENDING_ENTRIES = DESKTOP_SCENE_BUDGET.maxTotal;
 const RENDERER_DPR_LIMIT = 2;
 
 interface ProductionEntry {
@@ -20,6 +21,15 @@ interface ProductionEntry {
   elapsedSeconds: number;
   hovered: boolean;
   opacity: number;
+}
+
+interface PendingPreparation {
+  readonly entry: ProductionEntry;
+  node: UniverseNode;
+  transform: ViewportTransform;
+  hovered: boolean;
+  ready: boolean;
+  startedAt: number;
 }
 
 interface MaterialOpacityState {
@@ -42,8 +52,14 @@ export interface ProductionCelestialLifecycleStats {
   readonly activeEntries: number;
   readonly warmEntries: number;
   readonly warmCapacity: number;
+  readonly pendingEntries: number;
+  readonly pendingCapacity: number;
+  readonly preparingEntries: number;
   readonly rendererAvailable: boolean;
+  readonly asyncShaderPreparationSupported: boolean;
+  readonly parallelShaderCompileExtensionAvailable: boolean;
   readonly sceneChildren: number;
+  readonly renderFrameCount: number;
   readonly renderCalls: number;
   readonly triangles: number;
   readonly geometries: number;
@@ -56,6 +72,20 @@ export interface ProductionCelestialLifecycleStats {
   readonly bodyCreateTotalMs: number;
   readonly bodyDisposals: number;
   readonly identityReplacements: number;
+  readonly shaderPreparationsStarted: number;
+  readonly shaderPreparationsCompleted: number;
+  readonly shaderPreparationCancellations: number;
+  readonly shaderPreparationFailures: number;
+  readonly shaderPreparationSetupTotalMs: number;
+  readonly shaderPreparationSetupMaxMs: number;
+  readonly shaderPreparationWaitTotalMs: number;
+  readonly controllerUpdateCount: number;
+  readonly controllerUpdateTotalMs: number;
+  readonly controllerUpdateMaxMs: number;
+  readonly controllerUpdateLastMs: number;
+  readonly rendererCallTotalMs: number;
+  readonly rendererCallMaxMs: number;
+  readonly rendererCallLastMs: number;
 }
 
 /** Select the construction LOD for a new body; live scene-role changes do not upgrade it. */
@@ -158,9 +188,13 @@ export class ProductionCelestialController {
   private readonly activeEntries = new Map<string, ProductionEntry>();
   /** Recently exited bodies in least-to-most-recent insertion order. */
   private readonly warmEntries = new Map<string, ProductionEntry>();
+  /** Cold bodies kept off-scene until shared-renderer shader preparation completes. */
+  private readonly pendingEntries = new Map<string, PendingPreparation>();
   private readonly targetFps = DEFAULT_TARGET_FPS;
   private readonly createRenderer: (canvas: HTMLCanvasElement) => THREE.WebGLRenderer;
   private readonly createBody: NonNullable<ProductionCelestialControllerDependencies["createBody"]>;
+  private readonly asyncShaderPreparationSupported: boolean;
+  private readonly parallelShaderCompileExtensionAvailable: boolean;
   private renderer: THREE.WebGLRenderer | null = null;
   private motionQuery: MediaQueryList | null = null;
   private animationFrameId: number | null = null;
@@ -179,17 +213,38 @@ export class ProductionCelestialController {
   private bodyCreateTotalMs = 0;
   private bodyDisposals = 0;
   private identityReplacements = 0;
+  private preparingPendingEntry: PendingPreparation | null = null;
+  private preparationTaskId: number | null = null;
+  private preparationTaskKind: "idle" | "timeout" | null = null;
+  private shaderPreparationsStarted = 0;
+  private shaderPreparationsCompleted = 0;
+  private shaderPreparationCancellations = 0;
+  private shaderPreparationFailures = 0;
+  private shaderPreparationSetupTotalMs = 0;
+  private shaderPreparationSetupMaxMs = 0;
+  private shaderPreparationWaitTotalMs = 0;
+  private renderFrameCount = 0;
+  private controllerUpdateCount = 0;
+  private controllerUpdateTotalMs = 0;
+  private controllerUpdateMaxMs = 0;
+  private controllerUpdateLastMs = 0;
+  private rendererCallTotalMs = 0;
+  private rendererCallMaxMs = 0;
+  private rendererCallLastMs = 0;
 
   private readonly handleVisibilityChange = (): void => {
     this.isTabHidden = document.hidden;
     if (this.isTabHidden) {
       this.stopLoop();
+      this.cancelScheduledPreparation();
       return;
     }
 
     this.lastFrameTime = performance.now();
     this.renderFrame(0);
+    this.activateReadyPendingEntries();
     this.startLoop();
+    this.schedulePendingPreparation();
   };
 
   private readonly handleMotionChange = (event: MediaQueryListEvent): void => {
@@ -239,6 +294,9 @@ export class ProductionCelestialController {
       }
     }
 
+    this.asyncShaderPreparationSupported = typeof this.renderer?.compileAsync === "function";
+    this.parallelShaderCompileExtensionAvailable = this.hasParallelShaderCompileExtension();
+
     if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
       this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       this.prefersReducedMotion = this.motionQuery.matches;
@@ -264,8 +322,14 @@ export class ProductionCelestialController {
       activeEntries: this.activeEntries.size,
       warmEntries: this.warmEntries.size,
       warmCapacity: MAX_WARM_ENTRIES,
+      pendingEntries: this.pendingEntries.size,
+      pendingCapacity: MAX_PENDING_ENTRIES,
+      preparingEntries: this.preparingPendingEntry ? 1 : 0,
       rendererAvailable: this.renderer !== null,
+      asyncShaderPreparationSupported: this.asyncShaderPreparationSupported,
+      parallelShaderCompileExtensionAvailable: this.parallelShaderCompileExtensionAvailable,
       sceneChildren: this.scene.children.length,
+      renderFrameCount: this.renderFrameCount,
       renderCalls: this.renderer?.info?.render.calls ?? 0,
       triangles: this.renderer?.info?.render.triangles ?? 0,
       geometries: this.renderer?.info?.memory.geometries ?? 0,
@@ -278,10 +342,45 @@ export class ProductionCelestialController {
       bodyCreateTotalMs: this.bodyCreateTotalMs,
       bodyDisposals: this.bodyDisposals,
       identityReplacements: this.identityReplacements,
+      shaderPreparationsStarted: this.shaderPreparationsStarted,
+      shaderPreparationsCompleted: this.shaderPreparationsCompleted,
+      shaderPreparationCancellations: this.shaderPreparationCancellations,
+      shaderPreparationFailures: this.shaderPreparationFailures,
+      shaderPreparationSetupTotalMs: this.shaderPreparationSetupTotalMs,
+      shaderPreparationSetupMaxMs: this.shaderPreparationSetupMaxMs,
+      shaderPreparationWaitTotalMs: this.shaderPreparationWaitTotalMs,
+      controllerUpdateCount: this.controllerUpdateCount,
+      controllerUpdateTotalMs: this.controllerUpdateTotalMs,
+      controllerUpdateMaxMs: this.controllerUpdateMaxMs,
+      controllerUpdateLastMs: this.controllerUpdateLastMs,
+      rendererCallTotalMs: this.rendererCallTotalMs,
+      rendererCallMaxMs: this.rendererCallMaxMs,
+      rendererCallLastMs: this.rendererCallLastMs,
     };
   }
 
   public update(
+    displayedScene: UniverseScene,
+    transform: ViewportTransform,
+    width: number,
+    height: number,
+    hoveredNodeId: string | null
+  ): void {
+    if (this.isDisposed) return;
+    const updateStartedAt = performance.now();
+
+    try {
+      this.updateScene(displayedScene, transform, width, height, hoveredNodeId);
+    } finally {
+      const updateDuration = performance.now() - updateStartedAt;
+      this.controllerUpdateCount += 1;
+      this.controllerUpdateTotalMs += updateDuration;
+      this.controllerUpdateMaxMs = Math.max(this.controllerUpdateMaxMs, updateDuration);
+      this.controllerUpdateLastMs = updateDuration;
+    }
+  }
+
+  private updateScene(
     displayedScene: UniverseScene,
     transform: ViewportTransform,
     width: number,
@@ -309,12 +408,17 @@ export class ProductionCelestialController {
       }
     }
 
+    for (const [id, pending] of this.pendingEntries) {
+      if (!visibleIds.has(id)) this.cancelPendingEntry(id, pending);
+    }
+
     if (this.prefersReducedMotion || this.activeEntries.size === 0) {
       this.stopLoop();
       this.renderFrame(0);
     } else {
       this.startLoop();
     }
+    this.schedulePendingPreparation();
   }
 
   private reconcileNode(
@@ -328,6 +432,17 @@ export class ProductionCelestialController {
     let entry = this.activeEntries.get(node.id);
 
     if (!entry) {
+      const pending = this.pendingEntries.get(node.id);
+      if (pending) {
+        if (pending.entry.identityKey === identityKey) {
+          pending.node = node;
+          pending.transform = transform;
+          pending.hovered = isHovered;
+          return;
+        }
+        this.cancelPendingEntry(node.id, pending);
+      }
+
       const warmEntry = this.warmEntries.get(node.id);
       if (warmEntry) {
         this.warmEntries.delete(node.id);
@@ -342,10 +457,38 @@ export class ProductionCelestialController {
         this.warmMisses += 1;
       }
 
+      if (!entry && this.shouldPrepareAsynchronously()) {
+        this.beginPendingPreparation(
+          node,
+          identity,
+          identityKey,
+          constructionLod,
+          transform,
+          isHovered
+        );
+        return;
+      }
+
       entry ??= this.createEntry(node.id, identity, identityKey, constructionLod);
       this.activeEntries.set(node.id, entry);
       this.scene.add(entry.body.group);
     } else if (entry.identityKey !== identityKey) {
+      if (this.shouldPrepareAsynchronously()) {
+        this.scene.remove(entry.body.group);
+        this.activeEntries.delete(node.id);
+        this.disposeEntry(entry);
+        this.identityReplacements += 1;
+        this.beginPendingPreparation(
+          node,
+          identity,
+          identityKey,
+          constructionLod,
+          transform,
+          isHovered
+        );
+        return;
+      }
+
       const nextEntry = this.createEntry(node.id, identity, identityKey, constructionLod);
       copyBodyOrientation(entry.body, nextEntry.body);
       nextEntry.body.setHover(entry.hovered, this.prefersReducedMotion);
@@ -357,6 +500,15 @@ export class ProductionCelestialController {
       this.scene.add(entry.body.group);
     }
 
+    this.applyNodeToEntry(entry, node, transform, isHovered);
+  }
+
+  private applyNodeToEntry(
+    entry: ProductionEntry,
+    node: UniverseNode,
+    transform: ViewportTransform,
+    isHovered: boolean
+  ): void {
     entry.hovered = isHovered;
     const position = projectUniverseNode(node, transform);
     entry.body.group.position.set(position.x, position.y, roleDepth(node.role));
@@ -367,6 +519,170 @@ export class ProductionCelestialController {
       entry.opacity = node.opacity;
     }
     entry.body.setHover(isHovered, this.prefersReducedMotion);
+  }
+
+  private hasParallelShaderCompileExtension(): boolean {
+    try {
+      return Boolean(this.renderer?.getContext().getExtension("KHR_parallel_shader_compile"));
+    } catch {
+      return false;
+    }
+  }
+
+  private shouldPrepareAsynchronously(): boolean {
+    return this.asyncShaderPreparationSupported && this.pendingEntries.size < MAX_PENDING_ENTRIES;
+  }
+
+  private beginPendingPreparation(
+    node: UniverseNode,
+    identity: ReturnType<typeof getConceptCelestialIdentity>,
+    identityKey: string,
+    constructionLod: GeometryLOD,
+    transform: ViewportTransform,
+    hovered: boolean
+  ): void {
+    if (this.pendingEntries.size >= MAX_PENDING_ENTRIES) return;
+    const pending: PendingPreparation = {
+      entry: this.createEntry(node.id, identity, identityKey, constructionLod),
+      node,
+      transform,
+      hovered,
+      ready: false,
+      startedAt: 0,
+    };
+    this.pendingEntries.set(node.id, pending);
+    this.schedulePendingPreparation();
+  }
+
+  private schedulePendingPreparation(): void {
+    if (
+      !this.asyncShaderPreparationSupported ||
+      !this.renderer ||
+      this.isDisposed ||
+      this.isTabHidden ||
+      this.preparingPendingEntry ||
+      this.preparationTaskId !== null ||
+      ![...this.pendingEntries.values()].some((pending) => !pending.ready)
+    ) {
+      return;
+    }
+
+    const prepareNext = (): void => {
+      this.preparationTaskId = null;
+      this.preparationTaskKind = null;
+      if (this.isDisposed || this.isTabHidden || this.preparingPendingEntry) return;
+      const pending = [...this.pendingEntries.values()].find((candidate) => !candidate.ready);
+      if (pending) this.preparePendingEntry(pending);
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      this.preparationTaskKind = "idle";
+      this.preparationTaskId = window.requestIdleCallback(
+        (deadline) => {
+          if (!deadline.didTimeout && deadline.timeRemaining() < 2) {
+            this.preparationTaskId = null;
+            this.preparationTaskKind = null;
+            this.schedulePendingPreparation();
+            return;
+          }
+          prepareNext();
+        },
+        { timeout: 100 }
+      );
+    } else {
+      this.preparationTaskKind = "timeout";
+      this.preparationTaskId = window.setTimeout(prepareNext, 0);
+    }
+  }
+
+  private preparePendingEntry(pending: PendingPreparation): void {
+    const renderer = this.renderer;
+    if (!renderer || this.isDisposed || this.isTabHidden) return;
+
+    this.preparingPendingEntry = pending;
+    pending.startedAt = performance.now();
+    this.shaderPreparationsStarted += 1;
+
+    const setupStartedAt = performance.now();
+    let preparation: Promise<THREE.Object3D>;
+    try {
+      preparation = renderer.compileAsync(pending.entry.body.group, this.camera, this.scene);
+    } catch {
+      const setupDuration = performance.now() - setupStartedAt;
+      this.shaderPreparationSetupTotalMs += setupDuration;
+      this.shaderPreparationSetupMaxMs = Math.max(this.shaderPreparationSetupMaxMs, setupDuration);
+      this.finishPendingPreparation(pending, false);
+      return;
+    }
+    const setupDuration = performance.now() - setupStartedAt;
+    this.shaderPreparationSetupTotalMs += setupDuration;
+    this.shaderPreparationSetupMaxMs = Math.max(this.shaderPreparationSetupMaxMs, setupDuration);
+
+    void preparation.then(
+      () => this.finishPendingPreparation(pending, true),
+      () => this.finishPendingPreparation(pending, false)
+    );
+  }
+
+  private finishPendingPreparation(pending: PendingPreparation, succeeded: boolean): void {
+    if (this.preparingPendingEntry === pending) this.preparingPendingEntry = null;
+    this.shaderPreparationWaitTotalMs += performance.now() - pending.startedAt;
+
+    if (!succeeded) this.shaderPreparationFailures += 1;
+    if (this.isDisposed) return;
+
+    if (this.pendingEntries.get(pending.entry.id) === pending) {
+      pending.ready = true;
+      this.shaderPreparationsCompleted += 1;
+      if (!this.isTabHidden) this.activatePendingEntry(pending);
+    }
+
+    this.schedulePendingPreparation();
+  }
+
+  private activateReadyPendingEntries(): void {
+    for (const pending of this.pendingEntries.values()) {
+      if (pending.ready) this.activatePendingEntry(pending);
+    }
+  }
+
+  private activatePendingEntry(pending: PendingPreparation): void {
+    const id = pending.entry.id;
+    if (this.isDisposed || this.isTabHidden || this.pendingEntries.get(id) !== pending) return;
+    if (
+      getIdentityKey(getConceptCelestialIdentity(pending.node.slug)) !== pending.entry.identityKey
+    ) {
+      this.cancelPendingEntry(id, pending);
+      return;
+    }
+
+    this.pendingEntries.delete(id);
+    this.activeEntries.set(id, pending.entry);
+    this.scene.add(pending.entry.body.group);
+    this.applyNodeToEntry(pending.entry, pending.node, pending.transform, pending.hovered);
+
+    if (this.prefersReducedMotion) this.stopLoop();
+    this.renderFrame(0);
+    this.startLoop();
+    this.schedulePendingPreparation();
+  }
+
+  private cancelPendingEntry(id: string, pending: PendingPreparation): void {
+    if (this.pendingEntries.get(id) !== pending) return;
+    this.pendingEntries.delete(id);
+    this.shaderPreparationCancellations += 1;
+    this.disposeEntry(pending.entry);
+  }
+
+  private cancelScheduledPreparation(): void {
+    if (this.preparationTaskId === null || this.preparationTaskKind === null) return;
+    if (this.preparationTaskKind === "idle") {
+      window.cancelIdleCallback(this.preparationTaskId);
+    } else {
+      window.clearTimeout(this.preparationTaskId);
+    }
+    this.preparationTaskId = null;
+    this.preparationTaskKind = null;
   }
 
   private createEntry(
@@ -476,13 +792,25 @@ export class ProductionCelestialController {
       entry.body.update(deltaSec, this.elapsedTime);
       entry.body.setHover(entry.hovered, this.prefersReducedMotion);
     }
-    this.renderer?.render(this.scene, this.camera);
+    if (this.renderer) {
+      const renderStartedAt = performance.now();
+      try {
+        this.renderer.render(this.scene, this.camera);
+      } finally {
+        const renderDuration = performance.now() - renderStartedAt;
+        this.renderFrameCount += 1;
+        this.rendererCallTotalMs += renderDuration;
+        this.rendererCallMaxMs = Math.max(this.rendererCallMaxMs, renderDuration);
+        this.rendererCallLastMs = renderDuration;
+      }
+    }
   }
 
   public dispose(): void {
     if (this.isDisposed) return;
     this.isDisposed = true;
     this.stopLoop();
+    this.cancelScheduledPreparation();
     document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     this.motionQuery?.removeEventListener?.("change", this.handleMotionChange);
 
@@ -491,6 +819,11 @@ export class ProductionCelestialController {
       this.disposeEntry(entry);
     }
     this.activeEntries.clear();
+    for (const pending of this.pendingEntries.values()) {
+      this.disposeEntry(pending.entry);
+    }
+    this.pendingEntries.clear();
+    this.preparingPendingEntry = null;
     for (const entry of this.warmEntries.values()) {
       this.disposeEntry(entry);
     }
