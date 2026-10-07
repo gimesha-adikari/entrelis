@@ -72,6 +72,21 @@ function makeRenderer() {
   } as unknown as THREE.WebGLRenderer;
 }
 
+function makeTrackedController(createRenderer = makeRenderer) {
+  const createdBodies: CelestialBodyInstance[] = [];
+  const createBody = vi.fn((identity: CelestialIdentity) => {
+    const body = makeBody(identity);
+    createdBodies.push(body);
+    return body;
+  });
+  const controller = new ProductionCelestialController(document.createElement("canvas"), {
+    createRenderer,
+    createBody,
+  });
+
+  return { controller, createdBodies, createBody };
+}
+
 describe("production celestial scene controller", () => {
   const originalMatchMedia = window.matchMedia;
   let controller: ProductionCelestialController | null = null;
@@ -277,17 +292,9 @@ describe("production celestial scene controller", () => {
   });
 
   it("replaces a body when its celestial identity changes", () => {
-    const createdBodies: CelestialBodyInstance[] = [];
-    const createBody = vi.fn((identity: CelestialIdentity) => {
-      const body = makeBody(identity);
-      createdBodies.push(body);
-      return body;
-    });
-
-    controller = new ProductionCelestialController(document.createElement("canvas"), {
-      createRenderer: makeRenderer,
-      createBody,
-    });
+    const tracked = makeTrackedController();
+    controller = tracked.controller;
+    const { createdBodies, createBody } = tracked;
 
     const rust = makeNode("rust", "focus", 0, 0);
     const ownership = makeNode("ownership", "primary", 100, -50);
@@ -313,17 +320,9 @@ describe("production celestial scene controller", () => {
   it("disposes a concept when it leaves the displayed scene and keeps the active object count bounded", () => {
     const renderer = makeRenderer();
     const createRenderer = vi.fn(() => renderer);
-    const createdBodies: CelestialBodyInstance[] = [];
-    const createBody = vi.fn((identity: CelestialIdentity) => {
-      const body = makeBody(identity);
-      createdBodies.push(body);
-      return body;
-    });
-
-    controller = new ProductionCelestialController(document.createElement("canvas"), {
-      createRenderer,
-      createBody,
-    });
+    const tracked = makeTrackedController(createRenderer);
+    controller = tracked.controller;
+    const { createdBodies, createBody } = tracked;
 
     const rust = makeNode("rust", "focus", 0, 0);
     const ownership = makeNode("ownership", "primary", 100, -50);
