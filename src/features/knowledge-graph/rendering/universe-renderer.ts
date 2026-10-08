@@ -533,6 +533,7 @@ export function renderUniverseScene(
 
     const isHovered = hoveredNodeId === node.id;
     const isFocused = options.focusedNodeId === node.id;
+    const isHighlighted = isHovered || isFocused;
     const palette = getConceptCelestialPalette(node.concept.id);
 
     if (isFocused) {
@@ -544,7 +545,7 @@ export function renderUniverseScene(
     }
 
     if (skipBodies) {
-      if (node.role === "focus" || node.role === "primary" || isHovered) {
+      if (node.role === "focus" || node.role === "primary" || isHighlighted) {
         renderNodeLabel(
           ctx,
           node,
@@ -552,7 +553,8 @@ export function renderUniverseScene(
           node.role === "focus",
           transform.k,
           horizontalBounds,
-          false
+          !isHighlighted,
+          isHighlighted
         );
       }
       ctx.restore();
@@ -624,7 +626,16 @@ export function renderUniverseScene(
       ctx.fill();
 
       // 6. Label
-      renderNodeLabel(ctx, node, isMobile, true, transform.k, horizontalBounds);
+      renderNodeLabel(
+        ctx,
+        node,
+        isMobile,
+        true,
+        transform.k,
+        horizontalBounds,
+        false,
+        isHighlighted
+      );
     } else if (node.role === "primary") {
       // --- PRIMARY NEIGHBOR BODY ---
       // 1. Accent-tinted halo
@@ -687,8 +698,17 @@ export function renderUniverseScene(
       }
 
       // 6. Label
-      if (!isMobile || isHovered) {
-        renderNodeLabel(ctx, node, isMobile, false, transform.k, horizontalBounds);
+      if (!isMobile || isHighlighted) {
+        renderNodeLabel(
+          ctx,
+          node,
+          isMobile,
+          false,
+          transform.k,
+          horizontalBounds,
+          !isHighlighted,
+          isHighlighted
+        );
       }
     } else {
       // --- CONTEXT CELESTIAL BODY ---
@@ -716,7 +736,7 @@ export function renderUniverseScene(
       ctx.fillStyle = "#e2e8f0";
       ctx.fill();
 
-      if (isHovered) {
+      if (isHighlighted) {
         ctx.globalAlpha = 1.0;
         ctx.beginPath();
         ctx.arc(node.x, node.y, node.radius + 3, 0, 2 * Math.PI);
@@ -724,7 +744,7 @@ export function renderUniverseScene(
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        renderNodeLabel(ctx, node, isMobile, false, transform.k, horizontalBounds);
+        renderNodeLabel(ctx, node, isMobile, false, transform.k, horizontalBounds, false, true);
       }
     }
 
@@ -744,9 +764,10 @@ function renderNodeLabel(
   isFocus: boolean,
   zoomK: number,
   horizontalBounds: HorizontalWorldBounds,
-  hideAtLowZoom = true
+  hideAtLowZoom = true,
+  isHighlighted = false
 ): void {
-  if (!isFocus && hideAtLowZoom && zoomK < 0.6) return;
+  if (!isFocus && !isHighlighted && hideAtLowZoom && zoomK < 0.6) return;
 
   const hasSmoothLabel =
     typeof node.labelOffsetX === "number" && typeof node.labelOffsetY === "number";
@@ -761,12 +782,12 @@ function renderNodeLabel(
         : isMobile
           ? 11
           : 12;
-  const fontWeight = isFocus ? "600" : "500";
+  const fontWeight = isFocus || isHighlighted ? "600" : "500";
   ctx.font = `${fontWeight} ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
 
-  ctx.fillStyle = isFocus ? "#f8fafc" : "rgba(226, 232, 240, 0.92)";
-  ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-  ctx.shadowBlur = 6;
+  ctx.fillStyle = isFocus ? "#f8fafc" : isHighlighted ? "#ffffff" : "rgba(226, 232, 240, 0.92)";
+  ctx.shadowColor = isHighlighted ? "rgba(56, 189, 248, 0.65)" : "rgba(0, 0, 0, 0.9)";
+  ctx.shadowBlur = isHighlighted ? 8 : 6;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 1;
 

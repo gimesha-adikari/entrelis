@@ -48,6 +48,7 @@ export default function GraphCanvas({
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [hasProductionRenderer, setHasProductionRenderer] = useState(false);
+  const [zoomK, setZoomK] = useState(1);
 
   // Reactive dimensions tracked via ResizeObserver
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
@@ -432,6 +433,7 @@ export default function GraphCanvas({
     transformRef.current.x = cx - (cx - transformRef.current.x) * (newK / oldK);
     transformRef.current.y = cy - (cy - transformRef.current.y) * (newK / oldK);
     transformRef.current.k = newK;
+    setZoomK(newK);
     draw();
   };
 
@@ -532,6 +534,9 @@ export default function GraphCanvas({
           }
         }
       }
+      if (wasPinchingRef.current) {
+        setZoomK(transformRef.current.k);
+      }
       isDraggingRef.current = false;
       isPinchingRef.current = false;
       wasPinchingRef.current = false;
@@ -550,6 +555,26 @@ export default function GraphCanvas({
     wasPinchingRef.current = false;
   };
 
+  const handleZoom = (direction: "in" | "out") => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    const zoomFactor = direction === "in" ? 1.25 : 0.8;
+    const oldK = transformRef.current.k;
+    const newK = Math.max(0.3, Math.min(3, oldK * zoomFactor));
+    if (Math.abs(newK - oldK) < 0.001) return;
+
+    // Viewport-centered zoom relative to canvas center cx = 0, cy = 0
+    const cx = 0;
+    const cy = 0;
+    transformRef.current.x = cx - (cx - transformRef.current.x) * (newK / oldK);
+    transformRef.current.y = cy - (cy - transformRef.current.y) * (newK / oldK);
+    transformRef.current.k = newK;
+    setZoomK(newK);
+    drawRef.current();
+  };
+
   const handleReturnHome = () => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -557,6 +582,7 @@ export default function GraphCanvas({
     }
     // Reset camera transform
     transformRef.current = { x: 0, y: 0, k: 1 };
+    setZoomK(1);
     drawRef.current();
     if (onResetCamera) {
       onResetCamera();
@@ -618,10 +644,10 @@ export default function GraphCanvas({
           );
         })}
       </div>
-      <div className={styles.controls}>
+      <nav className={styles.controls} aria-label="Spatial navigation controls">
         <button
           onClick={handleReturnHome}
-          className={styles.controlButton}
+          className={`${styles.controlButton} ${styles.homeButton}`}
           type="button"
           aria-label="Return to Rust"
           title="Return to Rust"
@@ -641,7 +667,54 @@ export default function GraphCanvas({
           </svg>
           <span className={styles.controlLabel}>Home</span>
         </button>
-      </div>
+
+        <div className={styles.zoomCluster} role="group" aria-label="Zoom controls">
+          <button
+            onClick={() => handleZoom("out")}
+            disabled={zoomK <= 0.305}
+            className={`${styles.controlButton} ${styles.zoomButton}`}
+            type="button"
+            aria-label="Zoom out"
+            title="Zoom out"
+          >
+            <svg
+              className={styles.controlIcon}
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="5" y1="10" x2="15" y2="10" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => handleZoom("in")}
+            disabled={zoomK >= 2.995}
+            className={`${styles.controlButton} ${styles.zoomButton}`}
+            type="button"
+            aria-label="Zoom in"
+            title="Zoom in"
+          >
+            <svg
+              className={styles.controlIcon}
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="10" y1="5" x2="10" y2="15" />
+              <line x1="5" y1="10" x2="15" y2="10" />
+            </svg>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }
