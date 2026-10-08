@@ -62,13 +62,7 @@ export class UniverseScene {
   private pixelRatio: number;
   private prefersReducedMotion: boolean;
 
-  private currentOffsets: ParallaxOffsets = {
-    nebula: { x: 0, y: 0 },
-    far: { x: 0, y: 0 },
-    mid: { x: 0, y: 0 },
-    bright: { x: 0, y: 0 },
-  };
-
+  private currentOffsets: ParallaxOffsets = ZERO_TRAVEL_OFFSETS;
   private currentTravelOffsets: TravelOffsets = ZERO_TRAVEL_OFFSETS;
 
   constructor(options: UniverseSceneOptions) {
