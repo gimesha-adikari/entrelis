@@ -847,9 +847,7 @@ describe("production celestial scene controller", () => {
     const travel = {
       active: true,
       progress: 0.5,
-      directionX: 1,
-      directionY: 0,
-      distance: 300,
+      currentOffset: { x: -100, y: 50 },
       fromSlug: "rust",
       toSlug: "ownership",
     };

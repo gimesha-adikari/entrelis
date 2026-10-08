@@ -67,9 +67,7 @@ describe("UniverseScene", () => {
     const travel: UniverseTravelState = {
       active: true,
       progress: 0.5,
-      directionX: 1,
-      directionY: 0,
-      distance: 350,
+      currentOffset: { x: -150, y: 50 },
       fromSlug: "rust",
       toSlug: "ownership",
     };
@@ -89,7 +87,6 @@ describe("UniverseScene", () => {
     expect(magNeb).toBeLessThan(magFar);
     expect(magFar).toBeLessThan(magMid);
     expect(magMid).toBeLessThan(magBright);
-    expect(travelOffsets.scale).toBeGreaterThan(1.01);
 
     universe.dispose();
   });
@@ -106,16 +103,13 @@ describe("UniverseScene", () => {
     const travel: UniverseTravelState = {
       active: true,
       progress: 0.5,
-      directionX: 1,
-      directionY: 0,
-      distance: 350,
+      currentOffset: { x: -150, y: 50 },
       fromSlug: "rust",
       toSlug: "ownership",
     };
 
     universe.update(0.033, 1.0, { x: 0, y: 0, k: 1 }, travel);
     expect(universe.motionStrength).toBe(0.0);
-    expect(universe.getTravelOffsets().scale).toBe(1.0);
     expect(universe.getTravelOffsets().bright).toEqual({ x: 0, y: 0 });
 
     universe.setPrefersReducedMotion(false);

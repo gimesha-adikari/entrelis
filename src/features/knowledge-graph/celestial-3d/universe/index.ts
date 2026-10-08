@@ -11,8 +11,10 @@ export { createStarMaterial } from "./star-shader";
 export { SeededPRNG } from "./prng";
 export {
   computeTravelOffsets,
-  getConceptUniverseAnchor,
+  interpolateTravelOffset,
+  easeMonotonic,
   type UniverseTravelState,
   type TravelOffsets,
-  TRAVEL_RATES,
+  TRAVEL_PARALLAX_RATES,
+  ZERO_TRAVEL_OFFSETS,
 } from "./travel";

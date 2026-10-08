@@ -1,12 +1,9 @@
-import { SeededPRNG } from "./prng";
-import { easeOutCubic } from "../../scene/transition-scene";
-
 export interface UniverseTravelState {
   readonly active: boolean;
   readonly progress: number; // 0..1
-  readonly directionX: number;
-  readonly directionY: number;
-  readonly distance: number;
+  readonly currentOffset: { readonly x: number; readonly y: number };
+  readonly startOffset?: { readonly x: number; readonly y: number };
+  readonly targetOffset?: { readonly x: number; readonly y: number };
   readonly fromSlug?: string;
   readonly toSlug?: string;
 }
@@ -16,103 +13,80 @@ export interface TravelOffsets {
   readonly far: { readonly x: number; readonly y: number };
   readonly mid: { readonly x: number; readonly y: number };
   readonly bright: { readonly x: number; readonly y: number };
-  readonly scale: number;
 }
 
-export const TRAVEL_RATES = {
-  nebula: 0.025,
+export const ZERO_TRAVEL_OFFSETS: TravelOffsets = {
+  nebula: { x: 0, y: 0 },
+  far: { x: 0, y: 0 },
+  mid: { x: 0, y: 0 },
+  bright: { x: 0, y: 0 },
+};
+
+/**
+ * Depth-ordered parallax rates for selection navigation travel.
+ * Strictly maintains: nebula < far < mid < bright.
+ */
+export const TRAVEL_PARALLAX_RATES = {
+  nebula: 0.02,
   far: 0.045,
   mid: 0.085,
   bright: 0.14,
 } as const;
 
 /**
- * Deterministically computes a bounded persistent spatial anchor for a concept slug.
- * Bounded strictly within [-50, 50] px to ensure different knowledge regions
- * have subtly distinct environmental celestial orientations without unbounded drift.
+ * Single consistent monotonic easing curve for directional travel.
+ * Matches celestial scene interpolation (zero bounce, zero overshoot, zero reversal).
  */
-export function getConceptUniverseAnchor(slug: string): { x: number; y: number } {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < slug.length; i++) {
-    hash ^= slug.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  const prng = new SeededPRNG(hash >>> 0);
-  const x = (prng.next() - 0.5) * 100;
-  const y = (prng.next() - 0.5) * 100;
-  return { x, y };
+export function easeMonotonic(t: number): number {
+  const clamped = Math.max(0, Math.min(1, t));
+  return 1 - Math.pow(1 - clamped, 3);
 }
 
 /**
- * Computes deterministic travel offsets and scale expansion for universe layers.
- * Composes a bounded destination anchor transition with a smooth travel surge.
+ * Monotonically interpolates camera spatial offset between two positions.
+ */
+export function interpolateTravelOffset(
+  start: { readonly x: number; readonly y: number },
+  target: { readonly x: number; readonly y: number },
+  progress: number
+): { x: number; y: number } {
+  const ease = easeMonotonic(progress);
+  return {
+    x: start.x + (target.x - start.x) * ease,
+    y: start.y + (target.y - start.y) * ease,
+  };
+}
+
+/**
+ * Computes directional camera-like travel offsets for deep-space layers.
+ * Progresses monotonically with differential depth parallax; zero pulse or scaling.
  */
 export function computeTravelOffsets(
   travel: UniverseTravelState | null | undefined,
   prefersReducedMotion: boolean
 ): TravelOffsets {
   if (!travel || prefersReducedMotion) {
-    const slug = travel?.toSlug;
-    if (slug && !prefersReducedMotion) {
-      const anchor = getConceptUniverseAnchor(slug);
-      return {
-        nebula: { x: anchor.x * TRAVEL_RATES.nebula, y: -anchor.y * TRAVEL_RATES.nebula },
-        far: { x: anchor.x * TRAVEL_RATES.far, y: -anchor.y * TRAVEL_RATES.far },
-        mid: { x: anchor.x * TRAVEL_RATES.mid, y: -anchor.y * TRAVEL_RATES.mid },
-        bright: { x: anchor.x * TRAVEL_RATES.bright, y: -anchor.y * TRAVEL_RATES.bright },
-        scale: 1.0,
-      };
-    }
-    return {
-      nebula: { x: 0, y: 0 },
-      far: { x: 0, y: 0 },
-      mid: { x: 0, y: 0 },
-      bright: { x: 0, y: 0 },
-      scale: 1.0,
-    };
+    return ZERO_TRAVEL_OFFSETS;
   }
 
-  const p = Math.max(0, Math.min(1, travel.progress));
-  const ease = easeOutCubic(p);
-
-  // 1. Destination anchor interpolation
-  const fromAnchor = travel.fromSlug ? getConceptUniverseAnchor(travel.fromSlug) : { x: 0, y: 0 };
-  const toAnchor = travel.toSlug ? getConceptUniverseAnchor(travel.toSlug) : fromAnchor;
-
-  const anchorX = fromAnchor.x + (toAnchor.x - fromAnchor.x) * ease;
-  const anchorY = fromAnchor.y + (toAnchor.y - fromAnchor.y) * ease;
-
-  // 2. Transient travel surge (peaks at midpoint, zero at start and settled end)
-  // Apparent motion in screen space moves opposite to travel direction
-  const surgeEnvelope = Math.sin(Math.PI * p);
-  const cappedDist = Math.min(travel.distance, 450);
-  const surgeStrength = cappedDist * 0.22 * surgeEnvelope;
-  const surgeX = -travel.directionX * surgeStrength;
-  const surgeY = travel.directionY * surgeStrength;
-
-  const totalTravelX = anchorX + surgeX;
-  const totalTravelY = anchorY + surgeY;
-
-  // 3. Subtle subconscious depth push-through (1.8% expansion peak)
-  const scale = 1.0 + 0.018 * surgeEnvelope;
+  const { x, y } = travel.currentOffset;
 
   return {
     nebula: {
-      x: totalTravelX * TRAVEL_RATES.nebula,
-      y: -totalTravelY * TRAVEL_RATES.nebula,
+      x: x * TRAVEL_PARALLAX_RATES.nebula,
+      y: y * TRAVEL_PARALLAX_RATES.nebula,
     },
     far: {
-      x: totalTravelX * TRAVEL_RATES.far,
-      y: -totalTravelY * TRAVEL_RATES.far,
+      x: x * TRAVEL_PARALLAX_RATES.far,
+      y: y * TRAVEL_PARALLAX_RATES.far,
     },
     mid: {
-      x: totalTravelX * TRAVEL_RATES.mid,
-      y: -totalTravelY * TRAVEL_RATES.mid,
+      x: x * TRAVEL_PARALLAX_RATES.mid,
+      y: y * TRAVEL_PARALLAX_RATES.mid,
     },
     bright: {
-      x: totalTravelX * TRAVEL_RATES.bright,
-      y: -totalTravelY * TRAVEL_RATES.bright,
+      x: x * TRAVEL_PARALLAX_RATES.bright,
+      y: y * TRAVEL_PARALLAX_RATES.bright,
     },
-    scale,
   };
 }

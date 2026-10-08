@@ -3,7 +3,12 @@ import type { ViewportTransform } from "../../types";
 import { createDeepSpaceMaterial } from "./deep-space-shader";
 import { createStarMaterial } from "./star-shader";
 import { generateStarFieldGeometry, type StarTier } from "./star-field-generator";
-import { computeTravelOffsets, type TravelOffsets, type UniverseTravelState } from "./travel";
+import {
+  computeTravelOffsets,
+  type TravelOffsets,
+  type UniverseTravelState,
+  ZERO_TRAVEL_OFFSETS,
+} from "./travel";
 
 export interface UniverseSceneOptions {
   readonly width: number;
@@ -64,13 +69,7 @@ export class UniverseScene {
     bright: { x: 0, y: 0 },
   };
 
-  private currentTravelOffsets: TravelOffsets = {
-    nebula: { x: 0, y: 0 },
-    far: { x: 0, y: 0 },
-    mid: { x: 0, y: 0 },
-    bright: { x: 0, y: 0 },
-    scale: 1.0,
-  };
+  private currentTravelOffsets: TravelOffsets = ZERO_TRAVEL_OFFSETS;
 
   constructor(options: UniverseSceneOptions) {
     this.width = options.width;
@@ -120,6 +119,7 @@ export class UniverseScene {
       const material = createStarMaterial();
       material.uniforms["uPixelRatio"]!.value = this.pixelRatio;
       material.uniforms["uMotionStrength"]!.value = this.prefersReducedMotion ? 0.0 : 1.0;
+      material.uniforms["uFieldSize"]!.value.set(areaW, areaH);
 
       const points = new THREE.Points(geometry, material);
       points.frustumCulled = false;
@@ -209,31 +209,17 @@ export class UniverseScene {
     );
 
     // Update star fields
-    const farMat = this.starMaterials.get("far");
-    if (farMat) {
-      farMat.uniforms["uTime"]!.value = timeVal;
-      farMat.uniforms["uParallaxOffset"]!.value.set(farX, farY);
-      farMat.uniforms["uTravelOffset"]!.value.set(travelOffsets.far.x, travelOffsets.far.y);
-      farMat.uniforms["uScale"]!.value = travelOffsets.scale;
-    }
-
-    const midMat = this.starMaterials.get("mid");
-    if (midMat) {
-      midMat.uniforms["uTime"]!.value = timeVal;
-      midMat.uniforms["uParallaxOffset"]!.value.set(midX, midY);
-      midMat.uniforms["uTravelOffset"]!.value.set(travelOffsets.mid.x, travelOffsets.mid.y);
-      midMat.uniforms["uScale"]!.value = travelOffsets.scale;
-    }
-
-    const brightMat = this.starMaterials.get("bright");
-    if (brightMat) {
-      brightMat.uniforms["uTime"]!.value = timeVal;
-      brightMat.uniforms["uParallaxOffset"]!.value.set(brightX, brightY);
-      brightMat.uniforms["uTravelOffset"]!.value.set(
-        travelOffsets.bright.x,
-        travelOffsets.bright.y
-      );
-      brightMat.uniforms["uScale"]!.value = travelOffsets.scale;
+    const starTiers: StarTier[] = ["far", "mid", "bright"];
+    for (const tier of starTiers) {
+      const mat = this.starMaterials.get(tier);
+      if (mat) {
+        mat.uniforms["uTime"]!.value = timeVal;
+        mat.uniforms["uParallaxOffset"]!.value.set(
+          this.currentOffsets[tier].x,
+          this.currentOffsets[tier].y
+        );
+        mat.uniforms["uTravelOffset"]!.value.set(travelOffsets[tier].x, travelOffsets[tier].y);
+      }
     }
   }
 

@@ -39,7 +39,7 @@ describe("Star Shader Material", () => {
     expect(mat.uniforms["uPixelRatio"]).toBeDefined();
     expect(mat.uniforms["uParallaxOffset"]).toBeDefined();
     expect(mat.uniforms["uTravelOffset"]).toBeDefined();
-    expect(mat.uniforms["uScale"]).toBeDefined();
+    expect(mat.uniforms["uFieldSize"]).toBeDefined();
 
     expect(mat.transparent).toBe(true);
     expect(mat.depthWrite).toBe(false);

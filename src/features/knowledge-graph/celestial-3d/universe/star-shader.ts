@@ -12,17 +12,19 @@ const starVertexShader = /* glsl */ `
   uniform float uPixelRatio;
   uniform vec2 uParallaxOffset;
   uniform vec2 uTravelOffset;
-  uniform float uScale;
+  uniform vec2 uFieldSize;
 
   varying vec3 vColor;
   varying float vAlpha;
 
   void main() {
-    vec3 pos = position;
-    // Subtle depth push-through scale expansion
-    pos.xy *= uScale;
     // Composed manual parallax + selection travel displacement
-    pos.xy += uParallaxOffset + uTravelOffset;
+    vec2 totalOffset = uParallaxOffset + uTravelOffset;
+    vec2 halfField = uFieldSize * 0.5;
+
+    // Seamless coordinate wrapping across the bounds well outside viewport
+    vec2 starPos = mod(position.xy + totalOffset + halfField, uFieldSize) - halfField;
+    vec3 pos = vec3(starPos, position.z);
 
     // GPU-driven subtle twinkle
     float twinkleTime = uTime * aTwinkleSpeed * uMotionStrength;
@@ -70,7 +72,7 @@ export function createStarMaterial(): THREE.ShaderMaterial {
       uPixelRatio: { value: 1.0 },
       uParallaxOffset: { value: new THREE.Vector2(0, 0) },
       uTravelOffset: { value: new THREE.Vector2(0, 0) },
-      uScale: { value: 1.0 },
+      uFieldSize: { value: new THREE.Vector2(4200, 3000) },
     },
     vertexShader: starVertexShader,
     fragmentShader: starFragmentShader,

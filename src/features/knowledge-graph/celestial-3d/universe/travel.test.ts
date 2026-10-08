@@ -1,119 +1,188 @@
 import { describe, expect, it } from "vitest";
 import {
   computeTravelOffsets,
-  getConceptUniverseAnchor,
-  TRAVEL_RATES,
+  easeMonotonic,
+  interpolateTravelOffset,
+  TRAVEL_PARALLAX_RATES,
   type UniverseTravelState,
+  ZERO_TRAVEL_OFFSETS,
 } from "./travel";
 
 describe("Universe Travel System", () => {
-  it("computes deterministic concept universe anchors", () => {
-    const anchorRust1 = getConceptUniverseAnchor("rust");
-    const anchorRust2 = getConceptUniverseAnchor("rust");
-    const anchorOwnership = getConceptUniverseAnchor("ownership");
+  describe("easeMonotonic", () => {
+    it("maps boundary values correctly", () => {
+      expect(easeMonotonic(0)).toBe(0);
+      expect(easeMonotonic(1)).toBe(1);
+      expect(easeMonotonic(-0.5)).toBe(0);
+      expect(easeMonotonic(1.5)).toBe(1);
+    });
 
-    expect(anchorRust1).toEqual(anchorRust2);
-    expect(anchorRust1).not.toEqual(anchorOwnership);
+    it("is strictly monotonic without bounce or overshoot", () => {
+      const steps = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
+      const values = steps.map(easeMonotonic);
 
-    // Anchors are bounded within [-50, 50]
-    expect(Math.abs(anchorRust1.x)).toBeLessThanOrEqual(50);
-    expect(Math.abs(anchorRust1.y)).toBeLessThanOrEqual(50);
-    expect(Math.abs(anchorOwnership.x)).toBeLessThanOrEqual(50);
-    expect(Math.abs(anchorOwnership.y)).toBeLessThanOrEqual(50);
+      for (let i = 1; i < values.length; i++) {
+        expect(values[i]).toBeGreaterThan(values[i - 1]!);
+        expect(values[i]).toBeLessThanOrEqual(1.0);
+      }
+    });
   });
 
-  it("returns zero travel offsets when travel state is null and reduced motion is off", () => {
-    const offsets = computeTravelOffsets(null, false);
-    expect(offsets.nebula).toEqual({ x: 0, y: 0 });
-    expect(offsets.far).toEqual({ x: 0, y: 0 });
-    expect(offsets.mid).toEqual({ x: 0, y: 0 });
-    expect(offsets.bright).toEqual({ x: 0, y: 0 });
-    expect(offsets.scale).toBe(1.0);
+  describe("interpolateTravelOffset", () => {
+    it("progresses monotonically from start to target without overshoot", () => {
+      const start = { x: 0, y: 0 };
+      const target = { x: 100, y: -50 };
+
+      const atQuarter = interpolateTravelOffset(start, target, 0.25);
+      const atHalf = interpolateTravelOffset(start, target, 0.5);
+      const atThreeQuarters = interpolateTravelOffset(start, target, 0.75);
+      const atEnd = interpolateTravelOffset(start, target, 1.0);
+
+      expect(atQuarter.x).toBeGreaterThan(start.x);
+      expect(atHalf.x).toBeGreaterThan(atQuarter.x);
+      expect(atThreeQuarters.x).toBeGreaterThan(atHalf.x);
+      expect(atEnd.x).toBeCloseTo(target.x, 5);
+
+      expect(atQuarter.y).toBeLessThan(start.y);
+      expect(atHalf.y).toBeLessThan(atQuarter.y);
+      expect(atThreeQuarters.y).toBeLessThan(atHalf.y);
+      expect(atEnd.y).toBeCloseTo(target.y, 5);
+    });
+
+    it("handles interrupted transitions seamlessly from current position", () => {
+      const startA = { x: 0, y: 0 };
+      const targetA = { x: 200, y: 100 };
+
+      // Interrupt halfway through flight
+      const midFlightPos = interpolateTravelOffset(startA, targetA, 0.5);
+      const targetB = { x: -100, y: 50 };
+
+      // New transition takes off immediately from midFlightPos
+      const interruptStart = interpolateTravelOffset(midFlightPos, targetB, 0.0);
+      expect(interruptStart.x).toBeCloseTo(midFlightPos.x, 5);
+      expect(interruptStart.y).toBeCloseTo(midFlightPos.y, 5);
+
+      const interruptSettled = interpolateTravelOffset(midFlightPos, targetB, 1.0);
+      expect(interruptSettled.x).toBeCloseTo(targetB.x, 5);
+      expect(interruptSettled.y).toBeCloseTo(targetB.y, 5);
+    });
+
+    it("supports coherent reverse navigation back to origin", () => {
+      const origin = { x: 0, y: 0 };
+      const step = { x: 120, y: -80 };
+
+      // Forward flight A -> B
+      const targetB = { x: origin.x + step.x, y: origin.y + step.y };
+      const settledB = interpolateTravelOffset(origin, targetB, 1.0);
+
+      // Reverse flight B -> A
+      const targetA = { x: settledB.x - step.x, y: settledB.y - step.y };
+      const settledA = interpolateTravelOffset(settledB, targetA, 1.0);
+
+      expect(settledA.x).toBeCloseTo(origin.x, 5);
+      expect(settledA.y).toBeCloseTo(origin.y, 5);
+    });
+
+    it("chains persistent offsets across multi-hop navigation (A -> B -> C)", () => {
+      const offsetA = { x: 0, y: 0 };
+      const stepAB = { x: -90, y: 40 };
+      const stepBC = { x: -60, y: -70 };
+
+      const offsetB = interpolateTravelOffset(
+        offsetA,
+        { x: offsetA.x + stepAB.x, y: offsetA.y + stepAB.y },
+        1.0
+      );
+      const offsetC = interpolateTravelOffset(
+        offsetB,
+        { x: offsetB.x + stepBC.x, y: offsetB.y + stepBC.y },
+        1.0
+      );
+
+      expect(offsetC.x).toBeCloseTo(stepAB.x + stepBC.x, 5);
+      expect(offsetC.y).toBeCloseTo(stepAB.y + stepBC.y, 5);
+    });
   });
 
-  it("disables travel animation when prefers-reduced-motion is true", () => {
-    const travel: UniverseTravelState = {
-      active: true,
-      progress: 0.5,
-      directionX: 1,
-      directionY: 0,
-      distance: 300,
-      fromSlug: "rust",
-      toSlug: "ownership",
-    };
+  describe("computeTravelOffsets", () => {
+    it("returns canonical zero offsets when travel state is null or undefined", () => {
+      expect(computeTravelOffsets(null, false)).toEqual(ZERO_TRAVEL_OFFSETS);
+      expect(computeTravelOffsets(undefined, false)).toEqual(ZERO_TRAVEL_OFFSETS);
+    });
 
-    const offsets = computeTravelOffsets(travel, true);
-    expect(offsets.scale).toBe(1.0);
-    expect(offsets.nebula).toEqual({ x: 0, y: 0 });
-    expect(offsets.far).toEqual({ x: 0, y: 0 });
-    expect(offsets.mid).toEqual({ x: 0, y: 0 });
-    expect(offsets.bright).toEqual({ x: 0, y: 0 });
-  });
+    it("disables travel animation when prefers-reduced-motion is true", () => {
+      const travel: UniverseTravelState = {
+        active: true,
+        progress: 0.5,
+        currentOffset: { x: 250, y: -150 },
+      };
 
-  it("enforces strict depth hierarchy during active travel", () => {
-    const travel: UniverseTravelState = {
-      active: true,
-      progress: 0.5,
-      directionX: 1,
-      directionY: 0.5,
-      distance: 350,
-      fromSlug: "rust",
-      toSlug: "ownership",
-    };
+      expect(computeTravelOffsets(travel, true)).toEqual(ZERO_TRAVEL_OFFSETS);
+    });
 
-    const offsets = computeTravelOffsets(travel, false);
+    it("strictly preserves depth hierarchy ordering (nebula < far < mid < bright)", () => {
+      const travel: UniverseTravelState = {
+        active: true,
+        progress: 0.6,
+        currentOffset: { x: 180, y: 120 },
+      };
 
-    const magNebula = Math.hypot(offsets.nebula.x, offsets.nebula.y);
-    const magFar = Math.hypot(offsets.far.x, offsets.far.y);
-    const magMid = Math.hypot(offsets.mid.x, offsets.mid.y);
-    const magBright = Math.hypot(offsets.bright.x, offsets.bright.y);
+      const offsets = computeTravelOffsets(travel, false);
 
-    // Nearer cosmic layers move more; far cosmic layers move less
-    expect(magNebula).toBeLessThan(magFar);
-    expect(magFar).toBeLessThan(magMid);
-    expect(magMid).toBeLessThan(magBright);
+      const dNebula = Math.hypot(offsets.nebula.x, offsets.nebula.y);
+      const dFar = Math.hypot(offsets.far.x, offsets.far.y);
+      const dMid = Math.hypot(offsets.mid.x, offsets.mid.y);
+      const dBright = Math.hypot(offsets.bright.x, offsets.bright.y);
 
-    // Subtle push-through scale expansion at midpoint (~1.8%)
-    expect(offsets.scale).toBeGreaterThan(1.01);
-    expect(offsets.scale).toBeLessThanOrEqual(1.03);
-  });
+      expect(dNebula).toBeLessThan(dFar);
+      expect(dFar).toBeLessThan(dMid);
+      expect(dMid).toBeLessThan(dBright);
 
-  it("settles cleanly when travel finishes (progress = 1.0)", () => {
-    const travel: UniverseTravelState = {
-      active: false,
-      progress: 1.0,
-      directionX: 1,
-      directionY: 0,
-      distance: 350,
-      fromSlug: "rust",
-      toSlug: "ownership",
-    };
+      expect(TRAVEL_PARALLAX_RATES.nebula).toBeLessThan(TRAVEL_PARALLAX_RATES.far);
+      expect(TRAVEL_PARALLAX_RATES.far).toBeLessThan(TRAVEL_PARALLAX_RATES.mid);
+      expect(TRAVEL_PARALLAX_RATES.mid).toBeLessThan(TRAVEL_PARALLAX_RATES.bright);
+    });
 
-    const offsets = computeTravelOffsets(travel, false);
+    it("verifies absence of midpoint scale pulse and surge peak", () => {
+      const travelQuarter: UniverseTravelState = {
+        active: true,
+        progress: 0.25,
+        currentOffset: { x: 50, y: 25 },
+      };
+      const travelMid: UniverseTravelState = {
+        active: true,
+        progress: 0.5,
+        currentOffset: { x: 100, y: 50 },
+      };
+      const travelThreeQuarter: UniverseTravelState = {
+        active: true,
+        progress: 0.75,
+        currentOffset: { x: 150, y: 75 },
+      };
 
-    // Scale returns smoothly to 1.0
-    expect(offsets.scale).toBe(1.0);
+      const offQuarter = computeTravelOffsets(travelQuarter, false);
+      const offMid = computeTravelOffsets(travelMid, false);
+      const offThreeQuarter = computeTravelOffsets(travelThreeQuarter, false);
 
-    // Offsets settle strictly to the destination concept anchor
-    const destAnchor = getConceptUniverseAnchor("ownership");
-    expect(offsets.bright.x).toBeCloseTo(destAnchor.x * TRAVEL_RATES.bright, 4);
-    expect(offsets.bright.y).toBeCloseTo(-destAnchor.y * TRAVEL_RATES.bright, 4);
-  });
+      // Offsets scale purely with coordinate displacement, monotonic progression
+      expect(offMid.bright.x).toBeGreaterThan(offQuarter.bright.x);
+      expect(offThreeQuarter.bright.x).toBeGreaterThan(offMid.bright.x);
 
-  it("produces deterministic results for identical inputs", () => {
-    const travel: UniverseTravelState = {
-      active: true,
-      progress: 0.35,
-      directionX: -0.707,
-      directionY: 0.707,
-      distance: 280,
-      fromSlug: "memory",
-      toSlug: "operating-systems",
-    };
+      // Verify no 'scale' property exists on TravelOffsets interface
+      expect("scale" in offMid).toBe(false);
+    });
 
-    const run1 = computeTravelOffsets(travel, false);
-    const run2 = computeTravelOffsets(travel, false);
+    it("computes deterministic offsets for identical states", () => {
+      const travel: UniverseTravelState = {
+        active: true,
+        progress: 0.42,
+        currentOffset: { x: -84.5, y: 122.3 },
+      };
 
-    expect(run1).toEqual(run2);
+      const first = computeTravelOffsets(travel, false);
+      const second = computeTravelOffsets(travel, false);
+
+      expect(first).toEqual(second);
+    });
   });
 });

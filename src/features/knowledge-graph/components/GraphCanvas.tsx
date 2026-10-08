@@ -13,7 +13,7 @@ import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import ProductionCelestialLayer, {
   type ProductionCelestialLayerHandle,
 } from "../celestial-3d/ProductionCelestialLayer";
-import type { UniverseTravelState } from "../celestial-3d/universe";
+import { interpolateTravelOffset, type UniverseTravelState } from "../celestial-3d/universe";
 import styles from "./KnowledgeGraph.module.css";
 
 import type { KnowledgeGraphIndex } from "../knowledge-index";
@@ -66,6 +66,7 @@ export default function GraphCanvas({
   // Currently displayed universe scene on the canvas
   const currentSceneRef = useRef<UniverseScene | null>(null);
   const travelStateRef = useRef<UniverseTravelState | null>(null);
+  const persistentCameraOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Build and lay out target scene using prebuilt index and exact available CSS dimensions
   const targetScene = useMemo<UniverseScene>(() => {
@@ -154,7 +155,13 @@ export default function GraphCanvas({
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-      travelStateRef.current = null;
+      travelStateRef.current = {
+        active: false,
+        progress: 1,
+        currentOffset: persistentCameraOffsetRef.current,
+        fromSlug: targetScene.focus.slug,
+        toSlug: targetScene.focus.slug,
+      };
       currentSceneRef.current = targetScene;
       drawRef.current();
       return;
@@ -168,9 +175,7 @@ export default function GraphCanvas({
       travelStateRef.current = {
         active: false,
         progress: 1,
-        directionX: 0,
-        directionY: 0,
-        distance: 0,
+        currentOffset: persistentCameraOffsetRef.current,
         fromSlug: toScene.focus.slug,
         toSlug: toScene.focus.slug,
       };
@@ -178,6 +183,11 @@ export default function GraphCanvas({
       drawRef.current();
       return;
     }
+
+    // Capture start offset before canceling any in-flight animation for seamless continuity
+    const startOffset = travelStateRef.current?.active
+      ? travelStateRef.current.currentOffset
+      : persistentCameraOffsetRef.current;
 
     // Cancel any in-flight animation
     if (animationFrameRef.current) {
@@ -212,6 +222,16 @@ export default function GraphCanvas({
       dirY /= distLen;
     }
 
+    // In Three.js screen space, background translates opposite to camera motion
+    const cappedDist = Math.min(distance, 400);
+    const stepX = -dirX * cappedDist;
+    const stepY = dirY * cappedDist;
+
+    const targetOffset = {
+      x: startOffset.x + stepX,
+      y: startOffset.y + stepY,
+    };
+
     const fromSlug = fromScene.focus.slug;
     const toSlug = toScene.focus.slug;
 
@@ -221,13 +241,14 @@ export default function GraphCanvas({
     const animateTransition = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
+      const currentOffset = interpolateTravelOffset(startOffset, targetOffset, progress);
 
       travelStateRef.current = {
         active: progress < 1,
         progress,
-        directionX: dirX,
-        directionY: dirY,
-        distance,
+        currentOffset,
+        startOffset,
+        targetOffset,
         fromSlug,
         toSlug,
       };
@@ -240,12 +261,13 @@ export default function GraphCanvas({
       } else {
         // Transition finished: stop RAF completely, ensure scene is static, CPU idle
         animationFrameRef.current = null;
+        persistentCameraOffsetRef.current = targetOffset;
         travelStateRef.current = {
           active: false,
           progress: 1,
-          directionX: dirX,
-          directionY: dirY,
-          distance,
+          currentOffset: targetOffset,
+          startOffset,
+          targetOffset,
           fromSlug,
           toSlug,
         };
