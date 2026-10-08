@@ -90,3 +90,129 @@ export function computeTravelOffsets(
     },
   };
 }
+
+export interface ConceptSpatialAnchor {
+  readonly x: number;
+  readonly y: number;
+}
+
+export type ConceptAnchorMap = Map<string, ConceptSpatialAnchor>;
+
+/**
+ * Retrieves a remembered spatial anchor for a concept by primary or secondary key.
+ */
+export function getRememberedAnchor(
+  anchorMap: ConceptAnchorMap,
+  key: string,
+  secondaryKey?: string
+): ConceptSpatialAnchor | undefined {
+  return anchorMap.get(key) ?? (secondaryKey ? anchorMap.get(secondaryKey) : undefined);
+}
+
+/**
+ * Registers a concept's spatial anchor in the session map under primary and optional secondary key.
+ */
+export function registerConceptAnchor(
+  anchorMap: ConceptAnchorMap,
+  key: string,
+  anchor: ConceptSpatialAnchor,
+  secondaryKey?: string
+): void {
+  anchorMap.set(key, anchor);
+  if (secondaryKey) {
+    anchorMap.set(secondaryKey, anchor);
+  }
+}
+
+export interface SceneNavigationNode {
+  readonly id: string;
+  readonly slug?: string;
+  readonly x: number;
+  readonly y: number;
+}
+
+/**
+ * Derives a directional camera travel displacement step from local scene geometry.
+ * When the target node is located at (+dx, +dy) relative to focus in canvas coordinates:
+ * - Apparent shift in screen X: -dirX * dist
+ * - Apparent shift in screen Y (Three.js inverted from Canvas): +dirY * dist
+ */
+export function calculateNavigationStep(options: {
+  readonly fromSceneNodes: readonly SceneNavigationNode[];
+  readonly toSceneNodes: readonly SceneNavigationNode[];
+  readonly fromFocus: SceneNavigationNode;
+  readonly toFocus: SceneNavigationNode;
+  readonly maxDistance?: number;
+}): { x: number; y: number } {
+  const { fromSceneNodes, toSceneNodes, fromFocus, toFocus, maxDistance = 400 } = options;
+
+  const targetInFrom = fromSceneNodes.find(
+    (n) => n.id === toFocus.id || (n.slug && n.slug === toFocus.slug)
+  );
+  const originInTo = toSceneNodes.find(
+    (n) => n.id === fromFocus.id || (n.slug && n.slug === fromFocus.slug)
+  );
+
+  let dirX = 0;
+  let dirY = 0;
+  let distance = 0;
+
+  if (targetInFrom) {
+    dirX = targetInFrom.x - fromFocus.x;
+    dirY = targetInFrom.y - fromFocus.y;
+  } else if (originInTo) {
+    dirX = -(originInTo.x - toFocus.x);
+    dirY = -(originInTo.y - toFocus.y);
+  }
+
+  const distLen = Math.hypot(dirX, dirY);
+  if (distLen > 0) {
+    distance = distLen;
+    dirX /= distLen;
+    dirY /= distLen;
+  }
+
+  const cappedDist = Math.min(distance, maxDistance);
+  return {
+    x: -dirX * cappedDist,
+    y: dirY * cappedDist,
+  };
+}
+
+/**
+ * Resolves the destination spatial camera coordinate:
+ * - If previously visited in this session, returns its remembered coordinate.
+ * - If unvisited, anchors it at fromAnchor + step, and registers it.
+ */
+export function resolveDestinationAnchor(options: {
+  readonly anchorMap: ConceptAnchorMap;
+  readonly fromKey: string;
+  readonly toKey: string;
+  readonly fromSecondaryKey?: string;
+  readonly toSecondaryKey?: string;
+  readonly step: { readonly x: number; readonly y: number };
+  readonly fallbackOffset?: { readonly x: number; readonly y: number };
+}): ConceptSpatialAnchor {
+  const {
+    anchorMap,
+    fromKey,
+    toKey,
+    fromSecondaryKey,
+    toSecondaryKey,
+    step,
+    fallbackOffset = { x: 0, y: 0 },
+  } = options;
+
+  const existing = getRememberedAnchor(anchorMap, toKey, toSecondaryKey);
+  if (existing) {
+    return existing;
+  }
+
+  const fromAnchor = getRememberedAnchor(anchorMap, fromKey, fromSecondaryKey) ?? fallbackOffset;
+  const targetX = Number.isFinite(fromAnchor.x + step.x) ? fromAnchor.x + step.x : fromAnchor.x;
+  const targetY = Number.isFinite(fromAnchor.y + step.y) ? fromAnchor.y + step.y : fromAnchor.y;
+  const newAnchor: ConceptSpatialAnchor = { x: targetX, y: targetY };
+
+  registerConceptAnchor(anchorMap, toKey, newAnchor, toSecondaryKey);
+  return newAnchor;
+}

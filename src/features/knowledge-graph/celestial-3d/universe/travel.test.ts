@@ -1,130 +1,283 @@
 import { describe, expect, it } from "vitest";
+import { SEED_DATASET } from "@/data/seed";
+import { buildLocalUniverseScene } from "../../scene/build-local-scene";
+import { layoutLocalUniverseScene } from "../../scene/layout-local-scene";
 import {
+  calculateNavigationStep,
   computeTravelOffsets,
   easeMonotonic,
+  getRememberedAnchor,
   interpolateTravelOffset,
+  registerConceptAnchor,
+  resolveDestinationAnchor,
   TRAVEL_PARALLAX_RATES,
+  type ConceptAnchorMap,
+  type ConceptSpatialAnchor,
   type UniverseTravelState,
   ZERO_TRAVEL_OFFSETS,
 } from "./travel";
 
-describe("Universe Travel System", () => {
-  describe("easeMonotonic", () => {
-    it("maps boundary values correctly", () => {
+function createLaidOutScene(slug: string) {
+  const scene = buildLocalUniverseScene({
+    dataset: SEED_DATASET,
+    focusSlug: slug,
+    isMobile: false,
+  });
+  return layoutLocalUniverseScene(scene, {
+    viewportWidth: 1280,
+    viewportHeight: 800,
+  });
+}
+
+describe("Universe Travel & Spatial Anchoring System", () => {
+  describe("Mathematical Easing & Monotonicity", () => {
+    it("maps boundary values correctly with zero overshoot", () => {
       expect(easeMonotonic(0)).toBe(0);
       expect(easeMonotonic(1)).toBe(1);
-      expect(easeMonotonic(-0.5)).toBe(0);
-      expect(easeMonotonic(1.5)).toBe(1);
+      expect(easeMonotonic(-0.25)).toBe(0);
+      expect(easeMonotonic(1.25)).toBe(1);
     });
 
-    it("is strictly monotonic without bounce or overshoot", () => {
-      const steps = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
-      const values = steps.map(easeMonotonic);
-
-      for (let i = 1; i < values.length; i++) {
-        expect(values[i]).toBeGreaterThan(values[i - 1]!);
-        expect(values[i]).toBeLessThanOrEqual(1.0);
-      }
-    });
-  });
-
-  describe("interpolateTravelOffset", () => {
-    it("progresses monotonically from start to target without overshoot", () => {
+    it("progresses strictly monotonically without pulse, bounce, or scale", () => {
       const start = { x: 0, y: 0 };
-      const target = { x: 100, y: -50 };
+      const target = { x: 160, y: -90 };
+      const steps = [0.0, 0.25, 0.5, 0.75, 1.0];
+      const offsets = steps.map((p) => interpolateTravelOffset(start, target, p));
 
-      const atQuarter = interpolateTravelOffset(start, target, 0.25);
-      const atHalf = interpolateTravelOffset(start, target, 0.5);
-      const atThreeQuarters = interpolateTravelOffset(start, target, 0.75);
-      const atEnd = interpolateTravelOffset(start, target, 1.0);
+      for (let i = 1; i < offsets.length; i++) {
+        expect(offsets[i]!.x).toBeGreaterThan(offsets[i - 1]!.x);
+        expect(offsets[i]!.y).toBeLessThan(offsets[i - 1]!.y);
+      }
 
-      expect(atQuarter.x).toBeGreaterThan(start.x);
-      expect(atHalf.x).toBeGreaterThan(atQuarter.x);
-      expect(atThreeQuarters.x).toBeGreaterThan(atHalf.x);
-      expect(atEnd.x).toBeCloseTo(target.x, 5);
+      expect(offsets[offsets.length - 1]!.x).toBeCloseTo(target.x, 5);
+      expect(offsets[offsets.length - 1]!.y).toBeCloseTo(target.y, 5);
 
-      expect(atQuarter.y).toBeLessThan(start.y);
-      expect(atHalf.y).toBeLessThan(atQuarter.y);
-      expect(atThreeQuarters.y).toBeLessThan(atHalf.y);
-      expect(atEnd.y).toBeCloseTo(target.y, 5);
-    });
-
-    it("handles interrupted transitions seamlessly from current position", () => {
-      const startA = { x: 0, y: 0 };
-      const targetA = { x: 200, y: 100 };
-
-      // Interrupt halfway through flight
-      const midFlightPos = interpolateTravelOffset(startA, targetA, 0.5);
-      const targetB = { x: -100, y: 50 };
-
-      // New transition takes off immediately from midFlightPos
-      const interruptStart = interpolateTravelOffset(midFlightPos, targetB, 0.0);
-      expect(interruptStart.x).toBeCloseTo(midFlightPos.x, 5);
-      expect(interruptStart.y).toBeCloseTo(midFlightPos.y, 5);
-
-      const interruptSettled = interpolateTravelOffset(midFlightPos, targetB, 1.0);
-      expect(interruptSettled.x).toBeCloseTo(targetB.x, 5);
-      expect(interruptSettled.y).toBeCloseTo(targetB.y, 5);
-    });
-
-    it("supports coherent reverse navigation back to origin", () => {
-      const origin = { x: 0, y: 0 };
-      const step = { x: 120, y: -80 };
-
-      // Forward flight A -> B
-      const targetB = { x: origin.x + step.x, y: origin.y + step.y };
-      const settledB = interpolateTravelOffset(origin, targetB, 1.0);
-
-      // Reverse flight B -> A
-      const targetA = { x: settledB.x - step.x, y: settledB.y - step.y };
-      const settledA = interpolateTravelOffset(settledB, targetA, 1.0);
-
-      expect(settledA.x).toBeCloseTo(origin.x, 5);
-      expect(settledA.y).toBeCloseTo(origin.y, 5);
-    });
-
-    it("chains persistent offsets across multi-hop navigation (A -> B -> C)", () => {
-      const offsetA = { x: 0, y: 0 };
-      const stepAB = { x: -90, y: 40 };
-      const stepBC = { x: -60, y: -70 };
-
-      const offsetB = interpolateTravelOffset(
-        offsetA,
-        { x: offsetA.x + stepAB.x, y: offsetA.y + stepAB.y },
-        1.0
+      const computed = computeTravelOffsets(
+        { active: true, progress: 0.5, currentOffset: offsets[2]! },
+        false
       );
-      const offsetC = interpolateTravelOffset(
-        offsetB,
-        { x: offsetB.x + stepBC.x, y: offsetB.y + stepBC.y },
-        1.0
-      );
-
-      expect(offsetC.x).toBeCloseTo(stepAB.x + stepBC.x, 5);
-      expect(offsetC.y).toBeCloseTo(stepAB.y + stepBC.y, 5);
+      expect("scale" in computed).toBe(false);
     });
   });
 
-  describe("computeTravelOffsets", () => {
-    it("returns canonical zero offsets when travel state is null or undefined", () => {
-      expect(computeTravelOffsets(null, false)).toEqual(ZERO_TRAVEL_OFFSETS);
-      expect(computeTravelOffsets(undefined, false)).toEqual(ZERO_TRAVEL_OFFSETS);
+  describe("Real Scene Spatial Consistency & Anchoring Regression", () => {
+    const sceneRust = createLaidOutScene("rust");
+    const sceneOwnership = createLaidOutScene("ownership");
+    const sceneMemory = createLaidOutScene("memory");
+    const sceneOS = createLaidOutScene("operating-systems");
+    const sceneCPUs = createLaidOutScene("cpus");
+
+    it("verifies asymmetric slot templates create raw geometric disparity", () => {
+      const stepForward = calculateNavigationStep({
+        fromSceneNodes: sceneRust.allNodes,
+        toSceneNodes: sceneOwnership.allNodes,
+        fromFocus: sceneRust.focus,
+        toFocus: sceneOwnership.focus,
+      });
+
+      const stepBackward = calculateNavigationStep({
+        fromSceneNodes: sceneOwnership.allNodes,
+        toSceneNodes: sceneRust.allNodes,
+        fromFocus: sceneOwnership.focus,
+        toFocus: sceneRust.focus,
+      });
+
+      // Due to asymmetric slot angles, the raw backward step is not exactly the negative of forward
+      const sumX = stepForward.x + stepBackward.x;
+      const sumY = stepForward.y + stepBackward.y;
+      expect(Math.abs(sumX) + Math.abs(sumY)).toBeGreaterThan(5);
     });
 
-    it("disables travel animation when prefers-reduced-motion is true", () => {
-      const travel: UniverseTravelState = {
-        active: true,
-        progress: 0.5,
-        currentOffset: { x: 250, y: -150 },
-      };
+    it("returns exactly to original universe coordinate on Rust -> Ownership -> Rust", () => {
+      const anchorMap: ConceptAnchorMap = new Map();
+      const origin: ConceptSpatialAnchor = { x: 0, y: 0 };
+      registerConceptAnchor(anchorMap, sceneRust.focus.id, origin, sceneRust.focus.slug);
 
-      expect(computeTravelOffsets(travel, true)).toEqual(ZERO_TRAVEL_OFFSETS);
+      // Hop 1: Rust -> Ownership
+      const stepForward = calculateNavigationStep({
+        fromSceneNodes: sceneRust.allNodes,
+        toSceneNodes: sceneOwnership.allNodes,
+        fromFocus: sceneRust.focus,
+        toFocus: sceneOwnership.focus,
+      });
+      const anchorOwnership = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneRust.focus.id,
+        toKey: sceneOwnership.focus.id,
+        fromSecondaryKey: sceneRust.focus.slug,
+        toSecondaryKey: sceneOwnership.focus.slug,
+        step: stepForward,
+      });
+
+      expect(anchorOwnership.x).not.toBe(0);
+      expect(anchorOwnership.y).not.toBe(0);
+
+      // Hop 2: Ownership -> Rust
+      const stepBackward = calculateNavigationStep({
+        fromSceneNodes: sceneOwnership.allNodes,
+        toSceneNodes: sceneRust.allNodes,
+        fromFocus: sceneOwnership.focus,
+        toFocus: sceneRust.focus,
+      });
+      const returnAnchor = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneOwnership.focus.id,
+        toKey: sceneRust.focus.id,
+        fromSecondaryKey: sceneOwnership.focus.slug,
+        toSecondaryKey: sceneRust.focus.slug,
+        step: stepBackward,
+      });
+
+      // Spatial anchoring guarantees return to exact origin without drift
+      expect(returnAnchor.x).toBe(0);
+      expect(returnAnchor.y).toBe(0);
+    });
+
+    it("returns correctly on Ownership -> Memory -> Ownership", () => {
+      const anchorMap: ConceptAnchorMap = new Map();
+      registerConceptAnchor(anchorMap, sceneRust.focus.id, { x: 0, y: 0 }, sceneRust.focus.slug);
+
+      const stepToOwn = calculateNavigationStep({
+        fromSceneNodes: sceneRust.allNodes,
+        toSceneNodes: sceneOwnership.allNodes,
+        fromFocus: sceneRust.focus,
+        toFocus: sceneOwnership.focus,
+      });
+      const anchorOwn = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneRust.focus.id,
+        toKey: sceneOwnership.focus.id,
+        step: stepToOwn,
+      });
+
+      // Forward: Ownership -> Memory
+      const stepToMem = calculateNavigationStep({
+        fromSceneNodes: sceneOwnership.allNodes,
+        toSceneNodes: sceneMemory.allNodes,
+        fromFocus: sceneOwnership.focus,
+        toFocus: sceneMemory.focus,
+      });
+      const anchorMem = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneOwnership.focus.id,
+        toKey: sceneMemory.focus.id,
+        step: stepToMem,
+      });
+
+      expect(anchorMem).not.toEqual(anchorOwn);
+
+      // Reverse: Memory -> Ownership
+      const stepBackToOwn = calculateNavigationStep({
+        fromSceneNodes: sceneMemory.allNodes,
+        toSceneNodes: sceneOwnership.allNodes,
+        fromFocus: sceneMemory.focus,
+        toFocus: sceneOwnership.focus,
+      });
+      const returnedOwnAnchor = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneMemory.focus.id,
+        toKey: sceneOwnership.focus.id,
+        step: stepBackToOwn,
+      });
+
+      expect(returnedOwnAnchor.x).toBe(anchorOwn.x);
+      expect(returnedOwnAnchor.y).toBe(anchorOwn.y);
+    });
+
+    it("reaches known coordinates on multi-hop cycles returning to visited concepts", () => {
+      const anchorMap: ConceptAnchorMap = new Map();
+      registerConceptAnchor(anchorMap, sceneRust.focus.id, { x: 0, y: 0 }, sceneRust.focus.slug);
+
+      const tour = [
+        { from: sceneRust, to: sceneOwnership },
+        { from: sceneOwnership, to: sceneMemory },
+        { from: sceneMemory, to: sceneOS },
+        { from: sceneOS, to: sceneCPUs },
+      ];
+
+      for (const hop of tour) {
+        const step = calculateNavigationStep({
+          fromSceneNodes: hop.from.allNodes,
+          toSceneNodes: hop.to.allNodes,
+          fromFocus: hop.from.focus,
+          toFocus: hop.to.focus,
+        });
+        resolveDestinationAnchor({
+          anchorMap,
+          fromKey: hop.from.focus.id,
+          toKey: hop.to.focus.id,
+          fromSecondaryKey: hop.from.focus.slug,
+          toSecondaryKey: hop.to.focus.slug,
+          step,
+        });
+      }
+
+      const knownMemoryAnchor = getRememberedAnchor(
+        anchorMap,
+        sceneMemory.focus.id,
+        sceneMemory.focus.slug
+      );
+      expect(knownMemoryAnchor).toBeDefined();
+
+      // Hop from CPUs directly back to Memory
+      const stepToMemory = calculateNavigationStep({
+        fromSceneNodes: sceneCPUs.allNodes,
+        toSceneNodes: sceneMemory.allNodes,
+        fromFocus: sceneCPUs.focus,
+        toFocus: sceneMemory.focus,
+      });
+      const resolvedMem = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneCPUs.focus.id,
+        toKey: sceneMemory.focus.id,
+        fromSecondaryKey: sceneCPUs.focus.slug,
+        toSecondaryKey: sceneMemory.focus.slug,
+        step: stepToMemory,
+      });
+      expect(resolvedMem).toEqual(knownMemoryAnchor);
+
+      // Hop from Memory directly back to Rust
+      const stepToRust = calculateNavigationStep({
+        fromSceneNodes: sceneMemory.allNodes,
+        toSceneNodes: sceneRust.allNodes,
+        fromFocus: sceneMemory.focus,
+        toFocus: sceneRust.focus,
+      });
+      const resolvedRust = resolveDestinationAnchor({
+        anchorMap,
+        fromKey: sceneMemory.focus.id,
+        toKey: sceneRust.focus.id,
+        fromSecondaryKey: sceneMemory.focus.slug,
+        toSecondaryKey: sceneRust.focus.slug,
+        step: stepToRust,
+      });
+      expect(resolvedRust.x).toBe(0);
+      expect(resolvedRust.y).toBe(0);
+    });
+
+    it("preserves exact currently displayed background offset when interrupted", () => {
+      const start = { x: 0, y: 0 };
+      const targetA = { x: 180, y: 90 };
+
+      // User interrupts flight halfway through
+      const interruptedOffset = interpolateTravelOffset(start, targetA, 0.45);
+      const targetB = { x: -70, y: 140 };
+
+      // Transition smoothly takes off from interruptedOffset with zero snap
+      const initialStep = interpolateTravelOffset(interruptedOffset, targetB, 0.0);
+      expect(initialStep.x).toBeCloseTo(interruptedOffset.x, 5);
+      expect(initialStep.y).toBeCloseTo(interruptedOffset.y, 5);
+
+      const settledStep = interpolateTravelOffset(interruptedOffset, targetB, 1.0);
+      expect(settledStep.x).toBeCloseTo(targetB.x, 5);
+      expect(settledStep.y).toBeCloseTo(targetB.y, 5);
     });
 
     it("strictly preserves depth hierarchy ordering (nebula < far < mid < bright)", () => {
       const travel: UniverseTravelState = {
         active: true,
         progress: 0.6,
-        currentOffset: { x: 180, y: 120 },
+        currentOffset: { x: 200, y: 150 },
       };
 
       const offsets = computeTravelOffsets(travel, false);
@@ -143,46 +296,15 @@ describe("Universe Travel System", () => {
       expect(TRAVEL_PARALLAX_RATES.mid).toBeLessThan(TRAVEL_PARALLAX_RATES.bright);
     });
 
-    it("verifies absence of midpoint scale pulse and surge peak", () => {
-      const travelQuarter: UniverseTravelState = {
-        active: true,
-        progress: 0.25,
-        currentOffset: { x: 50, y: 25 },
-      };
-      const travelMid: UniverseTravelState = {
-        active: true,
-        progress: 0.5,
-        currentOffset: { x: 100, y: 50 },
-      };
-      const travelThreeQuarter: UniverseTravelState = {
-        active: true,
-        progress: 0.75,
-        currentOffset: { x: 150, y: 75 },
-      };
-
-      const offQuarter = computeTravelOffsets(travelQuarter, false);
-      const offMid = computeTravelOffsets(travelMid, false);
-      const offThreeQuarter = computeTravelOffsets(travelThreeQuarter, false);
-
-      // Offsets scale purely with coordinate displacement, monotonic progression
-      expect(offMid.bright.x).toBeGreaterThan(offQuarter.bright.x);
-      expect(offThreeQuarter.bright.x).toBeGreaterThan(offMid.bright.x);
-
-      // Verify no 'scale' property exists on TravelOffsets interface
-      expect("scale" in offMid).toBe(false);
-    });
-
-    it("computes deterministic offsets for identical states", () => {
+    it("disables animated travel when prefers-reduced-motion is true", () => {
       const travel: UniverseTravelState = {
         active: true,
-        progress: 0.42,
-        currentOffset: { x: -84.5, y: 122.3 },
+        progress: 0.5,
+        currentOffset: { x: 120, y: -80 },
       };
 
-      const first = computeTravelOffsets(travel, false);
-      const second = computeTravelOffsets(travel, false);
-
-      expect(first).toEqual(second);
+      expect(computeTravelOffsets(travel, true)).toEqual(ZERO_TRAVEL_OFFSETS);
+      expect(computeTravelOffsets(null, false)).toEqual(ZERO_TRAVEL_OFFSETS);
     });
   });
 });

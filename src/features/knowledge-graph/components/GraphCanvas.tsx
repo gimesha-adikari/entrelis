@@ -13,7 +13,15 @@ import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import ProductionCelestialLayer, {
   type ProductionCelestialLayerHandle,
 } from "../celestial-3d/ProductionCelestialLayer";
-import { interpolateTravelOffset, type UniverseTravelState } from "../celestial-3d/universe";
+import {
+  calculateNavigationStep,
+  getRememberedAnchor,
+  interpolateTravelOffset,
+  registerConceptAnchor,
+  resolveDestinationAnchor,
+  type ConceptAnchorMap,
+  type UniverseTravelState,
+} from "../celestial-3d/universe";
 import styles from "./KnowledgeGraph.module.css";
 
 import type { KnowledgeGraphIndex } from "../knowledge-index";
@@ -67,6 +75,7 @@ export default function GraphCanvas({
   const currentSceneRef = useRef<UniverseScene | null>(null);
   const travelStateRef = useRef<UniverseTravelState | null>(null);
   const persistentCameraOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const conceptAnchorsRef = useRef<ConceptAnchorMap>(new Map());
 
   // Build and lay out target scene using prebuilt index and exact available CSS dimensions
   const targetScene = useMemo<UniverseScene>(() => {
@@ -155,10 +164,25 @@ export default function GraphCanvas({
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
+
+      const existingAnchor = getRememberedAnchor(
+        conceptAnchorsRef.current,
+        targetScene.focus.id,
+        targetScene.focus.slug
+      );
+      const targetAnchor = existingAnchor ?? persistentCameraOffsetRef.current;
+      registerConceptAnchor(
+        conceptAnchorsRef.current,
+        targetScene.focus.id,
+        targetAnchor,
+        targetScene.focus.slug
+      );
+      persistentCameraOffsetRef.current = targetAnchor;
+
       travelStateRef.current = {
         active: false,
         progress: 1,
-        currentOffset: persistentCameraOffsetRef.current,
+        currentOffset: targetAnchor,
         fromSlug: targetScene.focus.slug,
         toSlug: targetScene.focus.slug,
       };
@@ -172,10 +196,14 @@ export default function GraphCanvas({
 
     // If already displaying this exact focus concept, just update scene and redraw
     if (fromScene.focus.slug === toScene.focus.slug) {
+      const settledAnchor =
+        getRememberedAnchor(conceptAnchorsRef.current, toScene.focus.id, toScene.focus.slug) ??
+        persistentCameraOffsetRef.current;
+
       travelStateRef.current = {
         active: false,
         progress: 1,
-        currentOffset: persistentCameraOffsetRef.current,
+        currentOffset: settledAnchor,
         fromSlug: toScene.focus.slug,
         toSlug: toScene.focus.slug,
       };
@@ -195,42 +223,24 @@ export default function GraphCanvas({
       animationFrameRef.current = null;
     }
 
-    // Derive travel direction from actual scene/navigation geometry
-    const targetNodeInFrom = fromScene.allNodes.find(
-      (node) => node.slug === toScene.focus.slug || node.id === toScene.focus.id
-    );
-    const originNodeInTo = toScene.allNodes.find(
-      (node) => node.slug === fromScene.focus.slug || node.id === fromScene.focus.id
-    );
+    // Derive travel step from navigation geometry
+    const step = calculateNavigationStep({
+      fromSceneNodes: fromScene.allNodes,
+      toSceneNodes: toScene.allNodes,
+      fromFocus: fromScene.focus,
+      toFocus: toScene.focus,
+    });
 
-    let dirX = 0;
-    let dirY = 0;
-    let distance = 0;
-
-    if (targetNodeInFrom) {
-      dirX = targetNodeInFrom.x - fromScene.focus.x;
-      dirY = targetNodeInFrom.y - fromScene.focus.y;
-    } else if (originNodeInTo) {
-      dirX = -(originNodeInTo.x - toScene.focus.x);
-      dirY = -(originNodeInTo.y - toScene.focus.y);
-    }
-
-    const distLen = Math.hypot(dirX, dirY);
-    if (distLen > 0) {
-      distance = distLen;
-      dirX /= distLen;
-      dirY /= distLen;
-    }
-
-    // In Three.js screen space, background translates opposite to camera motion
-    const cappedDist = Math.min(distance, 400);
-    const stepX = -dirX * cappedDist;
-    const stepY = dirY * cappedDist;
-
-    const targetOffset = {
-      x: startOffset.x + stepX,
-      y: startOffset.y + stepY,
-    };
+    // Resolve persistent destination anchor: unvisited gets fromAnchor + step; visited returns to its remembered coordinate
+    const targetOffset = resolveDestinationAnchor({
+      anchorMap: conceptAnchorsRef.current,
+      fromKey: fromScene.focus.id,
+      toKey: toScene.focus.id,
+      fromSecondaryKey: fromScene.focus.slug,
+      toSecondaryKey: toScene.focus.slug,
+      step,
+      fallbackOffset: startOffset,
+    });
 
     const fromSlug = fromScene.focus.slug;
     const toSlug = toScene.focus.slug;
