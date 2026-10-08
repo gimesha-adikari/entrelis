@@ -56,6 +56,263 @@ function generateDeterministicStars(count: number, seed: number): readonly StarP
 const DESKTOP_STARS = generateDeterministicStars(110, 42);
 const MOBILE_STARS = generateDeterministicStars(50, 42);
 
+export interface RelationshipPathGeometry {
+  readonly dx: number;
+  readonly dy: number;
+  readonly dist: number;
+  readonly cx: number;
+  readonly cy: number;
+  readonly termT: number;
+  readonly termX: number;
+  readonly termY: number;
+  readonly tangentAngle: number;
+}
+
+export interface RelationshipStyleConfig {
+  readonly isFocus: boolean;
+  readonly isIncident: boolean;
+  readonly hasActiveInteraction: boolean;
+  readonly haloWidth: number;
+  readonly haloAlpha: number;
+  readonly coreWidth: number;
+  readonly coreAlpha: number;
+  readonly tickLength: number;
+  readonly sparkRadius: number;
+  readonly renderLabel: boolean;
+}
+
+/**
+ * Calculates geometric coordinates and tangent angles for a curved relationship path.
+ */
+export function calculateRelationshipGeometry(
+  source: { readonly x: number; readonly y: number },
+  target: { readonly x: number; readonly y: number; readonly radius?: number },
+  curvature: number
+): RelationshipPathGeometry | null {
+  const dx = target.x - source.x;
+  const dy = target.y - source.y;
+  const dist = Math.hypot(dx, dy);
+  if (
+    dist < 1 ||
+    !Number.isFinite(dist) ||
+    !Number.isFinite(source.x) ||
+    !Number.isFinite(source.y) ||
+    !Number.isFinite(target.x) ||
+    !Number.isFinite(target.y)
+  ) {
+    return null;
+  }
+
+  const nx = -dy / dist;
+  const ny = dx / dist;
+  const mx = (source.x + target.x) / 2;
+  const my = (source.y + target.y) / 2;
+  const cx = mx + nx * dist * curvature;
+  const cy = my + ny * dist * curvature;
+
+  const targetRadius = typeof target.radius === "number" ? target.radius : 18;
+  const termT = Math.max(0.65, Math.min(0.89, 1 - (targetRadius + 12) / dist));
+
+  const omt = 1 - termT;
+  const termX = omt * omt * source.x + 2 * omt * termT * cx + termT * termT * target.x;
+  const termY = omt * omt * source.y + 2 * omt * termT * cy + termT * termT * target.y;
+
+  const tx = 2 * omt * (cx - source.x) + 2 * termT * (target.x - cx);
+  const ty = 2 * omt * (cy - source.y) + 2 * termT * (target.y - cy);
+  const tangentAngle = Math.atan2(ty, tx);
+
+  return { dx, dy, dist, cx, cy, termT, termX, termY, tangentAngle };
+}
+
+/**
+ * Computes stroke hierarchy, halo, and label flags based on relationship role, strength, and interaction state.
+ */
+export function getRelationshipStyleConfig(options: {
+  readonly role: "focus-connection" | "context-connection";
+  readonly strength: "primary" | "strong" | "supporting";
+  readonly opacity: number;
+  readonly isIncident: boolean;
+  readonly hasActiveInteraction: boolean;
+  readonly isMobile: boolean;
+  readonly dist: number;
+}): RelationshipStyleConfig {
+  const { role, strength, opacity, isIncident, hasActiveInteraction, isMobile, dist } = options;
+  const isFocus = role === "focus-connection";
+
+  const interactionFactor = isIncident ? 1.35 : hasActiveInteraction ? 0.5 : 1.0;
+
+  let baseCoreAlpha = isFocus
+    ? strength === "primary"
+      ? 0.82
+      : strength === "strong"
+        ? 0.7
+        : 0.58
+    : strength === "primary"
+      ? 0.38
+      : strength === "strong"
+        ? 0.28
+        : 0.2;
+
+  baseCoreAlpha *= opacity;
+  const coreAlpha = Math.max(
+    0.08,
+    Math.min(
+      1.0,
+      isIncident ? baseCoreAlpha * interactionFactor + 0.15 : baseCoreAlpha * interactionFactor
+    )
+  );
+
+  const baseHaloAlpha = isFocus
+    ? strength === "primary"
+      ? 0.14
+      : strength === "strong"
+        ? 0.1
+        : 0.06
+    : isIncident
+      ? 0.06
+      : 0.0;
+  const haloAlpha = isIncident ? baseHaloAlpha * 1.6 : baseHaloAlpha;
+  const haloWidth = isFocus ? (isIncident ? 4.8 : 3.4) : 2.2;
+
+  const coreWidth = isFocus
+    ? isIncident
+      ? 1.4
+      : strength === "primary"
+        ? 1.2
+        : 0.95
+    : isIncident
+      ? 1.1
+      : strength === "primary"
+        ? 0.85
+        : 0.7;
+
+  const tickLength = isFocus ? (isIncident ? 5.2 : 4.2) : isIncident ? 4.0 : 3.0;
+  const sparkRadius = isFocus ? (isIncident ? 2.2 : 1.6) : 1.2;
+
+  const renderLabel = !isMobile && (isFocus || isIncident) && dist >= 85;
+
+  return {
+    isFocus,
+    isIncident,
+    hasActiveInteraction,
+    haloWidth,
+    haloAlpha,
+    coreWidth,
+    coreAlpha,
+    tickLength,
+    sparkRadius,
+    renderLabel,
+  };
+}
+
+function formatHaloColor(paletteHalo: string, targetAlpha: number): string {
+  return paletteHalo.replace(/[\d.]+\)$/, `${targetAlpha.toFixed(2)})`);
+}
+
+function renderDirectionalLightCue(
+  ctx: CanvasRenderingContext2D,
+  geom: RelationshipPathGeometry,
+  style: RelationshipStyleConfig
+): void {
+  const { termX, termY, tangentAngle } = geom;
+  const { tickLength, sparkRadius, isFocus, isIncident } = style;
+
+  const wingAngle = 0.4;
+  const leftX = termX - Math.cos(tangentAngle - wingAngle) * tickLength;
+  const leftY = termY - Math.sin(tangentAngle - wingAngle) * tickLength;
+  const rightX = termX - Math.cos(tangentAngle + wingAngle) * tickLength;
+  const rightY = termY - Math.sin(tangentAngle + wingAngle) * tickLength;
+
+  ctx.beginPath();
+  ctx.moveTo(leftX, leftY);
+  ctx.lineTo(termX, termY);
+  ctx.lineTo(rightX, rightY);
+
+  ctx.strokeStyle =
+    isFocus || isIncident
+      ? `rgba(224, 242, 254, ${isIncident ? 0.95 : 0.85})`
+      : "rgba(165, 243, 252, 0.55)";
+  ctx.lineWidth = isFocus ? (isIncident ? 1.3 : 1.1) : isIncident ? 1.0 : 0.8;
+  ctx.stroke();
+
+  if (sparkRadius > 0) {
+    ctx.beginPath();
+    ctx.arc(termX, termY, sparkRadius, 0, 2 * Math.PI);
+    ctx.fillStyle =
+      isFocus || isIncident
+        ? `rgba(240, 249, 255, ${isIncident ? 0.95 : 0.85})`
+        : "rgba(165, 243, 252, 0.55)";
+    ctx.fill();
+  }
+}
+
+function renderRelationshipTypeBadge(
+  ctx: CanvasRenderingContext2D,
+  rel: { readonly type: string },
+  source: { readonly x: number; readonly y: number; readonly radius?: number },
+  target: { readonly x: number; readonly y: number; readonly radius?: number },
+  cx: number,
+  cy: number,
+  isIncident: boolean
+): void {
+  const t = 0.5;
+  const omt = 0.5;
+  const mx = omt * omt * source.x + 2 * omt * t * cx + t * t * target.x;
+  const my = omt * omt * source.y + 2 * omt * t * cy + t * t * target.y;
+
+  const sourceRad = source.radius ?? 18;
+  const targetRad = target.radius ?? 18;
+  const dSrc = Math.hypot(mx - source.x, my - source.y);
+  const dTgt = Math.hypot(mx - target.x, my - target.y);
+  if (dSrc < sourceRad + 16 || dTgt < targetRad + 16) {
+    return;
+  }
+
+  const tx = 2 * omt * (cx - source.x) + 2 * t * (target.x - cx);
+  const ty = 2 * omt * (cy - source.y) + 2 * t * (target.y - cy);
+  const tLen = Math.hypot(tx, ty);
+  if (tLen < 0.001) return;
+
+  const nx = -ty / tLen;
+  const ny = tx / tLen;
+
+  const offsetDistance = 9;
+  const bx = mx + nx * offsetDistance;
+  const by = my + ny * offsetDistance;
+
+  const label = rel.type.toLowerCase().trim();
+  ctx.save();
+  ctx.font = "9px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const metrics = ctx.measureText(label);
+  const textWidth = metrics.width;
+  const badgeW = textWidth + 8;
+  const badgeH = 13;
+  const radius = 3;
+
+  ctx.beginPath();
+  const left = bx - badgeW / 2;
+  const top = by - badgeH / 2;
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(left, top, badgeW, badgeH, radius);
+  } else if (typeof ctx.rect === "function") {
+    ctx.rect(left, top, badgeW, badgeH);
+  }
+
+  ctx.fillStyle = "rgba(6, 11, 23, 0.78)";
+  ctx.fill();
+
+  ctx.strokeStyle = isIncident ? "rgba(56, 189, 248, 0.45)" : "rgba(56, 189, 248, 0.20)";
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  ctx.fillStyle = isIncident ? "rgba(240, 249, 255, 0.95)" : "rgba(224, 242, 254, 0.75)";
+  ctx.fillText(label, bx, by + 0.5);
+  ctx.restore();
+}
+
 /**
  * Draws the local universe scene onto an HTML5 Canvas.
  *
@@ -114,95 +371,103 @@ export function renderUniverseScene(
     nodeMap.set(node.id, node);
   }
 
-  // 2. Render Relationship Paths (Curved Quadratic Bézier with Luminous Direction Sparks)
-  for (const rel of scene.relationships) {
+  // 2. Render Refined Relationship Light Paths
+  const activeHighlightNodeId = hoveredNodeId || options.focusedNodeId || null;
+  const hasActiveInteraction = Boolean(activeHighlightNodeId);
+
+  // Partition/sort relationships: background context connections first,
+  // focus connections second, incident connections last (on top).
+  const sortedRelationships = [...scene.relationships].sort((a, b) => {
+    const aIncident = activeHighlightNodeId
+      ? a.sourceId === activeHighlightNodeId || a.targetId === activeHighlightNodeId
+      : false;
+    const bIncident = activeHighlightNodeId
+      ? b.sourceId === activeHighlightNodeId || b.targetId === activeHighlightNodeId
+      : false;
+    if (aIncident !== bIncident) {
+      return aIncident ? 1 : -1;
+    }
+    const aFocus = a.role === "focus-connection";
+    const bFocus = b.role === "focus-connection";
+    if (aFocus !== bFocus) {
+      return aFocus ? 1 : -1;
+    }
+    return 0;
+  });
+
+  for (const rel of sortedRelationships) {
     const source = nodeMap.get(rel.sourceId);
     const target = nodeMap.get(rel.targetId);
     if (!source || !target) continue;
 
-    const dx = target.x - source.x;
-    const dy = target.y - source.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 1) continue;
+    const geom = calculateRelationshipGeometry(source, target, rel.curvature);
+    if (!geom) continue;
 
-    const nx = -dy / dist;
-    const ny = dx / dist;
+    const isIncident = Boolean(
+      activeHighlightNodeId &&
+      (rel.sourceId === activeHighlightNodeId || rel.targetId === activeHighlightNodeId)
+    );
 
-    const mx = (source.x + target.x) / 2;
-    const my = (source.y + target.y) / 2;
-    const cx = mx + nx * dist * rel.curvature;
-    const cy = my + ny * dist * rel.curvature;
+    const style = getRelationshipStyleConfig({
+      role: rel.role,
+      strength: rel.strength,
+      opacity: rel.opacity,
+      isIncident,
+      hasActiveInteraction,
+      isMobile,
+      dist: geom.dist,
+    });
 
-    const isFocusRel = rel.role === "focus-connection";
     const sourcePalette = getConceptCelestialPalette(source.concept.id);
     const targetPalette = getConceptCelestialPalette(target.concept.id);
 
     ctx.save();
 
-    // Pass 1: Subtle wide atmospheric glow for focus relationships (blended accents)
-    if (isFocusRel) {
+    // Pass 1: Atmospheric luminous halo
+    if (style.haloAlpha > 0.01) {
       if (typeof ctx.createLinearGradient === "function") {
         const grad = ctx.createLinearGradient(source.x, source.y, target.x, target.y);
-        grad.addColorStop(0, sourcePalette.halo.replace("0.45", "0.14").replace("0.40", "0.12"));
-        grad.addColorStop(1, targetPalette.halo.replace("0.45", "0.14").replace("0.40", "0.12"));
+        grad.addColorStop(0, formatHaloColor(sourcePalette.halo, style.haloAlpha));
+        grad.addColorStop(1, formatHaloColor(targetPalette.halo, style.haloAlpha));
         ctx.strokeStyle = grad;
       } else {
-        ctx.strokeStyle = targetPalette.halo.replace("0.45", "0.14").replace("0.40", "0.12");
+        ctx.strokeStyle = formatHaloColor(targetPalette.halo, style.haloAlpha);
       }
 
       ctx.beginPath();
       ctx.moveTo(source.x, source.y);
-      ctx.quadraticCurveTo(cx, cy, target.x, target.y);
-      ctx.lineWidth = 3.6;
+      ctx.quadraticCurveTo(geom.cx, geom.cy, target.x, target.y);
+      ctx.lineWidth = style.haloWidth;
       ctx.stroke();
     }
 
-    // Pass 2: Crisp core luminous trajectory
+    // Pass 2: Fine, crisp luminous core trajectory
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
-    ctx.quadraticCurveTo(cx, cy, target.x, target.y);
+    ctx.quadraticCurveTo(geom.cx, geom.cy, target.x, target.y);
 
-    if (isFocusRel) {
-      ctx.strokeStyle = `rgba(224, 242, 254, ${rel.opacity * 0.78})`;
-      ctx.lineWidth = 1.2;
+    if (style.isFocus || style.isIncident) {
+      if (typeof ctx.createLinearGradient === "function") {
+        const coreGrad = ctx.createLinearGradient(source.x, source.y, target.x, target.y);
+        coreGrad.addColorStop(0, `rgba(240, 249, 255, ${style.coreAlpha.toFixed(2)})`);
+        coreGrad.addColorStop(1, `rgba(224, 242, 254, ${style.coreAlpha.toFixed(2)})`);
+        ctx.strokeStyle = coreGrad;
+      } else {
+        ctx.strokeStyle = `rgba(224, 242, 254, ${style.coreAlpha.toFixed(2)})`;
+      }
     } else {
-      ctx.strokeStyle = `rgba(148, 163, 184, ${rel.opacity * 0.32})`;
-      ctx.lineWidth = 0.8;
+      ctx.strokeStyle = `rgba(148, 163, 184, ${style.coreAlpha.toFixed(2)})`;
     }
+    ctx.lineWidth = style.coreWidth;
     ctx.stroke();
 
-    // Directional indicator: Luminous spark and directional tick along curve (evaluated at t = 0.88)
-    const t = 0.88;
-    const omt = 1 - t;
-    const px = omt * omt * source.x + 2 * omt * t * cx + t * t * target.x;
-    const py = omt * omt * source.y + 2 * omt * t * cy + t * t * target.y;
+    // Pass 3: Restrained directional terminal cue (sleek light dart & micro-spark)
+    renderDirectionalLightCue(ctx, geom, style);
 
-    const tx = 2 * omt * (cx - source.x) + 2 * t * (target.x - cx);
-    const ty = 2 * omt * (cy - source.y) + 2 * t * (target.y - cy);
-    const tangentAngle = Math.atan2(ty, tx);
-
-    // Luminous target spark
-    const sparkRadius = isFocusRel ? 2.4 : 1.5;
-    ctx.beginPath();
-    ctx.arc(px, py, sparkRadius, 0, 2 * Math.PI);
-    ctx.fillStyle = isFocusRel ? "rgba(224, 242, 254, 0.95)" : "rgba(165, 243, 252, 0.65)";
-    ctx.fill();
-
-    // Directional chevron tick
-    const tickLen = isFocusRel ? 4.5 : 3.0;
-    ctx.beginPath();
-    ctx.moveTo(
-      px - Math.cos(tangentAngle - 0.65) * tickLen,
-      py - Math.sin(tangentAngle - 0.65) * tickLen
-    );
-    ctx.lineTo(px, py);
-    ctx.lineTo(
-      px - Math.cos(tangentAngle + 0.65) * tickLen,
-      py - Math.sin(tangentAngle + 0.65) * tickLen
-    );
-    ctx.strokeStyle = isFocusRel ? "rgba(224, 242, 254, 0.90)" : "rgba(165, 243, 252, 0.60)";
-    ctx.lineWidth = isFocusRel ? 1.2 : 0.8;
-    ctx.stroke();
+    // Pass 4: Concise relationship type badge
+    if (style.renderLabel) {
+      renderRelationshipTypeBadge(ctx, rel, source, target, geom.cx, geom.cy, style.isIncident);
+    }
 
     ctx.restore();
   }
