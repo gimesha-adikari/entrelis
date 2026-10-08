@@ -95,6 +95,81 @@ export function getNodeLabelPlacement(
 }
 
 /**
+ * Resolves effective label placement for a node.
+ * If the node already has active in-flight label properties (e.g. during an interrupted transition),
+ * those properties are preserved directly rather than reverting to canonical placement.
+ */
+export function getEffectiveNodeLabelPlacement(
+  node: UniverseNode,
+  isMobile: boolean
+): {
+  readonly offsetX: number;
+  readonly offsetY: number;
+  readonly alignment: "left" | "center" | "right";
+  readonly baseline: CanvasTextBaseline;
+  readonly fontSize: number;
+} {
+  if (
+    typeof node.labelOffsetX === "number" &&
+    typeof node.labelOffsetY === "number" &&
+    node.labelAlignment !== undefined &&
+    node.labelBaseline !== undefined &&
+    typeof node.labelFontSize === "number"
+  ) {
+    return {
+      offsetX: node.labelOffsetX,
+      offsetY: node.labelOffsetY,
+      alignment: node.labelAlignment,
+      baseline: node.labelBaseline,
+      fontSize: node.labelFontSize,
+    };
+  }
+  return getNodeLabelPlacement(node, isMobile);
+}
+
+/**
+ * Calculates the visual geometric center of a node's label in world coordinates.
+ * Compensates for label alignment and baseline so visual continuity can be verified.
+ */
+export function getDisplayedLabelCenter(
+  node: UniverseNode,
+  placement?: {
+    offsetX?: number;
+    offsetY?: number;
+    alignment?: "left" | "center" | "right";
+    baseline?: CanvasTextBaseline;
+    fontSize?: number;
+  }
+): { x: number; y: number } {
+  const offsetX = placement?.offsetX ?? node.labelOffsetX ?? 0;
+  const offsetY = placement?.offsetY ?? node.labelOffsetY ?? 0;
+  const alignment =
+    placement?.alignment ?? node.labelAlignment ?? (node.role === "focus" ? "center" : "left");
+  const baseline =
+    placement?.baseline ?? node.labelBaseline ?? (node.role === "focus" ? "top" : "middle");
+  const fontSize = placement?.fontSize ?? node.labelFontSize ?? (node.role === "focus" ? 16 : 12);
+
+  const approxWidth = Math.max(1, (node.name || "").length * fontSize * 0.55);
+  const approxHeight = fontSize * 0.75;
+
+  let centerX = node.x + offsetX;
+  if (alignment === "left") {
+    centerX += approxWidth / 2;
+  } else if (alignment === "right") {
+    centerX -= approxWidth / 2;
+  }
+
+  let centerY = node.y + offsetY;
+  if (baseline === "top") {
+    centerY += approxHeight / 2;
+  } else if (baseline === "bottom") {
+    centerY -= approxHeight / 2;
+  }
+
+  return { x: centerX, y: centerY };
+}
+
+/**
  * Shortest angular path interpolation between two angles in radians.
  */
 export function interpolateAngle(fromAngle: number, toAngle: number, t: number): number {
@@ -161,16 +236,50 @@ export function interpolateScenes(
         orbitalAngle = fromNode.orbitalAngle;
       }
 
-      const fromPlacement = getNodeLabelPlacement(fromNode, toScene.isMobile);
-      const toPlacement = getNodeLabelPlacement(toNode, toScene.isMobile);
-      const labelOffsetX =
-        fromPlacement.offsetX + (toPlacement.offsetX - fromPlacement.offsetX) * ease;
-      const labelOffsetY =
-        fromPlacement.offsetY + (toPlacement.offsetY - fromPlacement.offsetY) * ease;
+      const fromPlacement = getEffectiveNodeLabelPlacement(fromNode, toScene.isMobile);
+      const toPlacement = getEffectiveNodeLabelPlacement(toNode, toScene.isMobile);
+
       const labelFontSize =
         fromPlacement.fontSize + (toPlacement.fontSize - fromPlacement.fontSize) * ease;
       const labelAlignment = progress >= 0.5 ? toPlacement.alignment : fromPlacement.alignment;
       const labelBaseline = progress >= 0.5 ? toPlacement.baseline : fromPlacement.baseline;
+
+      // Approximate text bounds for anchor-shift compensation across alignment and baseline changes
+      const fromWidth = Math.max(1, (toNode.name || "").length * fromPlacement.fontSize * 0.55);
+      const fromHeight = fromPlacement.fontSize * 0.75;
+      const toWidth = Math.max(1, (toNode.name || "").length * toPlacement.fontSize * 0.55);
+      const toHeight = toPlacement.fontSize * 0.75;
+
+      let fromCenterX = fromPlacement.offsetX;
+      if (fromPlacement.alignment === "left") fromCenterX += fromWidth / 2;
+      else if (fromPlacement.alignment === "right") fromCenterX -= fromWidth / 2;
+
+      let fromCenterY = fromPlacement.offsetY;
+      if (fromPlacement.baseline === "top") fromCenterY += fromHeight / 2;
+      else if (fromPlacement.baseline === "bottom") fromCenterY -= fromHeight / 2;
+
+      let toCenterX = toPlacement.offsetX;
+      if (toPlacement.alignment === "left") toCenterX += toWidth / 2;
+      else if (toPlacement.alignment === "right") toCenterX -= toWidth / 2;
+
+      let toCenterY = toPlacement.offsetY;
+      if (toPlacement.baseline === "top") toCenterY += toHeight / 2;
+      else if (toPlacement.baseline === "bottom") toCenterY -= toHeight / 2;
+
+      // Interpolate the visual center offset continuously
+      const currentCenterX = fromCenterX + (toCenterX - fromCenterX) * ease;
+      const currentCenterY = fromCenterY + (toCenterY - fromCenterY) * ease;
+
+      const currentWidth = Math.max(1, (toNode.name || "").length * labelFontSize * 0.55);
+      const currentHeight = labelFontSize * 0.75;
+
+      let labelOffsetX = currentCenterX;
+      if (labelAlignment === "left") labelOffsetX -= currentWidth / 2;
+      else if (labelAlignment === "right") labelOffsetX += currentWidth / 2;
+
+      let labelOffsetY = currentCenterY;
+      if (labelBaseline === "top") labelOffsetY -= currentHeight / 2;
+      else if (labelBaseline === "bottom") labelOffsetY += currentHeight / 2;
 
       interpolatedNodes.push({
         ...toNode,
@@ -191,7 +300,7 @@ export function interpolateScenes(
     } else {
       // Node is entering: subtle emergence from slightly deeper in space
       const toZ = typeof toNode.z === "number" ? toNode.z : roleToDepth(toNode.role);
-      const toPlacement = getNodeLabelPlacement(toNode, toScene.isMobile);
+      const toPlacement = getEffectiveNodeLabelPlacement(toNode, toScene.isMobile);
       interpolatedNodes.push({
         ...toNode,
         z: toZ - (1 - ease) * 4,
@@ -212,7 +321,7 @@ export function interpolateScenes(
       const fromZ = typeof fromNode.z === "number" ? fromNode.z : roleToDepth(fromNode.role);
       // Avoid duplicate focus role if departing node was previous focus
       const departingRole: UniverseNodeRole = fromNode.role === "focus" ? "primary" : fromNode.role;
-      const fromPlacement = getNodeLabelPlacement(fromNode, toScene.isMobile);
+      const fromPlacement = getEffectiveNodeLabelPlacement(fromNode, toScene.isMobile);
 
       interpolatedNodes.push({
         ...fromNode,

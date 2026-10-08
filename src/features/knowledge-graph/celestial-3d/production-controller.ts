@@ -40,7 +40,6 @@ interface PendingPreparation {
 interface MaterialOpacityState {
   readonly material: THREE.Material;
   readonly opacity: number;
-  readonly transparent: boolean;
   readonly depthWrite: boolean;
 }
 
@@ -155,10 +154,14 @@ function collectMaterialOpacityStates(body: CelestialBodyInstance): MaterialOpac
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     for (const material of materials) {
       if (!states.has(material)) {
+        // Celestial bodies in the local universe can fade during scene transitions.
+        // Ensuring transparent is true ahead of time guarantees compileAsync
+        // compiles the transparent shader variant during background preparation,
+        // eliminating synchronous shader compilation stalls during active transitions.
+        material.transparent = true;
         states.set(material, {
           material,
           opacity: material.opacity,
-          transparent: material.transparent,
           depthWrite: material.depthWrite,
         });
       }
@@ -172,15 +175,13 @@ function applyBodyOpacity(entry: ProductionEntry, opacity: number): void {
     const { material } = state;
     const clampedOpacity = Math.max(0, Math.min(1, opacity));
     const shouldFade = clampedOpacity < 0.999;
-    const nextTransparent = shouldFade || state.transparent;
     const nextDepthWrite = shouldFade ? false : state.depthWrite;
 
     material.opacity = state.opacity * clampedOpacity;
-    if (material.transparent !== nextTransparent || material.depthWrite !== nextDepthWrite) {
-      material.transparent = nextTransparent;
-      material.depthWrite = nextDepthWrite;
-      material.needsUpdate = true;
-    }
+    // depthWrite is dynamic WebGL state (gl.depthMask) that does not invalidate
+    // or recompile shaders. We avoid setting material.needsUpdate to maintain
+    // sub-33ms frame times and prevent shader re-compilation hitches.
+    material.depthWrite = nextDepthWrite;
 
     if (material instanceof THREE.ShaderMaterial) {
       const nodeOpacity = material.uniforms["uNodeOpacity"];

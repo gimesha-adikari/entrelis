@@ -249,7 +249,7 @@ describe("production celestial scene controller", () => {
       null
     );
     expect(material.opacity).toBe(1);
-    expect(material.transparent).toBe(false);
+    expect(material.transparent).toBe(true);
     expect(material.depthWrite).toBe(true);
   });
 

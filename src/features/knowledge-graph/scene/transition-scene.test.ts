@@ -9,6 +9,8 @@ import {
   roleToDepth,
   interpolateAngle,
   getNodeLabelPlacement,
+  getEffectiveNodeLabelPlacement,
+  getDisplayedLabelCenter,
   SCENE_TRANSITION_DURATION_MS,
 } from "./transition-scene";
 
@@ -76,6 +78,27 @@ describe("transition-scene", () => {
 
     const primaryPlacement = getNodeLabelPlacement(sceneRust.primaryNodes[0]!, false);
     expect(primaryPlacement.fontSize).toBe(12);
+  });
+
+  it("resolves canonical vs in-flight effective node label placement", () => {
+    const canonical = getEffectiveNodeLabelPlacement(sceneRust.focus, false);
+    expect(canonical.alignment).toBe("center");
+    expect(canonical.fontSize).toBe(16);
+
+    const inFlightNode = {
+      ...sceneRust.focus,
+      labelOffsetX: 25,
+      labelOffsetY: -10,
+      labelFontSize: 13,
+      labelAlignment: "right" as const,
+      labelBaseline: "middle" as const,
+    };
+    const inFlightPlacement = getEffectiveNodeLabelPlacement(inFlightNode, false);
+    expect(inFlightPlacement.offsetX).toBe(25);
+    expect(inFlightPlacement.offsetY).toBe(-10);
+    expect(inFlightPlacement.fontSize).toBe(13);
+    expect(inFlightPlacement.alignment).toBe("right");
+    expect(inFlightPlacement.baseline).toBe("middle");
   });
 
   it("interpolates persistent nodes between fromScene and toScene with continuous x, y, and z depth", () => {
@@ -242,5 +265,185 @@ describe("transition-scene", () => {
 
     const endScene = interpolateScenes(sceneRust, sceneOwnership, 1);
     expect(endScene).toBe(sceneOwnership);
+  });
+
+  it("preserves displayed label placement immediately upon interruption (Rust -> Ownership at 35% -> Memory)", () => {
+    // Transition Rust -> Ownership interrupted at progress 0.35
+    const inFlightScene = interpolateScenes(sceneRust, sceneOwnership, 0.35);
+    const ownershipInFlight = inFlightScene.allNodes.find((n) => n.slug === "ownership")!;
+    const rustInFlight = inFlightScene.allNodes.find((n) => n.slug === "rust")!;
+
+    expect(ownershipInFlight.labelOffsetX).toBeDefined();
+    expect(ownershipInFlight.labelOffsetY).toBeDefined();
+
+    // Start a new transition from in-flight scene towards Memory at progress 0
+    const interrupted0 = interpolateScenes(inFlightScene, sceneMemory, 0);
+    const ownership0 = interrupted0.allNodes.find((n) => n.slug === "ownership")!;
+    const rust0 = interrupted0.allNodes.find((n) => n.slug === "rust")!;
+
+    expect(ownership0.labelOffsetX).toBe(ownershipInFlight.labelOffsetX);
+    expect(ownership0.labelOffsetY).toBe(ownershipInFlight.labelOffsetY);
+    expect(ownership0.labelFontSize).toBe(ownershipInFlight.labelFontSize);
+    expect(ownership0.labelAlignment).toBe(ownershipInFlight.labelAlignment);
+    expect(ownership0.labelBaseline).toBe(ownershipInFlight.labelBaseline);
+    expect(rust0.labelOffsetX).toBe(rustInFlight.labelOffsetX);
+    expect(rust0.labelOffsetY).toBe(rustInFlight.labelOffsetY);
+
+    // Exactly at progress = 0, displayed placement and center match in-flight scene identically
+    const center0 = getDisplayedLabelCenter(ownership0);
+    expect(center0.x).toBeCloseTo(getDisplayedLabelCenter(ownershipInFlight).x, 4);
+    expect(center0.y).toBeCloseTo(getDisplayedLabelCenter(ownershipInFlight).y, 4);
+
+    // Immediately after interruption at tiny progress, displayed center moves smoothly
+    const interruptedNext = interpolateScenes(inFlightScene, sceneMemory, 0.001);
+    const ownershipNext = interruptedNext.allNodes.find((n) => n.slug === "ownership")!;
+    const centerInFlight = getDisplayedLabelCenter(ownershipInFlight);
+    const centerNext = getDisplayedLabelCenter(ownershipNext);
+
+    expect(Math.abs(centerNext.x - centerInFlight.x)).toBeLessThan(1.5);
+    expect(Math.abs(centerNext.y - centerInFlight.y)).toBeLessThan(1.5);
+    expect(Math.abs(ownershipNext.labelOffsetX! - ownershipInFlight.labelOffsetX!)).toBeLessThan(
+      1.0
+    );
+    expect(Math.abs(ownershipNext.labelOffsetY! - ownershipInFlight.labelOffsetY!)).toBeLessThan(
+      1.0
+    );
+  });
+
+  it("maintains continuous displayed label center across progress 49% -> 50% -> 51% despite alignment flip", () => {
+    const scene49 = interpolateScenes(sceneRust, sceneOwnership, 0.49);
+    const scene50 = interpolateScenes(sceneRust, sceneOwnership, 0.5);
+    const scene51 = interpolateScenes(sceneRust, sceneOwnership, 0.51);
+
+    const own49 = scene49.allNodes.find((n) => n.slug === "ownership")!;
+    const own50 = scene50.allNodes.find((n) => n.slug === "ownership")!;
+    const own51 = scene51.allNodes.find((n) => n.slug === "ownership")!;
+
+    // Alignment flips from fromPlacement to toPlacement across 0.5 boundary
+    expect(own49.labelAlignment).toBe("right");
+    expect(own50.labelAlignment).toBe("center");
+    expect(own51.labelAlignment).toBe("center");
+
+    // Baseline also flips across 0.5 boundary
+    expect(own49.labelBaseline).toBe("middle");
+    expect(own50.labelBaseline).toBe("top");
+    expect(own51.labelBaseline).toBe("top");
+
+    // The displayed geometric center must be continuous with no discrete jumping
+    const center49 = getDisplayedLabelCenter(own49);
+    const center50 = getDisplayedLabelCenter(own50);
+    const center51 = getDisplayedLabelCenter(own51);
+
+    const deltaX49to50 = Math.abs(center50.x - center49.x);
+    const deltaX50to51 = Math.abs(center51.x - center50.x);
+    const deltaY49to50 = Math.abs(center50.y - center49.y);
+    const deltaY50to51 = Math.abs(center51.y - center50.y);
+
+    // Smooth continuous movement across tiny 1% step without the ~30px text jumping bug
+    expect(deltaX49to50).toBeLessThan(3.5);
+    expect(deltaX50to51).toBeLessThan(3.5);
+    expect(deltaY49to50).toBeLessThan(3.5);
+    expect(deltaY50to51).toBeLessThan(3.5);
+  });
+
+  it("smoothly handles focus-to-primary and primary-to-focus label alignment changes", () => {
+    // Test Rust (focus -> primary demotion) and Ownership (primary -> focus promotion)
+    const samples = [0.1, 0.3, 0.49, 0.5, 0.51, 0.7, 0.9];
+    let prevRustCenter = getDisplayedLabelCenter(sceneRust.focus);
+    let prevOwnershipCenter = getDisplayedLabelCenter(
+      sceneRust.allNodes.find((n) => n.slug === "ownership")!
+    );
+
+    for (const p of samples) {
+      const scene = interpolateScenes(sceneRust, sceneOwnership, p);
+      const rustNode = scene.allNodes.find((n) => n.slug === "rust")!;
+      const ownershipNode = scene.allNodes.find((n) => n.slug === "ownership")!;
+
+      const rustCenter = getDisplayedLabelCenter(rustNode);
+      const ownershipCenter = getDisplayedLabelCenter(ownershipNode);
+
+      // Verify finite and smooth progression between consecutive samples
+      expect(Number.isFinite(rustCenter.x)).toBe(true);
+      expect(Number.isFinite(rustCenter.y)).toBe(true);
+      expect(Number.isFinite(ownershipCenter.x)).toBe(true);
+      expect(Number.isFinite(ownershipCenter.y)).toBe(true);
+
+      const rustDist = Math.hypot(rustCenter.x - prevRustCenter.x, rustCenter.y - prevRustCenter.y);
+      const ownDist = Math.hypot(
+        ownershipCenter.x - prevOwnershipCenter.x,
+        ownershipCenter.y - prevOwnershipCenter.y
+      );
+
+      // No frame-to-frame explosive jumps (> 150px)
+      expect(rustDist).toBeLessThan(150);
+      expect(ownDist).toBeLessThan(150);
+
+      prevRustCenter = rustCenter;
+      prevOwnershipCenter = ownershipCenter;
+    }
+  });
+
+  it("handles browser back/forward navigation interruption during in-flight transition", () => {
+    // In-flight from Rust to Ownership at 40%
+    const inFlight = interpolateScenes(sceneRust, sceneOwnership, 0.4);
+
+    // User presses Back: navigation reverses back towards sceneRust
+    const reversedMid = interpolateScenes(inFlight, sceneRust, 0.5);
+    const reversedEnd = interpolateScenes(inFlight, sceneRust, 1.0);
+
+    const rustMid = reversedMid.allNodes.find((n) => n.slug === "rust")!;
+    expect(rustMid.labelOffsetX).toBeDefined();
+    expect(rustMid.labelOffsetY).toBeDefined();
+    expect(rustMid.opacity).toBeGreaterThan(0.5);
+
+    // Settled reverse end matches destination scene
+    expect(reversedEnd).toBe(sceneRust);
+  });
+
+  it("preserves continuous label behavior in mobile viewports", () => {
+    const mobileRust = layoutLocalUniverseScene(
+      buildLocalUniverseScene({
+        dataset: SEED_DATASET,
+        focusSlug: "rust",
+        isMobile: true,
+      }),
+      { viewportWidth: 390, viewportHeight: 844, isMobile: true }
+    );
+    const mobileOwnership = layoutLocalUniverseScene(
+      buildLocalUniverseScene({
+        dataset: SEED_DATASET,
+        focusSlug: "ownership",
+        isMobile: true,
+      }),
+      { viewportWidth: 390, viewportHeight: 844, isMobile: true }
+    );
+
+    const mobile49 = interpolateScenes(mobileRust, mobileOwnership, 0.49);
+    const mobile50 = interpolateScenes(mobileRust, mobileOwnership, 0.5);
+    const mobile51 = interpolateScenes(mobileRust, mobileOwnership, 0.51);
+
+    const own49 = mobile49.allNodes.find((n) => n.slug === "ownership")!;
+    const own50 = mobile50.allNodes.find((n) => n.slug === "ownership")!;
+    const own51 = mobile51.allNodes.find((n) => n.slug === "ownership")!;
+
+    // Mobile font sizes scale appropriately
+    expect(own49.labelFontSize!).toBeLessThanOrEqual(14);
+    expect(own51.labelFontSize!).toBeGreaterThan(11);
+
+    const c49 = getDisplayedLabelCenter(own49);
+    const c50 = getDisplayedLabelCenter(own50);
+    const c51 = getDisplayedLabelCenter(own51);
+
+    expect(Math.abs(c50.x - c49.x)).toBeLessThan(2.0);
+    expect(Math.abs(c51.x - c50.x)).toBeLessThan(2.0);
+    expect(Math.abs(c50.y - c49.y)).toBeLessThan(2.0);
+    expect(Math.abs(c51.y - c50.y)).toBeLessThan(2.0);
+  });
+
+  it("handles reduced motion instant transitions without interpolation artifacts", () => {
+    // When prefersReducedMotion is active, transitions immediately evaluate targetScene (progress = 1)
+    const target = interpolateScenes(sceneRust, sceneOwnership, 1.0);
+    expect(target).toBe(sceneOwnership);
+    expect(target.focus.slug).toBe("ownership");
   });
 });
