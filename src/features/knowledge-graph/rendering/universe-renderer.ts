@@ -76,6 +76,8 @@ export interface RelationshipStyleConfig {
   readonly haloAlpha: number;
   readonly coreWidth: number;
   readonly coreAlpha: number;
+  readonly cueAlpha: number;
+  readonly opacity: number;
   readonly tickLength: number;
   readonly sparkRadius: number;
   readonly renderLabel: boolean;
@@ -139,9 +141,11 @@ export function getRelationshipStyleConfig(options: {
   const { role, strength, opacity, isIncident, hasActiveInteraction, isMobile, dist } = options;
   const isFocus = role === "focus-connection";
 
+  const clampedOpacity = Math.max(0, Math.min(1, Number.isFinite(opacity) ? opacity : 1));
+
   const interactionFactor = isIncident ? 1.35 : hasActiveInteraction ? 0.5 : 1.0;
 
-  let baseCoreAlpha = isFocus
+  const baseCoreAlpha = isFocus
     ? strength === "primary"
       ? 0.82
       : strength === "strong"
@@ -153,14 +157,10 @@ export function getRelationshipStyleConfig(options: {
         ? 0.28
         : 0.2;
 
-  baseCoreAlpha *= opacity;
-  const coreAlpha = Math.max(
-    0.08,
-    Math.min(
-      1.0,
-      isIncident ? baseCoreAlpha * interactionFactor + 0.15 : baseCoreAlpha * interactionFactor
-    )
-  );
+  const maxCoreAlpha = isIncident
+    ? Math.min(1.0, baseCoreAlpha * interactionFactor + 0.15)
+    : baseCoreAlpha * interactionFactor;
+  const coreAlpha = Math.max(0, Math.min(1.0, maxCoreAlpha * clampedOpacity));
 
   const baseHaloAlpha = isFocus
     ? strength === "primary"
@@ -171,7 +171,8 @@ export function getRelationshipStyleConfig(options: {
     : isIncident
       ? 0.06
       : 0.0;
-  const haloAlpha = isIncident ? baseHaloAlpha * 1.6 : baseHaloAlpha;
+  const fullHaloAlpha = isIncident ? baseHaloAlpha * 1.6 : baseHaloAlpha;
+  const haloAlpha = Math.max(0, Math.min(1.0, fullHaloAlpha * clampedOpacity));
   const haloWidth = isFocus ? (isIncident ? 4.8 : 3.4) : 2.2;
 
   const coreWidth = isFocus
@@ -186,10 +187,13 @@ export function getRelationshipStyleConfig(options: {
         ? 0.85
         : 0.7;
 
+  const baseCueAlpha = isFocus || isIncident ? (isIncident ? 0.95 : 0.85) : 0.55;
+  const cueAlpha = Math.max(0, Math.min(1.0, baseCueAlpha * clampedOpacity));
+
   const tickLength = isFocus ? (isIncident ? 5.2 : 4.2) : isIncident ? 4.0 : 3.0;
   const sparkRadius = isFocus ? (isIncident ? 2.2 : 1.6) : 1.2;
 
-  const renderLabel = !isMobile && (isFocus || isIncident) && dist >= 85;
+  const renderLabel = !isMobile && (isFocus || isIncident) && dist >= 85 && clampedOpacity >= 0.25;
 
   return {
     isFocus,
@@ -199,6 +203,8 @@ export function getRelationshipStyleConfig(options: {
     haloAlpha,
     coreWidth,
     coreAlpha,
+    cueAlpha,
+    opacity: clampedOpacity,
     tickLength,
     sparkRadius,
     renderLabel,
@@ -214,8 +220,10 @@ function renderDirectionalLightCue(
   geom: RelationshipPathGeometry,
   style: RelationshipStyleConfig
 ): void {
+  if (style.cueAlpha <= 0.01) return;
+
   const { termX, termY, tangentAngle } = geom;
-  const { tickLength, sparkRadius, isFocus, isIncident } = style;
+  const { tickLength, sparkRadius, isFocus, isIncident, cueAlpha } = style;
 
   const wingAngle = 0.4;
   const leftX = termX - Math.cos(tangentAngle - wingAngle) * tickLength;
@@ -230,8 +238,8 @@ function renderDirectionalLightCue(
 
   ctx.strokeStyle =
     isFocus || isIncident
-      ? `rgba(224, 242, 254, ${isIncident ? 0.95 : 0.85})`
-      : "rgba(165, 243, 252, 0.55)";
+      ? `rgba(224, 242, 254, ${cueAlpha.toFixed(2)})`
+      : `rgba(165, 243, 252, ${cueAlpha.toFixed(2)})`;
   ctx.lineWidth = isFocus ? (isIncident ? 1.3 : 1.1) : isIncident ? 1.0 : 0.8;
   ctx.stroke();
 
@@ -240,8 +248,8 @@ function renderDirectionalLightCue(
     ctx.arc(termX, termY, sparkRadius, 0, 2 * Math.PI);
     ctx.fillStyle =
       isFocus || isIncident
-        ? `rgba(240, 249, 255, ${isIncident ? 0.95 : 0.85})`
-        : "rgba(165, 243, 252, 0.55)";
+        ? `rgba(240, 249, 255, ${cueAlpha.toFixed(2)})`
+        : `rgba(165, 243, 252, ${cueAlpha.toFixed(2)})`;
     ctx.fill();
   }
 }
@@ -253,8 +261,10 @@ function renderRelationshipTypeBadge(
   target: { readonly x: number; readonly y: number; readonly radius?: number },
   cx: number,
   cy: number,
-  isIncident: boolean
+  style: RelationshipStyleConfig
 ): void {
+  if (!style.renderLabel || style.opacity <= 0.01) return;
+
   const t = 0.5;
   const omt = 0.5;
   const mx = omt * omt * source.x + 2 * omt * t * cx + t * t * target.x;
@@ -301,14 +311,19 @@ function renderRelationshipTypeBadge(
     ctx.rect(left, top, badgeW, badgeH);
   }
 
-  ctx.fillStyle = "rgba(6, 11, 23, 0.78)";
+  const bgAlpha = (0.78 * style.opacity).toFixed(2);
+  ctx.fillStyle = `rgba(6, 11, 23, ${bgAlpha})`;
   ctx.fill();
 
-  ctx.strokeStyle = isIncident ? "rgba(56, 189, 248, 0.45)" : "rgba(56, 189, 248, 0.20)";
+  const borderAlpha = (style.isIncident ? 0.45 * style.opacity : 0.2 * style.opacity).toFixed(2);
+  ctx.strokeStyle = `rgba(56, 189, 248, ${borderAlpha})`;
   ctx.lineWidth = 0.8;
   ctx.stroke();
 
-  ctx.fillStyle = isIncident ? "rgba(240, 249, 255, 0.95)" : "rgba(224, 242, 254, 0.75)";
+  const textAlpha = (style.isIncident ? 0.95 * style.opacity : 0.75 * style.opacity).toFixed(2);
+  ctx.fillStyle = style.isIncident
+    ? `rgba(240, 249, 255, ${textAlpha})`
+    : `rgba(224, 242, 254, ${textAlpha})`;
   ctx.fillText(label, bx, by + 0.5);
   ctx.restore();
 }
@@ -396,6 +411,10 @@ export function renderUniverseScene(
   });
 
   for (const rel of sortedRelationships) {
+    if (typeof rel.opacity === "number" && rel.opacity <= 0.001) {
+      continue;
+    }
+
     const source = nodeMap.get(rel.sourceId);
     const target = nodeMap.get(rel.targetId);
     if (!source || !target) continue;
@@ -417,6 +436,10 @@ export function renderUniverseScene(
       isMobile,
       dist: geom.dist,
     });
+
+    if (style.coreAlpha <= 0.005) {
+      continue;
+    }
 
     const sourcePalette = getConceptCelestialPalette(source.concept.id);
     const targetPalette = getConceptCelestialPalette(target.concept.id);
@@ -466,7 +489,7 @@ export function renderUniverseScene(
 
     // Pass 4: Concise relationship type badge
     if (style.renderLabel) {
-      renderRelationshipTypeBadge(ctx, rel, source, target, geom.cx, geom.cy, style.isIncident);
+      renderRelationshipTypeBadge(ctx, rel, source, target, geom.cx, geom.cy, style);
     }
 
     ctx.restore();
