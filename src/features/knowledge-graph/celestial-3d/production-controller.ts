@@ -460,6 +460,9 @@ export class ProductionCelestialController {
       this.stopLoop();
       this.renderFrame(0);
     } else {
+      if (travel?.active) {
+        this.renderFrame(0);
+      }
       this.startLoop();
     }
     this.schedulePendingPreparation();
@@ -555,7 +558,8 @@ export class ProductionCelestialController {
   ): void {
     entry.hovered = isHovered;
     const position = projectUniverseNode(node, transform);
-    entry.body.group.position.set(position.x, position.y, roleDepth(node.role));
+    const depth = typeof node.z === "number" ? node.z : roleDepth(node.role);
+    entry.body.group.position.set(position.x, position.y, depth);
     entry.body.group.scale.setScalar(node.radius / BODY_BASE_RADIUS);
     entry.body.group.visible = node.opacity > 0.001;
     if (entry.opacity !== node.opacity) {
@@ -835,6 +839,7 @@ export class ProductionCelestialController {
 
   private renderFrame(deltaSec: number): void {
     if (this.isDisposed || this.isTabHidden) return;
+    this.lastFrameTime = performance.now();
     this.elapsedTime += deltaSec;
     for (const entry of this.activeEntries.values()) {
       entry.elapsedSeconds += deltaSec;

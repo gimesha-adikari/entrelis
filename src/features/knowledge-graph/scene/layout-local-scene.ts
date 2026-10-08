@@ -73,6 +73,7 @@ export function layoutLocalUniverseScene(
     ...scene.focus,
     x: originX,
     y: originY,
+    z: 12,
     orbitalAngle: 0,
     orbitalDistance: 0,
   };
@@ -106,6 +107,7 @@ export function layoutLocalUniverseScene(
       ...node,
       x,
       y,
+      z: 6,
       orbitalAngle: angle,
       orbitalDistance: dist,
     };
@@ -139,6 +141,7 @@ export function layoutLocalUniverseScene(
         ...cNode,
         x,
         y,
+        z: 0,
         orbitalAngle: angle,
         orbitalDistance: dist,
       });

@@ -517,7 +517,7 @@ export function renderUniverseScene(
       if (opacity <= 0.01) continue;
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
       ctx.fill();
     }
     ctx.restore();
@@ -748,7 +748,19 @@ function renderNodeLabel(
 ): void {
   if (!isFocus && hideAtLowZoom && zoomK < 0.6) return;
 
-  const fontSize = isFocus ? (isMobile ? 14 : 16) : isMobile ? 11 : 12;
+  const hasSmoothLabel =
+    typeof node.labelOffsetX === "number" && typeof node.labelOffsetY === "number";
+
+  const fontSize =
+    hasSmoothLabel && typeof node.labelFontSize === "number"
+      ? Math.round(node.labelFontSize)
+      : isFocus
+        ? isMobile
+          ? 14
+          : 16
+        : isMobile
+          ? 11
+          : 12;
   const fontWeight = isFocus ? "600" : "500";
   ctx.font = `${fontWeight} ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
 
@@ -763,7 +775,12 @@ function renderNodeLabel(
   let alignment: LabelAlignment = "center";
   let baseline: CanvasTextBaseline = "middle";
 
-  if (isFocus) {
+  if (hasSmoothLabel) {
+    labelX = node.x + (node.labelOffsetX ?? 0);
+    labelY = node.y + (node.labelOffsetY ?? 0);
+    alignment = (node.labelAlignment as LabelAlignment) ?? (isFocus ? "center" : "left");
+    baseline = node.labelBaseline ?? (isFocus ? "top" : "middle");
+  } else if (isFocus) {
     baseline = "top";
     labelY = node.y + node.radius + (isMobile ? 8 : 12);
   } else {

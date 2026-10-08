@@ -18,10 +18,16 @@ export interface UniverseNode {
   readonly radius: number;
   x: number;
   y: number;
+  z?: number;
   opacity: number;
   readonly parentPrimaryId?: string;
   readonly orbitalAngle?: number;
   readonly orbitalDistance?: number;
+  labelOffsetX?: number;
+  labelOffsetY?: number;
+  labelAlignment?: "left" | "center" | "right";
+  labelBaseline?: CanvasTextBaseline;
+  labelFontSize?: number;
 }
 
 /**
