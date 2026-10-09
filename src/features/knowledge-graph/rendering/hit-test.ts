@@ -9,6 +9,8 @@ import type { ViewportTransform, GraphNode } from "../types";
  * - Operates ONLY on the active UniverseScene.
  * - Nodes not in the visible scene cannot be hit-tested.
  * - Provides comfortable hit area (radius + padding, min 24px) for desktop clicks and mobile taps.
+ * - Matches hit-radius coordinates to the renderer: WebGL bodies stay CSS-sized while Canvas
+ *   bodies scale with the camera.
  * - Respects hierarchy: focus first, then primary, then context.
  */
 export function hitTestUniverseNode(
@@ -16,7 +18,8 @@ export function hitTestUniverseNode(
   clientX: number,
   clientY: number,
   canvasRect: DOMRect,
-  transform: ViewportTransform
+  transform: ViewportTransform,
+  webglRendererAvailable = false
 ): UniverseNode | null {
   const { x, y, k } = transform;
   if (!k || k <= 0) return null;
@@ -32,8 +35,10 @@ export function hitTestUniverseNode(
 
   for (const node of orderedNodes) {
     if (typeof node.x !== "number" || typeof node.y !== "number") continue;
-    // Generous hit target: node.radius + 12, minimum 24px
-    const effectiveHitRadius = Math.max(node.radius + 12, 24);
+    // WebGL projects body centers with `k` but keeps each body's radius in CSS pixels.
+    // Convert its screen-space hit area back to world coordinates; Canvas bodies scale
+    // with `k`, so retain their existing world-space hit area.
+    const effectiveHitRadius = Math.max(node.radius + 12, 24) / (webglRendererAvailable ? k : 1);
     const dx = node.x - worldX;
     const dy = node.y - worldY;
 

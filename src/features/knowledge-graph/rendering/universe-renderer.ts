@@ -1,6 +1,15 @@
 import type { UniverseNode, UniverseScene } from "../scene/types";
 import type { ViewportTransform } from "../types";
 import {
+  calculateRelationshipGeometry,
+  getRelationshipBoundaryRadius,
+  quadraticPointAt,
+  quadraticTangentAt,
+  screenPixelsToWorldUnits,
+  type RelationshipPathGeometry,
+} from "./relationship-path";
+export { calculateRelationshipGeometry } from "./relationship-path";
+import {
   getFocusGlowSprite,
   getPrimaryGlowSprite,
   getContextGlowSprite,
@@ -56,18 +65,6 @@ function generateDeterministicStars(count: number, seed: number): readonly StarP
 const DESKTOP_STARS = generateDeterministicStars(110, 42);
 const MOBILE_STARS = generateDeterministicStars(50, 42);
 
-export interface RelationshipPathGeometry {
-  readonly dx: number;
-  readonly dy: number;
-  readonly dist: number;
-  readonly cx: number;
-  readonly cy: number;
-  readonly termT: number;
-  readonly termX: number;
-  readonly termY: number;
-  readonly tangentAngle: number;
-}
-
 export interface RelationshipStyleConfig {
   readonly isFocus: boolean;
   readonly isIncident: boolean;
@@ -81,49 +78,6 @@ export interface RelationshipStyleConfig {
   readonly tickLength: number;
   readonly sparkRadius: number;
   readonly renderLabel: boolean;
-}
-
-/**
- * Calculates geometric coordinates and tangent angles for a curved relationship path.
- */
-export function calculateRelationshipGeometry(
-  source: { readonly x: number; readonly y: number },
-  target: { readonly x: number; readonly y: number; readonly radius?: number },
-  curvature: number
-): RelationshipPathGeometry | null {
-  const dx = target.x - source.x;
-  const dy = target.y - source.y;
-  const dist = Math.hypot(dx, dy);
-  if (
-    dist < 1 ||
-    !Number.isFinite(dist) ||
-    !Number.isFinite(source.x) ||
-    !Number.isFinite(source.y) ||
-    !Number.isFinite(target.x) ||
-    !Number.isFinite(target.y)
-  ) {
-    return null;
-  }
-
-  const nx = -dy / dist;
-  const ny = dx / dist;
-  const mx = (source.x + target.x) / 2;
-  const my = (source.y + target.y) / 2;
-  const cx = mx + nx * dist * curvature;
-  const cy = my + ny * dist * curvature;
-
-  const targetRadius = typeof target.radius === "number" ? target.radius : 18;
-  const termT = Math.max(0.65, Math.min(0.89, 1 - (targetRadius + 12) / dist));
-
-  const omt = 1 - termT;
-  const termX = omt * omt * source.x + 2 * omt * termT * cx + termT * termT * target.x;
-  const termY = omt * omt * source.y + 2 * omt * termT * cy + termT * termT * target.y;
-
-  const tx = 2 * omt * (cx - source.x) + 2 * termT * (target.x - cx);
-  const ty = 2 * omt * (cy - source.y) + 2 * termT * (target.y - cy);
-  const tangentAngle = Math.atan2(ty, tx);
-
-  return { dx, dy, dist, cx, cy, termT, termX, termY, tangentAngle };
 }
 
 /**
@@ -218,12 +172,18 @@ function formatHaloColor(paletteHalo: string, targetAlpha: number): string {
 function renderDirectionalLightCue(
   ctx: CanvasRenderingContext2D,
   geom: RelationshipPathGeometry,
-  style: RelationshipStyleConfig
+  style: RelationshipStyleConfig,
+  zoomK: number
 ): void {
-  if (style.cueAlpha <= 0.01) return;
+  const cue = geom.cue;
+  if (!cue || style.cueAlpha <= 0.01) return;
 
-  const { termX, termY, tangentAngle } = geom;
-  const { tickLength, sparkRadius, isFocus, isIncident, cueAlpha } = style;
+  const { x: termX, y: termY } = cue.point;
+  const { angle: tangentAngle } = cue;
+  const { isFocus, isIncident, cueAlpha } = style;
+  const tickLength = screenPixelsToWorldUnits(style.tickLength, zoomK);
+  const sparkRadius = screenPixelsToWorldUnits(style.sparkRadius, zoomK);
+  if (tickLength === null || sparkRadius === null) return;
 
   const wingAngle = 0.4;
   const leftX = termX - Math.cos(tangentAngle - wingAngle) * tickLength;
@@ -240,7 +200,8 @@ function renderDirectionalLightCue(
     isFocus || isIncident
       ? `rgba(224, 242, 254, ${cueAlpha.toFixed(2)})`
       : `rgba(165, 243, 252, ${cueAlpha.toFixed(2)})`;
-  ctx.lineWidth = isFocus ? (isIncident ? 1.3 : 1.1) : isIncident ? 1.0 : 0.8;
+  const cueWidth = isFocus ? (isIncident ? 1.3 : 1.1) : isIncident ? 1.0 : 0.8;
+  ctx.lineWidth = screenPixelsToWorldUnits(cueWidth, zoomK) ?? 0;
   ctx.stroke();
 
   if (sparkRadius > 0) {
@@ -257,50 +218,70 @@ function renderDirectionalLightCue(
 function renderRelationshipTypeBadge(
   ctx: CanvasRenderingContext2D,
   rel: { readonly type: string },
-  source: { readonly x: number; readonly y: number; readonly radius?: number },
-  target: { readonly x: number; readonly y: number; readonly radius?: number },
-  cx: number,
-  cy: number,
-  style: RelationshipStyleConfig
+  source: { readonly x: number; readonly y: number; readonly radius: number },
+  target: { readonly x: number; readonly y: number; readonly radius: number },
+  geom: RelationshipPathGeometry,
+  style: RelationshipStyleConfig,
+  zoomK: number
 ): void {
   if (!style.renderLabel || style.opacity <= 0.01) return;
 
-  const t = 0.5;
-  const omt = 0.5;
-  const mx = omt * omt * source.x + 2 * omt * t * cx + t * t * target.x;
-  const my = omt * omt * source.y + 2 * omt * t * cy + t * t * target.y;
+  const midpoint = quadraticPointAt(geom.path, 0.5);
+  const mx = midpoint.x;
+  const my = midpoint.y;
 
-  const sourceRad = source.radius ?? 18;
-  const targetRad = target.radius ?? 18;
   const dSrc = Math.hypot(mx - source.x, my - source.y);
   const dTgt = Math.hypot(mx - target.x, my - target.y);
-  if (dSrc < sourceRad + 16 || dTgt < targetRad + 16) {
+  const bodyClearance = screenPixelsToWorldUnits(16, zoomK);
+  if (
+    bodyClearance === null ||
+    dSrc < source.radius + bodyClearance ||
+    dTgt < target.radius + bodyClearance
+  ) {
     return;
   }
 
-  const tx = 2 * omt * (cx - source.x) + 2 * t * (target.x - cx);
-  const ty = 2 * omt * (cy - source.y) + 2 * t * (target.y - cy);
+  const tangent = quadraticTangentAt(geom.path, 0.5);
+  const tx = tangent.x;
+  const ty = tangent.y;
   const tLen = Math.hypot(tx, ty);
   if (tLen < 0.001) return;
 
   const nx = -ty / tLen;
   const ny = tx / tLen;
 
-  const offsetDistance = 9;
+  const offsetDistance = screenPixelsToWorldUnits(9, zoomK);
+  const fontSize = screenPixelsToWorldUnits(9, zoomK);
+  const badgePadding = screenPixelsToWorldUnits(8, zoomK);
+  const badgeHeight = screenPixelsToWorldUnits(13, zoomK);
+  const cornerRadius = screenPixelsToWorldUnits(3, zoomK);
+  const borderWidth = screenPixelsToWorldUnits(0.8, zoomK);
+  const textBaselineOffset = screenPixelsToWorldUnits(0.5, zoomK);
+  if (
+    offsetDistance === null ||
+    fontSize === null ||
+    badgePadding === null ||
+    badgeHeight === null ||
+    cornerRadius === null ||
+    borderWidth === null ||
+    textBaselineOffset === null
+  ) {
+    return;
+  }
   const bx = mx + nx * offsetDistance;
   const by = my + ny * offsetDistance;
 
   const label = rel.type.toLowerCase().trim();
   ctx.save();
-  ctx.font = "9px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.font = `${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
   const metrics = ctx.measureText(label);
   const textWidth = metrics.width;
-  const badgeW = textWidth + 8;
-  const badgeH = 13;
-  const radius = 3;
+  const badgeW = textWidth + badgePadding;
+  const badgeH = badgeHeight;
+  const radius = cornerRadius;
 
   ctx.beginPath();
   const left = bx - badgeW / 2;
@@ -317,14 +298,14 @@ function renderRelationshipTypeBadge(
 
   const borderAlpha = (style.isIncident ? 0.45 * style.opacity : 0.2 * style.opacity).toFixed(2);
   ctx.strokeStyle = `rgba(56, 189, 248, ${borderAlpha})`;
-  ctx.lineWidth = 0.8;
+  ctx.lineWidth = borderWidth;
   ctx.stroke();
 
   const textAlpha = (style.isIncident ? 0.95 * style.opacity : 0.75 * style.opacity).toFixed(2);
   ctx.fillStyle = style.isIncident
     ? `rgba(240, 249, 255, ${textAlpha})`
     : `rgba(224, 242, 254, ${textAlpha})`;
-  ctx.fillText(label, bx, by + 0.5);
+  ctx.fillText(label, bx, by + textBaselineOffset);
   ctx.restore();
 }
 
@@ -350,14 +331,26 @@ export function renderUniverseScene(
   scene: UniverseScene,
   options: UniverseRenderOptions = {}
 ): void {
-  const effectiveDpr = Math.min(
-    typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
-    2
-  );
+  const reportedDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+  const effectiveDpr =
+    Number.isFinite(reportedDpr) && reportedDpr > 0 ? Math.min(reportedDpr, 2) : 1;
   const { hoveredNodeId = null, isMobile = scene.isMobile } = options;
+  const clearWidth = Number.isFinite(width) ? Math.max(0, width) : 0;
+  const clearHeight = Number.isFinite(height) ? Math.max(0, height) : 0;
 
   ctx.save();
-  ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, clearWidth, clearHeight);
+  if (
+    clearWidth <= 0 ||
+    clearHeight <= 0 ||
+    !Number.isFinite(transform.k) ||
+    transform.k <= 0 ||
+    !Number.isFinite(transform.x) ||
+    !Number.isFinite(transform.y)
+  ) {
+    ctx.restore();
+    return;
+  }
 
   // 1. Static Screen-Space Celestial Atmosphere (Deep Space)
   // Drawn BEFORE camera translate/scale so stars remain stationary in deep space during interaction
@@ -389,6 +382,7 @@ export function renderUniverseScene(
   // 2. Render Refined Relationship Light Paths
   const activeHighlightNodeId = hoveredNodeId || options.focusedNodeId || null;
   const hasActiveInteraction = Boolean(activeHighlightNodeId);
+  const skipBodies = options.skipBodyRendering ?? false;
 
   // Partition/sort relationships: background context connections first,
   // focus connections second, incident connections last (on top).
@@ -419,7 +413,29 @@ export function renderUniverseScene(
     const target = nodeMap.get(rel.targetId);
     if (!source || !target) continue;
 
-    const geom = calculateRelationshipGeometry(source, target, rel.curvature);
+    // The production orthographic camera maps one world unit to one CSS pixel.
+    // Its WebGL sphere radius remains `node.radius` at every zoom, while this
+    // Canvas path is scaled by `transform.k`; convert only the WebGL boundary.
+    const sourceBoundaryRadius = getRelationshipBoundaryRadius(
+      source.radius,
+      transform.k,
+      skipBodies
+    );
+    const targetBoundaryRadius = getRelationshipBoundaryRadius(
+      target.radius,
+      transform.k,
+      skipBodies
+    );
+    if (sourceBoundaryRadius === null || targetBoundaryRadius === null) continue;
+    const sourceEndpoint = { ...source, radius: sourceBoundaryRadius };
+    const targetEndpoint = { ...target, radius: targetBoundaryRadius };
+
+    const geom = calculateRelationshipGeometry(
+      sourceEndpoint,
+      targetEndpoint,
+      rel.curvature,
+      transform.k
+    );
     if (!geom) continue;
 
     const isIncident = Boolean(
@@ -434,7 +450,7 @@ export function renderUniverseScene(
       isIncident,
       hasActiveInteraction,
       isMobile,
-      dist: geom.dist,
+      dist: geom.centerDistance,
     });
 
     if (style.coreAlpha <= 0.005) {
@@ -443,13 +459,21 @@ export function renderUniverseScene(
 
     const sourcePalette = getConceptCelestialPalette(source.concept.id);
     const targetPalette = getConceptCelestialPalette(target.concept.id);
+    const haloWidth = screenPixelsToWorldUnits(style.haloWidth, transform.k);
+    const coreWidth = screenPixelsToWorldUnits(style.coreWidth, transform.k);
+    if (haloWidth === null || coreWidth === null) continue;
 
     ctx.save();
 
     // Pass 1: Atmospheric luminous halo
     if (style.haloAlpha > 0.01) {
       if (typeof ctx.createLinearGradient === "function") {
-        const grad = ctx.createLinearGradient(source.x, source.y, target.x, target.y);
+        const grad = ctx.createLinearGradient(
+          geom.path.start.x,
+          geom.path.start.y,
+          geom.path.end.x,
+          geom.path.end.y
+        );
         grad.addColorStop(0, formatHaloColor(sourcePalette.halo, style.haloAlpha));
         grad.addColorStop(1, formatHaloColor(targetPalette.halo, style.haloAlpha));
         ctx.strokeStyle = grad;
@@ -458,20 +482,35 @@ export function renderUniverseScene(
       }
 
       ctx.beginPath();
-      ctx.moveTo(source.x, source.y);
-      ctx.quadraticCurveTo(geom.cx, geom.cy, target.x, target.y);
-      ctx.lineWidth = style.haloWidth;
+      ctx.moveTo(geom.path.start.x, geom.path.start.y);
+      ctx.quadraticCurveTo(
+        geom.path.control.x,
+        geom.path.control.y,
+        geom.path.end.x,
+        geom.path.end.y
+      );
+      ctx.lineWidth = haloWidth;
       ctx.stroke();
     }
 
     // Pass 2: Fine, crisp luminous core trajectory
     ctx.beginPath();
-    ctx.moveTo(source.x, source.y);
-    ctx.quadraticCurveTo(geom.cx, geom.cy, target.x, target.y);
+    ctx.moveTo(geom.path.start.x, geom.path.start.y);
+    ctx.quadraticCurveTo(
+      geom.path.control.x,
+      geom.path.control.y,
+      geom.path.end.x,
+      geom.path.end.y
+    );
 
     if (style.isFocus || style.isIncident) {
       if (typeof ctx.createLinearGradient === "function") {
-        const coreGrad = ctx.createLinearGradient(source.x, source.y, target.x, target.y);
+        const coreGrad = ctx.createLinearGradient(
+          geom.path.start.x,
+          geom.path.start.y,
+          geom.path.end.x,
+          geom.path.end.y
+        );
         coreGrad.addColorStop(0, `rgba(240, 249, 255, ${style.coreAlpha.toFixed(2)})`);
         coreGrad.addColorStop(1, `rgba(224, 242, 254, ${style.coreAlpha.toFixed(2)})`);
         ctx.strokeStyle = coreGrad;
@@ -481,15 +520,23 @@ export function renderUniverseScene(
     } else {
       ctx.strokeStyle = `rgba(148, 163, 184, ${style.coreAlpha.toFixed(2)})`;
     }
-    ctx.lineWidth = style.coreWidth;
+    ctx.lineWidth = coreWidth;
     ctx.stroke();
 
     // Pass 3: Restrained directional terminal cue (sleek light dart & micro-spark)
-    renderDirectionalLightCue(ctx, geom, style);
+    renderDirectionalLightCue(ctx, geom, style, transform.k);
 
     // Pass 4: Concise relationship type badge
     if (style.renderLabel) {
-      renderRelationshipTypeBadge(ctx, rel, source, target, geom.cx, geom.cy, style);
+      renderRelationshipTypeBadge(
+        ctx,
+        rel,
+        sourceEndpoint,
+        targetEndpoint,
+        geom,
+        style,
+        transform.k
+      );
     }
 
     ctx.restore();
@@ -503,7 +550,6 @@ export function renderUniverseScene(
 
   // Draw order: context nodes (background) -> primary nodes (midground) -> focus node (foreground)
   const orderedNodes = [...scene.contextNodes, ...scene.primaryNodes, scene.focus];
-  const skipBodies = options.skipBodyRendering ?? false;
   const focusGlow = getFocusGlowSprite();
 
   // When 3D bodies are rendered in WebGL behind Canvas 2D, punch out node circles
@@ -514,9 +560,11 @@ export function renderUniverseScene(
     for (const node of orderedNodes) {
       if (typeof node.x !== "number" || typeof node.y !== "number") continue;
       const opacity = node.opacity ?? 1.0;
-      if (opacity <= 0.01) continue;
+      if (opacity <= 0.001) continue;
+      const bodyRadius = getRelationshipBoundaryRadius(node.radius, transform.k, true);
+      if (bodyRadius === null) continue;
       ctx.beginPath();
-      ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+      ctx.arc(node.x, node.y, bodyRadius, 0, 2 * Math.PI);
       ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
       ctx.fill();
     }

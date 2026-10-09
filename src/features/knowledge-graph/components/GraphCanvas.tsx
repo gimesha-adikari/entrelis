@@ -365,7 +365,14 @@ export default function GraphCanvas({
     if (!canvas) return null;
     const scene = currentSceneRef.current ?? targetScene;
     const rect = canvas.getBoundingClientRect();
-    return hitTestUniverseNode(scene, clientX, clientY, rect, transformRef.current);
+    return hitTestUniverseNode(
+      scene,
+      clientX,
+      clientY,
+      rect,
+      transformRef.current,
+      hasProductionRenderer
+    );
   };
 
   // Pointer event handlers (Desktop mouse)

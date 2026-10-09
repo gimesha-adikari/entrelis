@@ -47,9 +47,12 @@ function makeScene(focus: UniverseNode, others: readonly UniverseNode[] = []): U
   };
 }
 
-function makeBody(identity: CelestialIdentity) {
+function makeBody(identity: CelestialIdentity, baseRadius = 1) {
   const group = new THREE.Group();
-  const primaryMesh = new THREE.Mesh(new THREE.SphereGeometry(1), new THREE.MeshBasicMaterial());
+  const primaryMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(baseRadius),
+    new THREE.MeshBasicMaterial()
+  );
   group.add(primaryMesh);
 
   const body: CelestialBodyInstance = {
@@ -209,6 +212,58 @@ describe("production celestial scene controller", () => {
     const transform: ViewportTransform = { x: 10, y: -20, k: 2 };
 
     expect(projectUniverseNode(node, transform)).toEqual({ x: 210, y: 120 });
+  });
+
+  it("projects the production sphere to its CSS-pixel radius at every zoom and DPR", () => {
+    const originalDpr = window.devicePixelRatio;
+    const node = { ...makeNode("rust", "focus", 40, -20), radius: 34 };
+    const width = 800;
+    const height = 600;
+
+    try {
+      for (const dpr of [1, 2, 3]) {
+        Object.defineProperty(window, "devicePixelRatio", { value: dpr, configurable: true });
+        const renderer = makeRenderer();
+        let createdBody: ReturnType<typeof makeBody> | undefined;
+        controller = new ProductionCelestialController(document.createElement("canvas"), {
+          createRenderer: () => renderer,
+          createBody: (identity) => {
+            createdBody = makeBody(identity, 50);
+            return createdBody;
+          },
+        });
+
+        for (const zoom of [0.3, 0.6, 1, 3]) {
+          controller.update(makeScene(node), { x: 12, y: -8, k: zoom }, width, height, null);
+          const renderCall = vi.mocked(renderer.render).mock.calls.at(-1)!;
+          const renderedScene = renderCall[0];
+          const camera = renderCall[1];
+          const bodyGroup = renderedScene.children.find(
+            (child) => child.userData["conceptId"] === node.id
+          )!;
+          bodyGroup.updateMatrixWorld(true);
+          camera.updateMatrixWorld(true);
+          createdBody!.primaryMesh.geometry.computeBoundingSphere();
+          const sphereRadius =
+            createdBody!.primaryMesh.geometry.boundingSphere!.radius * bodyGroup.scale.x;
+          const center = new THREE.Vector3().setFromMatrixPosition(bodyGroup.matrixWorld);
+          const centerNdc = center.clone().project(camera);
+          const edgeNdc = center
+            .clone()
+            .add(new THREE.Vector3(sphereRadius, 0, 0))
+            .project(camera);
+          const projectedRadiusCssPx = Math.abs(edgeNdc.x - centerNdc.x) * (width / 2);
+
+          expect(bodyGroup.scale.x).toBeCloseTo(node.radius / 50, 7);
+          expect(projectedRadiusCssPx).toBeCloseTo(node.radius, 5);
+        }
+
+        controller.dispose();
+        controller = null;
+      }
+    } finally {
+      Object.defineProperty(window, "devicePixelRatio", { value: originalDpr, configurable: true });
+    }
   });
 
   it("reports an unavailable renderer when WebGL construction fails", () => {

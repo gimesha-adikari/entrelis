@@ -70,4 +70,149 @@ describe("hitTestUniverseNode", () => {
     const hit = hitTestUniverseNode(scene, 450, 280, canvasRect, zoomedTransform);
     expect(hit?.slug).toBe("rust");
   });
+
+  it("uses CSS client coordinates consistently in desktop and mobile viewports", () => {
+    for (const viewport of [
+      { width: 1440, height: 900, isMobile: false, left: 17, top: 23 },
+      { width: 390, height: 844, isMobile: true, left: 5, top: 11 },
+    ]) {
+      const viewportScene = layoutLocalUniverseScene(
+        buildLocalUniverseScene({
+          dataset: SEED_DATASET,
+          focusSlug: "rust",
+          isMobile: viewport.isMobile,
+        }),
+        {
+          viewportWidth: viewport.width,
+          viewportHeight: viewport.height,
+          isMobile: viewport.isMobile,
+        }
+      );
+      const primary = viewportScene.primaryNodes[0]!;
+      const canvasRect = {
+        left: viewport.left,
+        top: viewport.top,
+        width: viewport.width,
+        height: viewport.height,
+        right: viewport.left + viewport.width,
+        bottom: viewport.top + viewport.height,
+      } as DOMRect;
+      const camera = { x: 37, y: -21, k: 1.7 };
+      const clientX = viewport.left + viewport.width / 2 + camera.x + primary.x * camera.k;
+      const clientY = viewport.top + viewport.height / 2 + camera.y + primary.y * camera.k;
+
+      expect(hitTestUniverseNode(viewportScene, clientX, clientY, canvasRect, camera)?.id).toBe(
+        primary.id
+      );
+    }
+  });
+
+  it("keeps WebGL body hit padding in CSS pixels across zoom, viewport, and DPR", () => {
+    for (const viewport of [
+      { width: 1440, height: 900, left: 17, top: 23, isMobile: false },
+      { width: 390, height: 844, left: 5, top: 11, isMobile: true },
+      { width: 320, height: 700, left: 0, top: 0, isMobile: true },
+    ]) {
+      const focus = { ...scene.focus, radius: viewport.isMobile ? 24 : 34, x: 0, y: 0 };
+      const focusOnlyScene = {
+        ...scene,
+        focus,
+        primaryNodes: [],
+        contextNodes: [],
+        allNodes: [focus],
+      };
+
+      for (const devicePixelRatio of [1, 2, 3]) {
+        const backingWidth = viewport.width * devicePixelRatio;
+        const backingHeight = viewport.height * devicePixelRatio;
+        const cssWidth = backingWidth / devicePixelRatio;
+        const cssHeight = backingHeight / devicePixelRatio;
+        const canvasRect = {
+          left: viewport.left,
+          top: viewport.top,
+          width: cssWidth,
+          height: cssHeight,
+          right: viewport.left + cssWidth,
+          bottom: viewport.top + cssHeight,
+        } as DOMRect;
+
+        for (const k of [0.3, 0.6, 1, 3]) {
+          const camera = { x: 19, y: -13, k };
+          const centerX = viewport.left + canvasRect.width / 2 + camera.x + focus.x * camera.k;
+          const centerY = viewport.top + canvasRect.height / 2 + camera.y + focus.y * camera.k;
+
+          expect(
+            hitTestUniverseNode(
+              focusOnlyScene,
+              centerX + focus.radius,
+              centerY,
+              canvasRect,
+              camera,
+              true
+            )?.id,
+            `visible body rim at ${viewport.width}px, DPR ${devicePixelRatio}, k=${k}`
+          ).toBe(focus.id);
+          expect(
+            hitTestUniverseNode(
+              focusOnlyScene,
+              centerX + focus.radius + 11.5,
+              centerY,
+              canvasRect,
+              camera,
+              true
+            )?.id,
+            `within 12px padding at ${viewport.width}px, DPR ${devicePixelRatio}, k=${k}`
+          ).toBe(focus.id);
+          expect(
+            hitTestUniverseNode(
+              focusOnlyScene,
+              centerX + focus.radius + 12.5,
+              centerY,
+              canvasRect,
+              camera,
+              true
+            ),
+            `outside 12px padding at ${viewport.width}px, DPR ${devicePixelRatio}, k=${k}`
+          ).toBeNull();
+        }
+      }
+    }
+  });
+
+  it("keeps Canvas fallback hit targets attached to zoomed Canvas bodies", () => {
+    const focus = { ...scene.focus, radius: 34, x: 0, y: 0 };
+    const focusOnlyScene = {
+      ...scene,
+      focus,
+      primaryNodes: [],
+      contextNodes: [],
+      allNodes: [focus],
+    };
+
+    for (const k of [0.3, 0.6, 1, 3]) {
+      const camera = { x: 0, y: 0, k };
+      const centerX = canvasRect.width / 2;
+      const centerY = canvasRect.height / 2;
+      const fallbackHitRadius = Math.max(focus.radius + 12, 24) * k;
+
+      expect(
+        hitTestUniverseNode(
+          focusOnlyScene,
+          centerX + fallbackHitRadius - 0.1,
+          centerY,
+          canvasRect,
+          camera
+        )?.id
+      ).toBe(focus.id);
+      expect(
+        hitTestUniverseNode(
+          focusOnlyScene,
+          centerX + fallbackHitRadius + 0.1,
+          centerY,
+          canvasRect,
+          camera
+        )
+      ).toBeNull();
+    }
+  });
 });

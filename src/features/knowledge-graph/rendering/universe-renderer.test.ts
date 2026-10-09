@@ -1,10 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  calculateRelationshipGeometry,
-  getRelationshipStyleConfig,
-  renderUniverseScene,
-} from "./universe-renderer";
+import { getRelationshipStyleConfig, renderUniverseScene } from "./universe-renderer";
 import type { UniverseNode, UniverseScene } from "../scene/types";
+import { calculateRelationshipGeometry } from "./relationship-path";
 import { interpolateScenes } from "../scene/transition-scene";
 import { SEED_DATASET } from "@/data/seed";
 import type { RelationshipType } from "@/domain/knowledge/types";
@@ -46,6 +43,8 @@ function createMockUniverseScene(
     relOpacity?: number;
     relType?: RelationshipType;
     isMobile?: boolean;
+    targetX?: number;
+    targetY?: number;
   } = {}
 ): UniverseScene {
   const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
@@ -72,8 +71,8 @@ function createMockUniverseScene(
     role: "primary",
     visualMass: 0.65,
     radius: 18,
-    x: -140,
-    y: 50,
+    x: options.targetX ?? -140,
+    y: options.targetY ?? 50,
     opacity: 1,
   };
 
@@ -154,41 +153,114 @@ describe("renderUniverseScene compositing and layer options", () => {
 
     expect(gcoAssignments).toContain("destination-out");
   });
+
+  it("draws relationship paths from one physical body boundary to the other", () => {
+    const ctx = createMockContext();
+    const source = scene.allNodes.find((node) => node.id === scene.relationships[0]?.sourceId)!;
+    const target = scene.allNodes.find((node) => node.id === scene.relationships[0]?.targetId)!;
+
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBackgroundStars: true,
+      skipBodyRendering: true,
+    });
+
+    const start = (ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const end = (ctx.quadraticCurveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(Math.hypot(start[0]! - source.x, start[1]! - source.y)).toBeCloseTo(source.radius, 5);
+    expect(Math.hypot(end[2]! - target.x, end[3]! - target.y)).toBeCloseTo(target.radius, 5);
+  });
+
+  it("anchors to the current interpolated focus radius during a role transition", () => {
+    const fromScene = createMockUniverseScene();
+    const widenedFocus = { ...fromScene.focus, radius: 48 };
+    const toScene: UniverseScene = {
+      ...fromScene,
+      focus: widenedFocus,
+      allNodes: [widenedFocus, ...fromScene.allNodes.filter((node) => node.id !== widenedFocus.id)],
+    };
+    const displayedScene = interpolateScenes(fromScene, toScene, 0.5);
+    const ctx = createMockContext();
+
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, displayedScene, {
+      skipBackgroundStars: true,
+      skipBodyRendering: true,
+    });
+
+    const start = (ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(displayedScene.focus.radius).not.toBe(fromScene.focus.radius);
+    expect(
+      Math.hypot(start[0]! - displayedScene.focus.x, start[1]! - displayedScene.focus.y)
+    ).toBeCloseTo(displayedScene.focus.radius, 5);
+  });
+
+  it("places the target marker on the clipped curve and follows its forward tangent", () => {
+    const ctx = createMockContext();
+    const relationship = scene.relationships[0]!;
+    const source = scene.allNodes.find((node) => node.id === relationship.sourceId)!;
+    const target = scene.allNodes.find((node) => node.id === relationship.targetId)!;
+    const geometry = calculateRelationshipGeometry(source, target, relationship.curvature, 1)!;
+
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+    });
+
+    const cueVertex = (ctx.lineTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    const spark = (ctx.arc as ReturnType<typeof vi.fn>).mock.calls[0]!;
+    expect(cueVertex[0]).toBeCloseTo(geometry.cue!.point.x, 7);
+    expect(cueVertex[1]).toBeCloseTo(geometry.cue!.point.y, 7);
+    expect(spark[0]).toBeCloseTo(geometry.cue!.point.x, 7);
+    expect(spark[1]).toBeCloseTo(geometry.cue!.point.y, 7);
+  });
 });
 
-describe("Relationship Path Geometry & Directionality", () => {
-  it("calculates valid bezier control points and terminal cues for valid endpoints", () => {
-    const source = { x: 0, y: 0 };
-    const target = { x: 120, y: 50, radius: 18 };
-    const geom = calculateRelationshipGeometry(source, target, 0.2);
+describe("Relationship screen-space sizing", () => {
+  const scene = createMockUniverseScene({ targetX: -300, targetY: 50 });
 
-    expect(geom).not.toBeNull();
-    expect(geom!.dist).toBeCloseTo(130, 1);
-    expect(geom!.cx).not.toBe(60); // Curved control point offset from chord midpoint
-    expect(geom!.termT).toBeGreaterThanOrEqual(0.65);
-    expect(geom!.termT).toBeLessThanOrEqual(0.89);
-    // Target-oriented terminal point must be closer to target than source
-    const distToTarget = Math.hypot(geom!.termX - target.x, geom!.termY - target.y);
-    const distToSource = Math.hypot(geom!.termX - source.x, geom!.termY - source.y);
-    expect(distToTarget).toBeLessThan(distToSource);
-  });
+  it.each([0.3, 0.6, 1, 3])("keeps strokes and badges the same CSS size at zoom %s", (zoom) => {
+    for (const dpr of [1, 2]) {
+      const ctx = createMockContext();
+      let lineWidth = 1;
+      const assignedLineWidths: number[] = [];
+      let font = "10px sans-serif";
+      const assignedFonts: string[] = [];
+      Object.defineProperty(ctx, "lineWidth", {
+        get: () => lineWidth,
+        set: (value: number) => {
+          lineWidth = value;
+          assignedLineWidths.push(value);
+        },
+        configurable: true,
+      });
+      Object.defineProperty(ctx, "font", {
+        get: () => font,
+        set: (value: string) => {
+          font = value;
+          assignedFonts.push(value);
+        },
+        configurable: true,
+      });
+      ctx.measureText = vi.fn(() => ({ width: 40 / zoom }) as TextMetrics);
+      Object.defineProperty(window, "devicePixelRatio", { value: dpr, configurable: true });
 
-  it("safely handles degenerate (<1px) or non-finite coordinates by returning null", () => {
-    expect(calculateRelationshipGeometry({ x: 0, y: 0 }, { x: 0, y: 0 }, 0.2)).toBeNull();
-    expect(calculateRelationshipGeometry({ x: NaN, y: 0 }, { x: 100, y: 50 }, 0.2)).toBeNull();
-    expect(calculateRelationshipGeometry({ x: 0, y: 0 }, { x: Infinity, y: 50 }, 0.2)).toBeNull();
-  });
+      renderUniverseScene(ctx, 800 * dpr, 600 * dpr, { x: 0, y: 0, k: zoom }, scene, {
+        skipBackgroundStars: true,
+        skipBodyRendering: true,
+      });
 
-  it("adjusts terminal placement adaptively according to target radius", () => {
-    const source = { x: 0, y: 0 };
-    const smallTarget = { x: 200, y: 0, radius: 12 };
-    const largeTarget = { x: 200, y: 0, radius: 34 };
-
-    const geomSmall = calculateRelationshipGeometry(source, smallTarget, 0.15)!;
-    const geomLarge = calculateRelationshipGeometry(source, largeTarget, 0.15)!;
-
-    // Larger target means terminal marker stops earlier along curve so it doesn't enter the body
-    expect(geomLarge.termT).toBeLessThan(geomSmall.termT);
+      expect(assignedLineWidths[0]! * zoom).toBeCloseTo(3.4, 5);
+      expect(assignedLineWidths[1]! * zoom).toBeCloseTo(1.2, 5);
+      expect(assignedLineWidths[2]! * zoom).toBeCloseTo(1.1, 5);
+      expect(Number.parseFloat(assignedFonts[0]!) * zoom).toBeCloseTo(9, 5);
+      const badge = (ctx.roundRect as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      expect(badge[2]! * zoom).toBeCloseTo(48, 5);
+      expect(badge[3]! * zoom).toBeCloseTo(13, 5);
+      expect((ctx.scale as ReturnType<typeof vi.fn>).mock.calls[0]).toEqual([
+        zoom * dpr,
+        zoom * dpr,
+      ]);
+    }
+    Object.defineProperty(window, "devicePixelRatio", { value: 1, configurable: true });
   });
 });
 
@@ -430,6 +502,7 @@ describe("Relationship Transition Opacity & Lifecycle (GIM-31)", () => {
       isMobile: false,
       skipBackgroundStars: true,
       skipBodyRendering: true,
+      skipNodeRendering: true,
     });
 
     // When opacity is 0, no bezier curves or relationship badge labels should be drawn
@@ -439,6 +512,9 @@ describe("Relationship Transition Opacity & Lifecycle (GIM-31)", () => {
     const fillTextCalls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls;
     const hasRelationshipBadge = fillTextCalls.some((call) => call[0] === "uses");
     expect(hasRelationshipBadge).toBe(false);
+    expect((ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect((ctx.lineTo as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
+    expect((ctx.arc as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
   });
 
   it("handles entering and departing relationships across scene transitions seamlessly", () => {
@@ -472,5 +548,144 @@ describe("Relationship Transition Opacity & Lifecycle (GIM-31)", () => {
     expect((ctxMid.quadraticCurveTo as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(
       0
     );
+  });
+});
+
+describe("WebGL-projected relationship boundaries", () => {
+  const baseScene = createMockUniverseScene();
+  const source = baseScene.focus;
+  const target = { ...baseScene.primaryNodes[0]!, x: -300, y: 50 };
+  const separatedScene: UniverseScene = {
+    ...baseScene,
+    primaryNodes: [target],
+    allNodes: [source, target],
+  };
+
+  it.each([0.3, 0.6, 1, 3])(
+    "projects WebGL path endpoints and masks onto the sphere at k=%s across DPRs",
+    (zoom) => {
+      for (const dpr of [1, 2, 3]) {
+        const effectiveDpr = Math.min(dpr, 2);
+        Object.defineProperty(window, "devicePixelRatio", { value: dpr, configurable: true });
+        const ctx = createMockContext();
+
+        renderUniverseScene(
+          ctx,
+          800 * effectiveDpr,
+          600 * effectiveDpr,
+          { x: 21, y: -13, k: zoom },
+          separatedScene,
+          { skipBackgroundStars: true, skipBodyRendering: true }
+        );
+
+        const pathStart = (ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+        const pathEnd = (ctx.quadraticCurveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+        const startWorldDistance = Math.hypot(pathStart[0]! - source.x, pathStart[1]! - source.y);
+        const endWorldDistance = Math.hypot(pathEnd[2]! - target.x, pathEnd[3]! - target.y);
+        const startCssDistance = startWorldDistance * zoom;
+        const endCssDistance = endWorldDistance * zoom;
+        const startBackingDistance = startCssDistance * effectiveDpr;
+        const endBackingDistance = endCssDistance * effectiveDpr;
+
+        expect(startCssDistance, `source radius at DPR ${dpr}`).toBeCloseTo(source.radius, 5);
+        expect(endCssDistance, `target radius at DPR ${dpr}`).toBeCloseTo(target.radius, 5);
+        expect(startBackingDistance / effectiveDpr).toBeCloseTo(source.radius, 5);
+        expect(endBackingDistance / effectiveDpr).toBeCloseTo(target.radius, 5);
+        expect(startBackingDistance).toBeCloseTo(source.radius * effectiveDpr, 5);
+        expect(endBackingDistance).toBeCloseTo(target.radius * effectiveDpr, 5);
+
+        const sourceMask = (ctx.arc as ReturnType<typeof vi.fn>).mock.calls.find(
+          (call) => call[0] === source.x && call[1] === source.y
+        );
+        const targetMask = (ctx.arc as ReturnType<typeof vi.fn>).mock.calls.find(
+          (call) => call[0] === target.x && call[1] === target.y
+        );
+        expect(sourceMask?.[2]).toBeDefined();
+        expect((sourceMask?.[2] ?? Number.NaN) * zoom, `source mask at DPR ${dpr}`).toBeCloseTo(
+          source.radius,
+          5
+        );
+        expect(targetMask?.[2]).toBeDefined();
+        expect((targetMask?.[2] ?? Number.NaN) * zoom, `target mask at DPR ${dpr}`).toBeCloseTo(
+          target.radius,
+          5
+        );
+      }
+    }
+  );
+
+  it.each([0.3, 0.6, 1, 3])(
+    "keeps Canvas-only body and path projection consistent at k=%s",
+    (zoom) => {
+      const ctx = createMockContext();
+      renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: zoom }, separatedScene, {
+        skipBackgroundStars: true,
+      });
+
+      const pathStart = (ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const pathEnd = (ctx.quadraticCurveTo as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      expect(Math.hypot(pathStart[0]! - source.x, pathStart[1]! - source.y)).toBeCloseTo(
+        source.radius,
+        5
+      );
+      expect(Math.hypot(pathEnd[2]! - target.x, pathEnd[3]! - target.y)).toBeCloseTo(
+        target.radius,
+        5
+      );
+    }
+  );
+
+  it("keeps a WebGL body masked throughout its visible opacity fade", () => {
+    const fadingSource = { ...source, opacity: 0.005 };
+    const fadingScene: UniverseScene = {
+      ...separatedScene,
+      focus: fadingSource,
+      allNodes: [fadingSource, target],
+    };
+    const ctx = createMockContext();
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, fadingScene, {
+      skipBackgroundStars: true,
+      skipBodyRendering: true,
+    });
+
+    const sourceMask = (ctx.arc as ReturnType<typeof vi.fn>).mock.calls.find(
+      (call) => call[0] === fadingSource.x && call[1] === fadingSource.y
+    );
+    expect(sourceMask?.[2]).toBeCloseTo(fadingSource.radius, 5);
+  });
+
+  it("suppresses a strand when zoom makes the WebGL body boundaries overlap", () => {
+    const closeTarget = { ...target, x: -100, y: 0 };
+    const closeScene: UniverseScene = {
+      ...separatedScene,
+      primaryNodes: [closeTarget],
+      allNodes: [source, closeTarget],
+    };
+    const hybrid = createMockContext();
+    renderUniverseScene(hybrid, 800, 600, { x: 0, y: 0, k: 0.3 }, closeScene, {
+      skipBackgroundStars: true,
+      skipBodyRendering: true,
+      skipNodeRendering: true,
+    });
+    expect(hybrid.moveTo).not.toHaveBeenCalled();
+
+    const canvasOnly = createMockContext();
+    renderUniverseScene(canvasOnly, 800, 600, { x: 0, y: 0, k: 0.3 }, closeScene, {
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+    });
+    expect(canvasOnly.moveTo).toHaveBeenCalled();
+  });
+
+  it("uses projected sphere radius and CSS clearance before placing relationship badges", () => {
+    const closeScene = createMockUniverseScene({ targetX: -260, targetY: 50 });
+    const ctx = createMockContext();
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 0.3 }, closeScene, {
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      skipBodyRendering: true,
+    });
+
+    expect(ctx.roundRect).not.toHaveBeenCalled();
   });
 });
