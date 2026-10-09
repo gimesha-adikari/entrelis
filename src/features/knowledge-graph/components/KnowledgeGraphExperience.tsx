@@ -100,22 +100,24 @@ export default function KnowledgeGraphExperience({
         <p className={styles.brandTagline}>Everything is connected</p>
       </header>
 
-      {/* Main 2D Canvas viewport */}
-      <GraphCanvas
-        dataset={dataset}
-        index={index}
-        selectedConceptSlug={selectedSlug}
-        onSelectConcept={selectConcept}
-        onResetCamera={handleResetCamera}
-      />
+      <main className={styles.mainContent}>
+        {/* Main 2D Canvas viewport */}
+        <GraphCanvas
+          dataset={dataset}
+          index={index}
+          selectedConceptSlug={selectedSlug}
+          onSelectConcept={selectConcept}
+          onResetCamera={handleResetCamera}
+        />
 
-      {/* Semantic Right / Lower Detail Panel */}
-      <ConceptPanel
-        concept={selectedConcept}
-        dataset={dataset}
-        index={index}
-        onSelectConcept={selectConcept}
-      />
+        {/* Semantic Right / Lower Detail Panel */}
+        <ConceptPanel
+          concept={selectedConcept}
+          dataset={dataset}
+          index={index}
+          onSelectConcept={selectConcept}
+        />
+      </main>
     </div>
   );
 }

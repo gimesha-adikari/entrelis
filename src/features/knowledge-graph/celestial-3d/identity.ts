@@ -82,7 +82,7 @@ export const ENTRELIS_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdent
     paletteVariant: 0,
     // Deep blue/cyan/violet bands, cyclonic storm, atmosphere shell
   },
-  "stack-heap": {
+  "stack-and-heap": {
     archetype: "mineral-rocky",
     seed: 512,
     paletteVariant: 0,

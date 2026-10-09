@@ -32,6 +32,20 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(screen.getByText(/Selected concept: Rust/i)).toBeDefined();
   });
 
+  it("provides one main landmark while preserving the brand and concept-panel landmarks", () => {
+    const { container } = render(
+      <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />
+    );
+
+    expect(screen.getAllByRole("main")).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: "Entrelis", level: 1 })).toBeDefined();
+    expect(screen.getByRole("complementary", { name: "Selected Concept Details" })).toBeDefined();
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+    expect(container.querySelector("canvas")?.getAttribute("aria-hidden")).toBe("true");
+    expect(screen.getByRole("button", { name: /Return to Rust/i })).toBeDefined();
+    expect(screen.getByRole("button", { name: "Zoom in" })).toBeDefined();
+  });
+
   it("keeps one production WebGL canvas and accessible concept controls with stable 3D identities", () => {
     const { container } = render(
       <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />

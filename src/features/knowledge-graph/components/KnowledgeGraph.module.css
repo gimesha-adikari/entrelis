@@ -9,6 +9,13 @@
   position: relative;
 }
 
+.mainContent {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
 .canvasArea {
   flex: 1;
   height: 100%;
@@ -645,6 +652,10 @@
 /* Mobile responsive adjustments (<= 768px / 375x812) */
 @media (max-width: 768px) {
   .container {
+    flex-direction: column;
+  }
+
+  .mainContent {
     flex-direction: column;
   }
 
