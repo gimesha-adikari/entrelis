@@ -120,4 +120,77 @@ describe("Spatial Controls & Accessible Navigation", () => {
     ownershipBtn.blur();
     expect(document.activeElement).not.toBe(ownershipBtn);
   });
+
+  it("fully resets from non-Rust concept with panned/zoomed scene to Rust, '/', {x:0, y:0, k:1}, and re-enabled zoom controls", () => {
+    window.history.replaceState({ slug: "ownership" }, "", "/concept/ownership");
+    const { container } = render(
+      <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="ownership" />
+    );
+
+    // Verify non-Rust concept loaded
+    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
+
+    const canvas = container.querySelector("canvas")!;
+    // Simulate panning via mouse drag
+    fireEvent.mouseDown(canvas, { clientX: 200, clientY: 200 });
+    fireEvent.mouseMove(canvas, { clientX: 280, clientY: 150 });
+    fireEvent.mouseUp(canvas, { clientX: 280, clientY: 150 });
+
+    // Simulate zooming in to limit
+    const zoomInBtn = screen.getByRole("button", { name: /Zoom in/i }) as HTMLButtonElement;
+    for (let i = 0; i < 7; i++) {
+      fireEvent.click(zoomInBtn);
+    }
+    expect(zoomInBtn.disabled).toBe(true);
+
+    // Helper to read current transformRef value from canvas fiber
+    const getTransform = (): { x: number; y: number; k: number } | null => {
+      const key = Object.keys(canvas).find((k) => k.startsWith("__reactFiber"))!;
+      let fiber = (canvas as unknown as Record<string, unknown>)[key] as
+        { memoizedState?: unknown; return?: unknown } | undefined;
+      while (fiber) {
+        let state = fiber.memoizedState as
+          | { memoizedState?: { current?: { k?: number; x?: number; y?: number } }; next?: unknown }
+          | undefined;
+        while (state) {
+          if (
+            state.memoizedState &&
+            typeof state.memoizedState.current === "object" &&
+            state.memoizedState.current &&
+            "k" in state.memoizedState.current
+          ) {
+            return state.memoizedState.current as { x: number; y: number; k: number };
+          }
+          state = state.next as typeof state;
+        }
+        fiber = fiber.return as typeof fiber;
+      }
+      return null;
+    };
+
+    const transformBefore = getTransform();
+    expect(transformBefore?.k).toBe(3);
+    expect(transformBefore?.x).not.toBe(0);
+
+    // 1. Activate Home via click / keyboard
+    const homeBtn = screen.getByRole("button", { name: /Return to Rust/i });
+    fireEvent.click(homeBtn);
+
+    // 2. Selected concept becomes Rust
+    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+
+    // 3. Confirm URL becomes "/"
+    expect(window.location.pathname).toBe("/");
+
+    // 4. Confirm transform is strictly {x: 0, y: 0, k: 1}
+    const transformAfter = getTransform();
+    expect(transformAfter?.x).toBe(0);
+    expect(transformAfter?.y).toBe(0);
+    expect(transformAfter?.k).toBe(1);
+
+    // 5. Confirm zoom buttons are re-enabled appropriately
+    expect(zoomInBtn.disabled).toBe(false);
+    const zoomOutBtn = screen.getByRole("button", { name: /Zoom out/i }) as HTMLButtonElement;
+    expect(zoomOutBtn.disabled).toBe(false);
+  });
 });

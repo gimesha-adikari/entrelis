@@ -512,6 +512,7 @@ export default function GraphCanvas({
         transformRef.current.k = newK;
         lastPinchDistRef.current = currentDist;
         lastPinchMidpointRef.current = currentMidpoint;
+        setZoomK(newK);
         draw();
       }
     }
