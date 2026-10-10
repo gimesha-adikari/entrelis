@@ -160,7 +160,7 @@ describe("layoutLocalUniverseScene", () => {
     });
 
     // Mobile focal position centered or elevated slightly for bottom panel
-    expect(laidOut.focus.x).toBe(0);
+    expect(laidOut.focus.x).toBeCloseTo(0);
 
     // Radii on mobile should be more compact than desktop
     for (const primary of laidOut.primaryNodes) {
@@ -260,5 +260,22 @@ describe("layoutLocalUniverseScene", () => {
     expect(desktopLaidOut.allNodes.length).toBeLessThanOrEqual(10);
     expect(mobileLaidOut.focus.x).toBe(0);
     expect(desktopLaidOut.focus.x).toBe(-100);
+  });
+});
+
+describe("narrow desktop observatory composition", () => {
+  it("keeps the selected celestial near the center when the dock leaves a narrow universe view", () => {
+    const scene = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "stack-and-heap",
+      isMobile: false,
+    });
+    const laidOut = layoutLocalUniverseScene(scene, {
+      viewportWidth: 385,
+      viewportHeight: 900,
+      isMobile: false,
+    });
+
+    expect(laidOut.focus.x).toBeCloseTo(0);
   });
 });

@@ -52,7 +52,7 @@ export function layoutLocalUniverseScene(
     : Math.max(0.8, Math.min(1.35, minDim / 800));
 
   // 2. Focal Origin
-  const defaultOffsetX = isMobile ? 0 : -100;
+  const defaultOffsetX = isMobile ? 0 : -Math.min(100, Math.max(0, (viewportWidth - 400) * 0.65));
   const defaultOffsetY = isMobile ? -30 : 0;
   const originX = config.focalOffsetX ?? defaultOffsetX;
   const originY = config.focalOffsetY ?? defaultOffsetY;

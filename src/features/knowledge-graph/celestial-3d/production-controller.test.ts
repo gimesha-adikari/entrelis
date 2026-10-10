@@ -215,6 +215,42 @@ describe("production celestial scene controller", () => {
     expect(projectUniverseNode(node, transform)).toEqual({ x: 210, y: 120 });
   });
 
+  it("resizes the existing shared renderer without rebuilding stable celestial bodies", () => {
+    const renderer = makeRenderer();
+    const createRenderer = vi.fn(() => renderer);
+    const createdBodies: CelestialBodyInstance[] = [];
+    const rust = makeNode("rust", "focus", 0, 0);
+    const ownership = makeNode("ownership", "primary", 120, -40);
+    const scene = makeScene(rust, [ownership]);
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer,
+      createBody: (identity) => {
+        const body = makeBody(identity);
+        createdBodies.push(body);
+        return body;
+      },
+    });
+
+    controller.update(scene, { x: 30, y: -14, k: 1.4 }, 1000, 900, null);
+    const before = controller.getLifecycleStats();
+    const setSizeCallsBeforeResize = vi.mocked(renderer.setSize).mock.calls.length;
+    const identitiesBeforeResize = createdBodies.map((body) => body.identity);
+
+    controller.update(scene, { x: 130, y: -14, k: 1.4 }, 800, 900, null);
+    const after = controller.getLifecycleStats();
+
+    expect(createRenderer).toHaveBeenCalledOnce();
+    expect(vi.mocked(renderer.setSize)).toHaveBeenCalledTimes(setSizeCallsBeforeResize + 1);
+    expect(after).toMatchObject({
+      activeEntries: before.activeEntries,
+      bodyCreates: before.bodyCreates,
+      bodyDisposals: before.bodyDisposals,
+      identityReplacements: before.identityReplacements,
+      rendererAvailable: true,
+    });
+    expect(createdBodies.map((body) => body.identity)).toEqual(identitiesBeforeResize);
+  });
+
   it("projects the production sphere to its CSS-pixel radius at every zoom and DPR", () => {
     const originalDpr = window.devicePixelRatio;
     const node = { ...makeNode("rust", "focus", 40, -20), radius: 34 };

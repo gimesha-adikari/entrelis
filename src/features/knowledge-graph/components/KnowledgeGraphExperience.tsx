@@ -1,11 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import type { CSSProperties } from "react";
 import type { KnowledgeDataset, Concept } from "@/domain/knowledge/types";
 import { SEED_DATASET } from "@/data/seed";
 import { getOrCreateKnowledgeGraphIndex } from "../knowledge-index";
 import GraphCanvas from "./GraphCanvas";
 import ConceptPanel from "./ConceptPanel";
+import ObservatoryResizeHandle from "./ObservatoryResizeHandle";
+import {
+  OBSERVATORY_DESKTOP_BREAKPOINT,
+  OBSERVATORY_PANEL_DEFAULT_WIDTH,
+  clampObservatoryPanelWidth,
+  getObservatoryPanelWidthConstraints,
+} from "./observatory-layout";
 import styles from "./KnowledgeGraph.module.css";
 
 interface Props {
@@ -18,6 +26,34 @@ export default function KnowledgeGraphExperience({
   initialSlug = "rust",
 }: Props) {
   const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
+  const [viewportWidth, setViewportWidth] = useState<number | null>(null);
+  const [panelWidth, setPanelWidth] = useState(OBSERVATORY_PANEL_DEFAULT_WIDTH);
+
+  useEffect(() => {
+    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+    updateViewportWidth();
+    window.addEventListener("resize", updateViewportWidth);
+    return () => window.removeEventListener("resize", updateViewportWidth);
+  }, []);
+
+  // Keep the user's width in this experience instance as they navigate concepts.
+  const widthConstraints = useMemo(
+    () => getObservatoryPanelWidthConstraints(viewportWidth ?? 1440),
+    [viewportWidth]
+  );
+  const visiblePanelWidth = clampObservatoryPanelWidth(panelWidth, widthConstraints);
+  const observatoryStyle = {
+    "--observatory-panel-width": visiblePanelWidth + "px",
+    "--observatory-panel-min-width": widthConstraints.minimum + "px",
+    "--observatory-panel-max-width": widthConstraints.maximum + "px",
+  } as CSSProperties;
+
+  const updatePanelWidth = useCallback(
+    (width: number) => {
+      setPanelWidth(clampObservatoryPanelWidth(width, widthConstraints));
+    },
+    [widthConstraints]
+  );
 
   // Memoize knowledge index once per dataset reference
   const index = useMemo(() => getOrCreateKnowledgeGraphIndex(dataset), [dataset]);
@@ -36,7 +72,6 @@ export default function KnowledgeGraphExperience({
    * Synchronize selection changes with browser history and URL.
    *
    * Architecture note on native History API:
-   * We intentionally use window.history.pushState and popstate rather than full router transitions:
    * 1. URLs remain shareable and deep-linkable (/concept/<slug>).
    * 2. Direct App Router routes work cleanly on initial load, static SSG generation, and reload.
    * 3. In-graph client exploration preserves the active canvas simulation and spatial camera
@@ -45,7 +80,7 @@ export default function KnowledgeGraphExperience({
   const selectConcept = useCallback((slug: string) => {
     setSelectedSlug(slug);
     if (typeof window !== "undefined") {
-      const targetUrl = `/concept/${slug}`;
+      const targetUrl = "/concept/" + slug;
       if (window.location.pathname !== targetUrl) {
         window.history.pushState({ slug }, "", targetUrl);
       }
@@ -80,7 +115,7 @@ export default function KnowledgeGraphExperience({
     ) {
       document.title = "Entrelis — Everything is connected";
     } else {
-      document.title = `${selectedConcept.name} — Entrelis`;
+      document.title = selectedConcept.name + " — Entrelis";
     }
   }, [selectedConcept, selectedSlug]);
 
@@ -100,23 +135,34 @@ export default function KnowledgeGraphExperience({
         <p className={styles.brandTagline}>Everything is connected</p>
       </header>
 
-      <main className={styles.mainContent}>
-        {/* Main 2D Canvas viewport */}
+      <main className={styles.mainContent} style={observatoryStyle}>
         <GraphCanvas
           dataset={dataset}
           index={index}
           selectedConceptSlug={selectedSlug}
           onSelectConcept={selectConcept}
           onResetCamera={handleResetCamera}
+          isMobileViewport={
+            viewportWidth === null ? undefined : viewportWidth <= OBSERVATORY_DESKTOP_BREAKPOINT
+          }
         />
 
-        {/* Semantic Right / Lower Detail Panel */}
-        <ConceptPanel
-          concept={selectedConcept}
-          dataset={dataset}
-          index={index}
-          onSelectConcept={selectConcept}
-        />
+        <div className={styles.observatoryDock}>
+          {viewportWidth !== null && viewportWidth > OBSERVATORY_DESKTOP_BREAKPOINT && (
+            <ObservatoryResizeHandle
+              value={visiblePanelWidth}
+              constraints={widthConstraints}
+              panelId="concept-details-panel"
+              onWidthChange={updatePanelWidth}
+            />
+          )}
+          <ConceptPanel
+            concept={selectedConcept}
+            dataset={dataset}
+            index={index}
+            onSelectConcept={selectConcept}
+          />
+        </div>
       </main>
     </div>
   );

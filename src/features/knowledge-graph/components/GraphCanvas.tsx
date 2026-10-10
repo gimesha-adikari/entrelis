@@ -29,6 +29,7 @@ import {
   type ConceptAnchorMap,
   type UniverseTravelState,
 } from "../celestial-3d/universe";
+import { preserveViewportPositionOnCanvasResize } from "./resize-continuity";
 import styles from "./KnowledgeGraph.module.css";
 
 import type { KnowledgeGraphIndex } from "../knowledge-index";
@@ -39,6 +40,7 @@ interface Props {
   selectedConceptSlug: string | null;
   onSelectConcept: (slug: string) => void;
   onResetCamera?: () => void;
+  isMobileViewport?: boolean;
 }
 
 export default function GraphCanvas({
@@ -47,6 +49,7 @@ export default function GraphCanvas({
   selectedConceptSlug,
   onSelectConcept,
   onResetCamera,
+  isMobileViewport,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,11 +65,13 @@ export default function GraphCanvas({
     width: 1280,
     height: 800,
   });
+  const [sceneLayoutDimensions, setSceneLayoutDimensions] = useState(dimensions);
 
-  const isMobile = dimensions.width <= 768;
+  const isMobile = isMobileViewport ?? dimensions.width <= 768;
 
   // Camera transform state (pan offset x, y, and scale k)
   const transformRef = useRef<ViewportTransform>({ x: 0, y: 0, k: 1 });
+  const previousCanvasWidthRef = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
   const isPinchingRef = useRef(false);
   const wasPinchingRef = useRef(false);
@@ -109,11 +114,18 @@ export default function GraphCanvas({
       isMobile,
     });
     return layoutLocalUniverseScene(rawScene, {
-      viewportWidth: dimensions.width,
-      viewportHeight: dimensions.height,
+      viewportWidth: sceneLayoutDimensions.width,
+      viewportHeight: sceneLayoutDimensions.height,
       isMobile,
     });
-  }, [dataset, index, selectedConceptSlug, isMobile, dimensions.width, dimensions.height]);
+  }, [
+    dataset,
+    index,
+    selectedConceptSlug,
+    isMobile,
+    sceneLayoutDimensions.width,
+    sceneLayoutDimensions.height,
+  ]);
 
   // Single-pass canvas drawing function
   const draw = useCallback(
@@ -412,12 +424,12 @@ export default function GraphCanvas({
     };
   }, [animateEnergy, targetScene]);
 
-  // Handle reactive container resizing and HiDPI canvas backing store scaling
+  // Keep the layout stable during panel-width changes while resizing both render surfaces.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const updateDimensions = () => {
+    const updateDimensions = (refreshSceneLayout: boolean) => {
       const canvas = canvasRef.current;
       if (!canvas || !container) return;
 
@@ -429,44 +441,57 @@ export default function GraphCanvas({
       const height = container.clientHeight;
 
       if (width > 0 && height > 0) {
-        setDimensions((prev) => {
-          if (Math.abs(prev.width - width) < 1 && Math.abs(prev.height - height) < 1) {
-            return prev;
+        const previousWidth = previousCanvasWidthRef.current;
+        if (previousWidth !== null && !refreshSceneLayout) {
+          transformRef.current = preserveViewportPositionOnCanvasResize(
+            transformRef.current,
+            previousWidth,
+            width
+          );
+        }
+        previousCanvasWidthRef.current = width;
+
+        setDimensions((previous) => {
+          if (Math.abs(previous.width - width) < 1 && Math.abs(previous.height - height) < 1) {
+            return previous;
           }
           return { width, height };
         });
 
+        if (refreshSceneLayout || previousWidth === null) {
+          setSceneLayoutDimensions((previous) => {
+            if (previous.width === width && previous.height === height) return previous;
+            return { width, height };
+          });
+        }
+
         canvas.width = width * effectiveDpr;
         canvas.height = height * effectiveDpr;
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
 
         drawRef.current();
       }
     };
 
-    updateDimensions();
+    updateDimensions(true);
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => updateDimensions(false))
+        : null;
+    observer?.observe(container);
 
-    if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(updateDimensions);
-      observer.observe(container);
-      return () => {
-        observer.disconnect();
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = null;
-        }
-      };
-    } else {
-      window.addEventListener("resize", updateDimensions);
-      return () => {
-        window.removeEventListener("resize", updateDimensions);
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-          animationFrameRef.current = null;
-        }
-      };
-    }
+    const handleViewportResize = () => updateDimensions(true);
+    window.addEventListener("resize", handleViewportResize);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", handleViewportResize);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
   }, []);
 
   // Redraw when hover changes
@@ -727,7 +752,7 @@ export default function GraphCanvas({
   };
 
   return (
-    <div ref={containerRef} className={styles.canvasArea}>
+    <div ref={containerRef} className={styles.canvasArea} data-testid="graph-canvas-area">
       <canvas
         ref={canvasRef}
         onMouseDown={handleMouseDown}

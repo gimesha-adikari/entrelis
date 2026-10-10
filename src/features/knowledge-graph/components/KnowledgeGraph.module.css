@@ -18,6 +18,7 @@
 
 .canvasArea {
   flex: 1;
+  min-width: 0;
   height: 100%;
   position: relative;
   background:
@@ -214,25 +215,101 @@
   letter-spacing: 0.02em;
 }
 
-/* Contextual Right Detail Panel (Knowledge Observatory Surface) */
-.detailPanel {
-  width: 380px;
-  min-width: 320px;
-  max-width: min(420px, 34vw);
+/* Right-docked Observatory Veil and its atmospheric transition into the universe. */
+.observatoryDock {
+  position: relative;
+  z-index: 20;
+  flex: 0 0 var(--observatory-panel-width, 470px);
+  width: var(--observatory-panel-width, 470px);
+  min-width: var(--observatory-panel-min-width, 360px);
+  max-width: min(var(--observatory-panel-max-width, 600px), 50vw);
   height: 100%;
-  background: rgba(4, 7, 16, 0.78);
-  backdrop-filter: blur(28px) saturate(130%);
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.45);
+  overflow: visible;
+}
+
+.observatoryDock::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  width: 64px;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 84% 45% at 100% 50%, rgba(62, 91, 154, 0.16), transparent 82%),
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(18, 27, 49, 0.32) 34%,
+      rgba(8, 12, 25, 0.78) 78%,
+      rgba(6, 9, 19, 0.98) 100%
+    );
+}
+
+.detailPanel {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(7, 10, 19, 0.98), rgba(5, 8, 17, 0.99));
+  border-left: 1px solid rgba(185, 202, 230, 0.16);
+  box-shadow: -12px 0 38px rgba(0, 0, 0, 0.32);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 20;
+}
+
+.resizeHandle {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 26px;
+  align-items: center;
+  justify-content: center;
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  background: transparent;
+  outline: none;
+}
+
+.resizeHandle::before {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 8%,
+    rgba(184, 202, 232, 0.11) 30%,
+    rgba(184, 202, 232, 0.17) 50%,
+    rgba(184, 202, 232, 0.11) 70%,
+    transparent 92%
+  );
+  transform: translateX(-13px);
+  box-shadow: 0 0 10px rgba(88, 118, 178, 0.17);
+}
+
+.resizeHandle:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.82);
+  outline-offset: -3px;
+  border-radius: 5px;
+}
+
+.resizeHandle:focus-visible::before {
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(125, 211, 252, 0.82), transparent);
+  box-shadow: 0 0 12px rgba(83, 165, 220, 0.48);
 }
 
 .panelScroll {
   flex: 1;
-  padding: var(--space-8) var(--space-6);
+  min-width: 0;
+  padding: 48px 32px 40px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
@@ -240,22 +317,23 @@
 }
 
 .emptyPrompt {
-  font-size: 0.8rem;
-  color: #64748b;
-  margin-top: var(--space-2);
-  line-height: 1.5;
+  font-size: 0.9rem;
+  color: #9aa9bf;
+  margin-top: var(--space-3);
+  line-height: 1.7;
 }
 
 .panelHeader {
-  margin-bottom: var(--space-5);
+  margin-bottom: 28px;
 }
 
 .metaRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  margin-bottom: 16px;
 }
 
 .categoryBadge {
@@ -291,33 +369,34 @@
 }
 
 .conceptTitle {
-  font-size: 1.85rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #f8fafc;
-  margin: 0 0 var(--space-2) 0;
-  line-height: 1.18;
+  font-size: 2rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  color: #f3f6fb;
+  margin: 0 0 12px;
+  line-height: 1.15;
 }
 
 .conceptSummary {
-  font-size: 0.92rem;
-  color: #cbd5e1;
-  line-height: 1.62;
-  margin: 0 0 var(--space-3) 0;
+  font-size: 1rem;
+  color: #d2dbea;
+  line-height: 1.72;
+  margin: 0 0 16px;
   font-weight: 400;
 }
 
 .conceptDescription {
-  font-size: 0.83rem;
-  color: #94a3b8;
-  line-height: 1.65;
-  margin: 0 0 var(--space-6) 0;
-  padding-bottom: var(--space-5);
+  font-size: 0.9rem;
+  color: #a7b5c9;
+  line-height: 1.78;
+  margin: 0 0 30px;
+  padding-bottom: 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sectionHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: var(--space-2);
@@ -364,8 +443,8 @@
   background: transparent;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: var(--space-3) 0 var(--space-4) 0;
-  transition: all var(--motion-duration-fast) ease;
+  padding: 16px 0 20px;
+  transition: background-color var(--motion-duration-fast) ease;
 }
 
 .connectionItem:last-child {
@@ -378,6 +457,7 @@
 
 .connectionRow {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
@@ -386,6 +466,8 @@
 
 .connectionLink {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   gap: 4px;
   background: none;
@@ -396,6 +478,8 @@
   color: #38bdf8;
   cursor: pointer;
   text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
   text-decoration: underline;
   text-decoration-color: transparent;
   transition: all var(--motion-duration-fast) ease;
@@ -441,19 +525,25 @@
 
 .connectionPath {
   display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem;
   font-size: 0.75rem;
-  color: rgba(148, 163, 184, 0.75);
-  margin-bottom: 6px;
+  color: rgba(168, 181, 202, 0.82);
+  margin-bottom: 8px;
 }
 
 .pathNodeCurrent {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 600;
   color: #e2e8f0;
 }
 
 .pathNode {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 400;
   color: #94a3b8;
 }
@@ -473,9 +563,9 @@
 }
 
 .connectionExplanation {
-  font-size: 0.78rem;
-  color: #94a3b8;
-  line-height: 1.58;
+  font-size: 0.82rem;
+  color: #a6b3c7;
+  line-height: 1.68;
   margin: 0;
 }
 
@@ -563,6 +653,7 @@
 }
 
 .sourceTitle {
+  overflow-wrap: anywhere;
   font-size: 0.8rem;
   font-weight: 600;
   color: #f1f5f9;
@@ -583,8 +674,8 @@
 }
 
 .sourcePublisher {
-  font-size: 0.72rem;
-  color: #94a3b8;
+  font-size: 0.78rem;
+  color: #a2afc3;
   margin: 0 0 var(--space-2) 0;
   line-height: 1.4;
 }
@@ -664,19 +755,38 @@
     height: 54vh;
   }
 
-  .detailPanel {
+  .observatoryDock {
     flex: 1 1 46vh;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     height: 46vh;
+  }
+
+  .observatoryDock::before {
+    top: -44px;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: auto;
+    height: 44px;
+    background:
+      radial-gradient(ellipse 62% 44px at 50% 100%, rgba(62, 91, 154, 0.16), transparent 82%),
+      linear-gradient(180deg, transparent, rgba(6, 9, 19, 0.98));
+  }
+
+  .detailPanel {
     border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.7);
+    border-top: 1px solid rgba(185, 202, 230, 0.13);
+    box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.23);
+  }
+
+  .resizeHandle {
+    display: none;
   }
 
   .panelScroll {
-    padding: var(--space-4) var(--space-4) var(--space-6) var(--space-4);
+    padding: 24px 20px 32px;
     -webkit-overflow-scrolling: touch;
   }
 

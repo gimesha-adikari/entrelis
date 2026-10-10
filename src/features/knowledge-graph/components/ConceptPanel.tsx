@@ -77,7 +77,11 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
 
   if (!concept) {
     return (
-      <aside className={styles.detailPanel} aria-label="Selected Concept Details">
+      <aside
+        id="concept-details-panel"
+        className={styles.detailPanel}
+        aria-label="Selected Concept Details"
+      >
         <div ref={scrollContainerRef} className={styles.panelScroll}>
           <p className={styles.conceptSummary}>No concept selected.</p>
           <p className={styles.emptyPrompt}>
@@ -92,7 +96,11 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
   const reviewStatusLabel = REVIEW_STATUS_LABELS[concept.reviewStatus] ?? "Reviewed";
 
   return (
-    <aside className={styles.detailPanel} aria-label="Selected Concept Details">
+    <aside
+      id="concept-details-panel"
+      className={styles.detailPanel}
+      aria-label="Selected Concept Details"
+    >
       {/* Live announcement region for assistive technologies */}
       <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
         {`Selected concept: ${concept.name}. ${connectedRelationships.length} connected relationships.`}

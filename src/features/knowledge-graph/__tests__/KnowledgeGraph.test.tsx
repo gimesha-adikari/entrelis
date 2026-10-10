@@ -267,3 +267,59 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     pushStateSpy.mockRestore();
   });
 });
+
+describe("Observatory panel resizing integration", () => {
+  it("preserves the chosen width through concept links, Back, and Home without changing selection on resize", () => {
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1440 });
+    window.history.replaceState({}, "", "/concept/rust");
+
+    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
+
+    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
+    expect(handle.getAttribute("aria-valuenow")).toBe("470");
+
+    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    expect(handle.getAttribute("aria-valuenow")).toBe("486");
+    expect(window.location.pathname).toBe("/concept/rust");
+    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: /Explore connected concept: Ownership/i }));
+    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: /Explore connected concept: Memory/i }));
+    expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Explore connected concept: Stack & Heap/i })
+    );
+    expect(screen.getByRole("heading", { name: "Stack & Heap" })).toBeDefined();
+    fireEvent.click(
+      screen.getByRole("button", { name: /Explore connected concept: Operating Systems/i })
+    );
+    expect(screen.getByRole("heading", { name: "Operating Systems" })).toBeDefined();
+    expect(handle.getAttribute("aria-valuenow")).toBe("486");
+
+    window.history.replaceState({}, "", "/concept/stack-and-heap");
+    fireEvent(window, new PopStateEvent("popstate"));
+    expect(screen.getByRole("heading", { name: "Stack & Heap" })).toBeDefined();
+    expect(handle.getAttribute("aria-valuenow")).toBe("486");
+
+    fireEvent.click(screen.getByRole("button", { name: "Return to Rust" }));
+    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+    expect(window.location.pathname).toBe("/");
+    expect(handle.getAttribute("aria-valuenow")).toBe("486");
+
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth });
+  });
+
+  it("does not render a resizing control on mobile viewports", () => {
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
+
+    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
+
+    expect(screen.queryByRole("separator", { name: "Resize knowledge panel" })).toBeNull();
+    expect(screen.getByRole("complementary", { name: "Selected Concept Details" })).toBeDefined();
+
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth });
+  });
+});
