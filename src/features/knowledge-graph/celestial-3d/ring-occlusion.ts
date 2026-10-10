@@ -351,6 +351,14 @@ export function disposeCachedForegroundRingMask(ring: THREE.Mesh): boolean {
   return hadMask;
 }
 
+function captureRingMaskTransform(body: THREE.Group, ring: THREE.Mesh) {
+  ring.updateMatrix();
+  const ringMatrix = ring.matrix.clone();
+  const groupRotation = body.quaternion.clone();
+  const matrix = new THREE.Matrix4().makeRotationFromQuaternion(groupRotation).multiply(ringMatrix);
+  return { ringMatrix, groupRotation, matrix };
+}
+
 /**
  * Publishes a conservative, geometry-only occlusion path without sampling texture pixels.
  * The exact texture-alpha mask replaces it after the incremental raster completes.
@@ -366,10 +374,7 @@ export function createForegroundRingGeometryFallback(
   const index = ring.geometry.index;
   if (!position) return null;
 
-  ring.updateMatrix();
-  const ringMatrix = ring.matrix.clone();
-  const groupRotation = body.quaternion.clone();
-  const matrix = new THREE.Matrix4().makeRotationFromQuaternion(groupRotation).multiply(ringMatrix);
+  const { ringMatrix, groupRotation, matrix } = captureRingMaskTransform(body, ring);
   const vertices: ProjectedVertex[] = [];
   const point = new THREE.Vector3();
   let extent = 1;
@@ -426,10 +431,7 @@ export function createForegroundRingMaskBuilder(
   // texture lacks it, fail closed so the Canvas does not draw unmasked strands over its ring.
   if (!textureAlpha) return null;
 
-  ring.updateMatrix();
-  const ringMatrix = ring.matrix.clone();
-  const groupRotation = body.quaternion.clone();
-  const matrix = new THREE.Matrix4().makeRotationFromQuaternion(groupRotation).multiply(ringMatrix);
+  const { ringMatrix, groupRotation, matrix } = captureRingMaskTransform(body, ring);
   const rasterizer = createForegroundRingRasterizer(
     ring.geometry,
     matrix,

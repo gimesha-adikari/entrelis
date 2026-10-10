@@ -15,7 +15,15 @@ vi.mock("../celestial-3d/ProductionCelestialLayer", async () => {
       { onRingOcclusionChange }: { onRingOcclusionChange?: () => void },
       ref
     ) {
-      mockLayer.onRingOcclusionChange = onRingOcclusionChange ?? null;
+      React.useEffect(() => {
+        const callback = onRingOcclusionChange ?? null;
+        mockLayer.onRingOcclusionChange = callback;
+        return () => {
+          if (mockLayer.onRingOcclusionChange === callback) {
+            mockLayer.onRingOcclusionChange = null;
+          }
+        };
+      }, [onRingOcclusionChange]);
       React.useImperativeHandle(ref, () => ({
         update: mockLayer.bodyUpdate,
         getForegroundRingOcclusions() {
@@ -110,6 +118,14 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 describe("GraphCanvas bounded filament scheduler", () => {
+  it("clears the ring-occlusion callback when the celestial layer unmounts", () => {
+    const view = render(<GraphCanvas {...props("rust")} />);
+
+    expect(mockLayer.onRingOcclusionChange).toEqual(expect.any(Function));
+    view.unmount();
+    expect(mockLayer.onRingOcclusionChange).toBeNull();
+  });
+
   it("uses the transition scheduler, continues until energy expires, then stops", () => {
     const view = render(<GraphCanvas {...props("rust")} />);
     view.rerender(<GraphCanvas {...props("ownership")} />);
