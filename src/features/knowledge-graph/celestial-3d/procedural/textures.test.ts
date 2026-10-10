@@ -14,6 +14,7 @@ import {
   createAsteroidTextures,
   createRingTexture,
   disposeAllCelestialTextures,
+  getRingTextureAlphaData,
   getCachedTexture,
   releaseCelestialTextures,
   retainCelestialTextures,
@@ -187,6 +188,15 @@ describe("Procedural Texture Engines", () => {
     expect(iceRing).toBeDefined();
     expect(dustRing).toBeDefined();
     expect(brokenRing).toBeDefined();
+    const image = iceRing.image as HTMLCanvasElement;
+    const alpha = getRingTextureAlphaData(image);
+    const rgba = pixels.get(image)!;
+    expect(alpha).toBeDefined();
+    if (!alpha) return;
+    expect(alpha).toHaveLength(image.width * image.height);
+    for (const index of [0, 701, 40_000, alpha.length - 1]) {
+      expect(alpha[index]).toBe(rgba[index * 4 + 3]);
+    }
   });
 });
 

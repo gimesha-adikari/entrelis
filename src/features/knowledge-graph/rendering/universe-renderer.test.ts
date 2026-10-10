@@ -11,9 +11,11 @@ function createMockContext(): CanvasRenderingContext2D {
     save: vi.fn(),
     restore: vi.fn(),
     clearRect: vi.fn(),
+    drawImage: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
     rect: vi.fn(),
+    fillRect: vi.fn(),
     roundRect: vi.fn(),
     fill: vi.fn(),
     stroke: vi.fn(),
@@ -215,7 +217,7 @@ describe("renderUniverseScene compositing and layer options", () => {
 });
 
 describe("Relationship screen-space sizing", () => {
-  const scene = createMockUniverseScene({ targetX: -300, targetY: 50 });
+  const scene = createMockUniverseScene({ targetX: -800, targetY: 50 });
 
   it.each([0.3, 0.6, 1, 3])("keeps strokes and badges the same CSS size at zoom %s", (zoom) => {
     for (const dpr of [1, 2]) {
@@ -248,12 +250,12 @@ describe("Relationship screen-space sizing", () => {
         skipBodyRendering: true,
       });
 
-      expect(assignedLineWidths[0]! * zoom).toBeCloseTo(3.4, 5);
-      expect(assignedLineWidths[1]! * zoom).toBeCloseTo(1.2, 5);
-      expect(assignedLineWidths[2]! * zoom).toBeCloseTo(1.1, 5);
+      expect(assignedLineWidths[0]! * zoom).toBeCloseTo(6, 5);
+      expect(assignedLineWidths[3]! * zoom).toBeCloseTo(1.2, 5);
+      expect(assignedLineWidths[4]! * zoom).toBeCloseTo(1.1, 5);
       expect(Number.parseFloat(assignedFonts[0]!) * zoom).toBeCloseTo(9, 5);
-      const badge = (ctx.roundRect as ReturnType<typeof vi.fn>).mock.calls[0]!;
-      expect(badge[2]! * zoom).toBeCloseTo(48, 5);
+      const badge = (ctx.fillRect as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      expect(badge[2]! * zoom).toBeCloseTo(52, 5);
       expect(badge[3]! * zoom).toBeCloseTo(13, 5);
       expect((ctx.scale as ReturnType<typeof vi.fn>).mock.calls[0]).toEqual([
         zoom * dpr,
@@ -687,5 +689,262 @@ describe("WebGL-projected relationship boundaries", () => {
     });
 
     expect(ctx.roundRect).not.toHaveBeenCalled();
+  });
+});
+
+describe("foreground ring relationship compositing", () => {
+  it("keeps unrelated relationships visible while one endpoint body is pending", () => {
+    const scene = createMockUniverseScene();
+    const contextNode = {
+      ...scene.primaryNodes[0]!,
+      id: "concept-memory",
+      slug: "memory",
+      name: "Memory",
+      concept: SEED_DATASET.concepts.find((concept) => concept.slug === "memory")!,
+      role: "context" as const,
+      x: 220,
+      y: 120,
+    };
+    const independentRelationship = {
+      ...scene.relationships[0]!,
+      id: "rel-independent",
+      sourceId: scene.primaryNodes[0]!.id,
+      targetId: contextNode.id,
+      role: "context-connection" as const,
+      relationship: {
+        ...scene.relationships[0]!.relationship,
+        id: "rel-independent",
+        sourceConceptId: scene.primaryNodes[0]!.id,
+        targetConceptId: contextNode.id,
+      },
+    };
+    const sceneWithUnrelatedPath: UniverseScene = {
+      ...scene,
+      contextNodes: [contextNode],
+      allNodes: [...scene.allNodes, contextNode],
+      relationships: [...scene.relationships, independentRelationship],
+    };
+    const ctx = createMockContext();
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, createMockUniverseScene(), {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      unreadyRelationshipNodeIds: new Set([scene.focus.id]),
+    } as Parameters<typeof renderUniverseScene>[5]);
+
+    const isolatedContext = createMockContext();
+    renderUniverseScene(isolatedContext, 800, 600, { x: 0, y: 0, k: 1 }, sceneWithUnrelatedPath, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      unreadyRelationshipNodeIds: new Set([scene.focus.id]),
+    } as Parameters<typeof renderUniverseScene>[5]);
+
+    expect(ctx.quadraticCurveTo).not.toHaveBeenCalled();
+    expect(isolatedContext.quadraticCurveTo).toHaveBeenCalledOnce();
+  });
+
+  it("does not draw a strand across a missing ring mask when its body is unready", () => {
+    const scene = createMockUniverseScene();
+    const ctx = createMockContext();
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      unreadyRelationshipNodeIds: new Set([scene.focus.id, scene.primaryNodes[0]!.id]),
+    });
+
+    expect(ctx.moveTo).not.toHaveBeenCalled();
+    expect(ctx.stroke).not.toHaveBeenCalled();
+    expect(ctx.lineTo).not.toHaveBeenCalled();
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+
+  it("uses the supplied actual projected ring mask at CSS size, before node labels", () => {
+    const scene = createMockUniverseScene();
+    const ctx = createMockContext();
+    const image = document.createElement("canvas");
+    renderUniverseScene(ctx, 800, 600, { x: 12, y: 8, k: 3 }, scene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      foregroundRingOcclusions: [{ image, x: 60, y: 32, size: 90, opacity: 0.7 }],
+    });
+    expect(ctx.drawImage).toHaveBeenCalledWith(image, 16, 8, 30, 30);
+  });
+
+  it("draws a geometry-only fallback mask over strands while exact alpha work is pending", () => {
+    const ctx = createMockContext();
+    const path = {} as Path2D;
+
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, createMockUniverseScene(), {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      foregroundRingOcclusions: [{ path, x: 50, y: 30, size: 0.5, opacity: 1 }],
+    });
+
+    expect(ctx.fill).toHaveBeenCalledWith(path);
+    expect(ctx.translate).toHaveBeenCalledWith(50, 30);
+    expect(ctx.scale).toHaveBeenCalledWith(0.5, 0.5);
+  });
+
+  it("keeps a safe relationship visible without punching out a shader-pending body", () => {
+    const ctx = createMockContext();
+    const pendingScene = createMockUniverseScene();
+    const pendingTarget = pendingScene.primaryNodes[0]!;
+    const readyCtx = createMockContext();
+    renderUniverseScene(readyCtx, 800, 600, { x: 0, y: 0, k: 1 }, pendingScene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+    });
+    const result = renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, pendingScene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      bodyNotReadyNodeIds: new Set([pendingTarget.id]),
+    });
+
+    expect(result.visibleRelationshipIds).toEqual(new Set([pendingScene.relationships[0]!.id]));
+    // The ready source is punched out; the missing target body keeps its endpoint gap intact.
+    expect((ctx.arc as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(
+      (readyCtx.arc as ReturnType<typeof vi.fn>).mock.calls.length - 1
+    );
+  });
+
+  it("activates a pending pulse on the first safe edge pass and keeps its semantic direction", () => {
+    const scene = createMockUniverseScene();
+    const relationship = scene.relationships[0]!;
+    const result = renderUniverseScene(createMockContext(), 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      pendingPulse: {
+        relationshipId: relationship.id,
+        sourceId: relationship.sourceId,
+        targetId: relationship.targetId,
+        requestedAt: 100,
+      },
+      now: 450,
+    });
+
+    expect(result.visibleRelationshipIds).toEqual(new Set([relationship.id]));
+    expect(result.activatedPulse).toEqual({
+      relationshipId: relationship.id,
+      sourceId: relationship.sourceId,
+      targetId: relationship.targetId,
+      startedAt: 450,
+    });
+  });
+
+  it("does not activate pending energy for an endpoint awaiting safe mask readiness", () => {
+    const scene = createMockUniverseScene();
+    const relationship = scene.relationships[0]!;
+    const result = renderUniverseScene(createMockContext(), 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      unreadyRelationshipNodeIds: new Set([relationship.targetId]),
+      pendingPulse: {
+        relationshipId: relationship.id,
+        sourceId: relationship.sourceId,
+        targetId: relationship.targetId,
+        requestedAt: 100,
+      },
+      now: 450,
+    });
+
+    expect(result.visibleRelationshipIds).toEqual(new Set());
+    expect(result.activatedPulse).toBeUndefined();
+  });
+
+  it("occludes strands before drawing directional cues and readable labels", () => {
+    const scene = createMockUniverseScene();
+    const ctx = createMockContext();
+    const image = document.createElement("canvas");
+    const order: string[] = [];
+    ctx.stroke = vi.fn(() => order.push("strand"));
+    ctx.drawImage = vi.fn((source) => {
+      if (source === image) order.push("ring-mask");
+    });
+    ctx.lineTo = vi.fn(() => order.push("directional-cue"));
+    ctx.fillText = vi.fn(() => order.push("label"));
+
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 1 }, scene, {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      foregroundRingOcclusions: [{ image, x: 60, y: 32, size: 90, opacity: 0.7 }],
+    });
+
+    const strand = order.indexOf("strand");
+    const mask = order.indexOf("ring-mask");
+    const cue = order.indexOf("directional-cue");
+    const label = order.indexOf("label");
+    expect(strand).toBeGreaterThanOrEqual(0);
+    expect(mask).toBeGreaterThan(strand);
+    expect(cue).toBeGreaterThan(mask);
+    expect(label).toBeGreaterThan(mask);
+  });
+});
+
+describe("quiet filament lifecycle", () => {
+  it("suppresses unsafe short labels at low zoom", () => {
+    const ctx = createMockContext();
+    renderUniverseScene(ctx, 800, 600, { x: 0, y: 0, k: 0.3 }, createMockUniverseScene(), {
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+    });
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+  it("suppresses labels whose text rectangle collides with another visible body", () => {
+    const scene = createMockUniverseScene({ targetX: 350, targetY: 0 });
+    const geometry = calculateRelationshipGeometry(
+      scene.focus,
+      scene.primaryNodes[0]!,
+      scene.relationships[0]!.curvature
+    )!;
+    const midpoint = {
+      x: (geometry.path.start.x + 2 * geometry.path.control.x + geometry.path.end.x) / 4,
+      y: (geometry.path.start.y + 2 * geometry.path.control.y + geometry.path.end.y) / 4,
+    };
+    const blocker = {
+      ...scene.primaryNodes[0]!,
+      id: "blocker",
+      x: midpoint.x,
+      y: midpoint.y,
+      radius: 24,
+    };
+    const ctx = createMockContext();
+    renderUniverseScene(
+      ctx,
+      800,
+      600,
+      { x: 0, y: 0, k: 1 },
+      { ...scene, allNodes: [...scene.allNodes, blocker] },
+      { skipBackgroundStars: true, skipNodeRendering: true }
+    );
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+  it("does not draw energy, strokes, cues or labels at zero relationship opacity", () => {
+    const ctx = createMockContext();
+    renderUniverseScene(
+      ctx,
+      800,
+      600,
+      { x: 0, y: 0, k: 1 },
+      createMockUniverseScene({ relOpacity: 0 }),
+      {
+        skipBackgroundStars: true,
+        skipNodeRendering: true,
+        pulse: {
+          relationshipId: "rel-1",
+          sourceId: "concept-rust",
+          targetId: "concept-ownership",
+          startedAt: 0,
+        },
+        now: 400,
+      }
+    );
+    expect(ctx.stroke).not.toHaveBeenCalled();
+    expect(ctx.fillText).not.toHaveBeenCalled();
+    expect(ctx.lineTo).not.toHaveBeenCalled();
   });
 });

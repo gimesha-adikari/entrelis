@@ -16,13 +16,39 @@ import {
   getConceptCelestialPalette,
 } from "./glow-cache";
 
+import {
+  activatePendingRelationshipPulse,
+  isPendingRelationshipPulseActive,
+  sampleRelationshipPulse,
+  type PendingRelationshipPulse,
+  type RelationshipPulse,
+} from "./relationship-pulse";
+import type { ForegroundRingOcclusion } from "../celestial-3d/ring-occlusion";
+
 export interface UniverseRenderOptions {
+  pulse?: RelationshipPulse | null;
+  pendingPulse?: PendingRelationshipPulse | null;
+  reducedMotion?: boolean;
+  hidden?: boolean;
+  now?: number;
+  foregroundRingOcclusions?: readonly ForegroundRingOcclusion[];
+  /** Holds only the incident paths whose WebGL endpoint body is still preparing. */
+  unreadyRelationshipNodeIds?: ReadonlySet<string>;
+  /** Prevents an endpoint cutout while its matching WebGL body is still preparing. */
+  bodyNotReadyNodeIds?: ReadonlySet<string>;
   hoveredNodeId?: string | null;
   focusedNodeId?: string | null;
   isMobile?: boolean;
   skipNodeRendering?: boolean;
   skipBodyRendering?: boolean;
   skipBackgroundStars?: boolean;
+}
+
+export interface UniverseRenderResult {
+  /** Relationship paths that were actually stroked during this Canvas pass. */
+  readonly visibleRelationshipIds: ReadonlySet<string>;
+  /** A pending pulse activated on the first frame where its safe path was drawable. */
+  readonly activatedPulse?: RelationshipPulse;
 }
 
 interface StarPoint {
@@ -80,6 +106,14 @@ export interface RelationshipStyleConfig {
   readonly renderLabel: boolean;
 }
 
+interface RelationshipOverlay {
+  readonly relationship: UniverseScene["relationships"][number];
+  readonly sourceEndpoint: UniverseNode;
+  readonly targetEndpoint: UniverseNode;
+  readonly geometry: RelationshipPathGeometry;
+  readonly style: RelationshipStyleConfig;
+}
+
 /**
  * Computes stroke hierarchy, halo, and label flags based on relationship role, strength, and interaction state.
  */
@@ -118,16 +152,16 @@ export function getRelationshipStyleConfig(options: {
 
   const baseHaloAlpha = isFocus
     ? strength === "primary"
-      ? 0.14
+      ? 0.07
       : strength === "strong"
-        ? 0.1
-        : 0.06
+        ? 0.055
+        : 0.04
     : isIncident
       ? 0.06
       : 0.0;
   const fullHaloAlpha = isIncident ? baseHaloAlpha * 1.6 : baseHaloAlpha;
   const haloAlpha = Math.max(0, Math.min(1.0, fullHaloAlpha * clampedOpacity));
-  const haloWidth = isFocus ? (isIncident ? 4.8 : 3.4) : 2.2;
+  const haloWidth = isFocus ? (isIncident ? 7 : 6) : 4;
 
   const coreWidth = isFocus
     ? isIncident
@@ -141,11 +175,11 @@ export function getRelationshipStyleConfig(options: {
         ? 0.85
         : 0.7;
 
-  const baseCueAlpha = isFocus || isIncident ? (isIncident ? 0.95 : 0.85) : 0.55;
+  const baseCueAlpha = isFocus || isIncident ? (isIncident ? 0.68 : 0.5) : 0.3;
   const cueAlpha = Math.max(0, Math.min(1.0, baseCueAlpha * clampedOpacity));
 
-  const tickLength = isFocus ? (isIncident ? 5.2 : 4.2) : isIncident ? 4.0 : 3.0;
-  const sparkRadius = isFocus ? (isIncident ? 2.2 : 1.6) : 1.2;
+  const tickLength = isFocus ? (isIncident ? 3.6 : 2.8) : 2.4;
+  const sparkRadius = isFocus ? (isIncident ? 0.8 : 0.6) : 0.45;
 
   const renderLabel = !isMobile && (isFocus || isIncident) && dist >= 85 && clampedOpacity >= 0.25;
 
@@ -165,8 +199,16 @@ export function getRelationshipStyleConfig(options: {
   };
 }
 
-function formatHaloColor(paletteHalo: string, targetAlpha: number): string {
-  return paletteHalo.replace(/[\d.]+\)$/, `${targetAlpha.toFixed(2)})`);
+function restrainedFilamentColor(paletteHalo: string, alpha: number): string {
+  const channels = paletteHalo
+    .match(/[\d.]+/g)
+    ?.slice(0, 3)
+    .map(Number) ?? [210, 230, 248];
+  const base = [210, 230, 248];
+  const color = base.map((channel, index) =>
+    Math.round(channel * 0.9 + (channels[index] ?? channel) * 0.1)
+  );
+  return `rgba(${color.join(",")},${alpha.toFixed(3)})`;
 }
 
 function renderDirectionalLightCue(
@@ -222,90 +264,50 @@ function renderRelationshipTypeBadge(
   target: { readonly x: number; readonly y: number; readonly radius: number },
   geom: RelationshipPathGeometry,
   style: RelationshipStyleConfig,
-  zoomK: number
+  zoomK: number,
+  allNodes: readonly UniverseNode[],
+  webglBodies: boolean
 ): void {
   if (!style.renderLabel || style.opacity <= 0.01) return;
-
   const midpoint = quadraticPointAt(geom.path, 0.5);
-  const mx = midpoint.x;
-  const my = midpoint.y;
-
-  const dSrc = Math.hypot(mx - source.x, my - source.y);
-  const dTgt = Math.hypot(mx - target.x, my - target.y);
-  const bodyClearance = screenPixelsToWorldUnits(16, zoomK);
-  if (
-    bodyClearance === null ||
-    dSrc < source.radius + bodyClearance ||
-    dTgt < target.radius + bodyClearance
-  ) {
-    return;
-  }
-
   const tangent = quadraticTangentAt(geom.path, 0.5);
-  const tx = tangent.x;
-  const ty = tangent.y;
-  const tLen = Math.hypot(tx, ty);
-  if (tLen < 0.001) return;
-
-  const nx = -ty / tLen;
-  const ny = tx / tLen;
-
-  const offsetDistance = screenPixelsToWorldUnits(9, zoomK);
-  const fontSize = screenPixelsToWorldUnits(9, zoomK);
-  const badgePadding = screenPixelsToWorldUnits(8, zoomK);
-  const badgeHeight = screenPixelsToWorldUnits(13, zoomK);
-  const cornerRadius = screenPixelsToWorldUnits(3, zoomK);
-  const borderWidth = screenPixelsToWorldUnits(0.8, zoomK);
-  const textBaselineOffset = screenPixelsToWorldUnits(0.5, zoomK);
-  if (
-    offsetDistance === null ||
-    fontSize === null ||
-    badgePadding === null ||
-    badgeHeight === null ||
-    cornerRadius === null ||
-    borderWidth === null ||
-    textBaselineOffset === null
-  ) {
-    return;
-  }
-  const bx = mx + nx * offsetDistance;
-  const by = my + ny * offsetDistance;
-
-  const label = rel.type.toLowerCase().trim();
+  const length = Math.hypot(tangent.x, tangent.y);
+  if (length < 0.001) return;
+  const bx = midpoint.x - ((tangent.y / length) * 9) / zoomK;
+  const by = midpoint.y + ((tangent.x / length) * 9) / zoomK;
   ctx.save();
-  ctx.font = `${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.font = `${9 / zoomK}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-
-  const metrics = ctx.measureText(label);
-  const textWidth = metrics.width;
-  const badgeW = textWidth + badgePadding;
-  const badgeH = badgeHeight;
-  const radius = cornerRadius;
-
-  ctx.beginPath();
-  const left = bx - badgeW / 2;
-  const top = by - badgeH / 2;
-  if (typeof ctx.roundRect === "function") {
-    ctx.roundRect(left, top, badgeW, badgeH, radius);
-  } else if (typeof ctx.rect === "function") {
-    ctx.rect(left, top, badgeW, badgeH);
+  const label = rel.type.toLowerCase().trim();
+  const width = ctx.measureText(label).width + 12 / zoomK;
+  const height = 13 / zoomK;
+  const collides = (x: number, y: number, radius: number) => {
+    const nearestX = Math.max(bx - width / 2, Math.min(x, bx + width / 2));
+    const nearestY = Math.max(by - height / 2, Math.min(y, by + height / 2));
+    return Math.hypot(x - nearestX, y - nearestY) < radius + 5 / zoomK;
+  };
+  if (
+    geom.visibleLength < width + 28 / zoomK ||
+    collides(source.x, source.y, source.radius) ||
+    collides(target.x, target.y, target.radius) ||
+    allNodes.some((node) => {
+      const radius = getRelationshipBoundaryRadius(node.radius, zoomK, webglBodies);
+      return node.opacity > 0.01 && radius !== null && collides(node.x, node.y, radius);
+    })
+  ) {
+    ctx.restore();
+    return;
   }
-
-  const bgAlpha = (0.78 * style.opacity).toFixed(2);
-  ctx.fillStyle = `rgba(6, 11, 23, ${bgAlpha})`;
-  ctx.fill();
-
-  const borderAlpha = (style.isIncident ? 0.45 * style.opacity : 0.2 * style.opacity).toFixed(2);
-  ctx.strokeStyle = `rgba(56, 189, 248, ${borderAlpha})`;
-  ctx.lineWidth = borderWidth;
-  ctx.stroke();
-
-  const textAlpha = (style.isIncident ? 0.95 * style.opacity : 0.75 * style.opacity).toFixed(2);
-  ctx.fillStyle = style.isIncident
-    ? `rgba(240, 249, 255, ${textAlpha})`
-    : `rgba(224, 242, 254, ${textAlpha})`;
-  ctx.fillText(label, bx, by + textBaselineOffset);
+  const scrim = ctx.createLinearGradient(bx - width / 2, by, bx + width / 2, by);
+  scrim.addColorStop(0, "rgba(3,8,18,0)");
+  scrim.addColorStop(0.25, `rgba(3,8,18,${0.7 * style.opacity})`);
+  scrim.addColorStop(0.75, `rgba(3,8,18,${0.7 * style.opacity})`);
+  scrim.addColorStop(1, "rgba(3,8,18,0)");
+  ctx.fillStyle = scrim;
+  ctx.fillRect(bx - width / 2, by - height / 2, width, height);
+  ctx.fillStyle = `rgba(190,213,232,${(0.78 * style.opacity).toFixed(3)})`;
+  ctx.fillText(label, bx, by + 0.5 / zoomK);
   ctx.restore();
 }
 
@@ -330,7 +332,9 @@ export function renderUniverseScene(
   transform: ViewportTransform,
   scene: UniverseScene,
   options: UniverseRenderOptions = {}
-): void {
+): UniverseRenderResult {
+  const visibleRelationshipIds = new Set<string>();
+  let activatedPulse: RelationshipPulse | undefined;
   const reportedDpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
   const effectiveDpr =
     Number.isFinite(reportedDpr) && reportedDpr > 0 ? Math.min(reportedDpr, 2) : 1;
@@ -349,7 +353,7 @@ export function renderUniverseScene(
     !Number.isFinite(transform.y)
   ) {
     ctx.restore();
-    return;
+    return { visibleRelationshipIds, activatedPulse };
   }
 
   // 1. Static Screen-Space Celestial Atmosphere (Deep Space)
@@ -404,8 +408,15 @@ export function renderUniverseScene(
     return 0;
   });
 
+  const relationshipOverlays: RelationshipOverlay[] = [];
   for (const rel of sortedRelationships) {
     if (typeof rel.opacity === "number" && rel.opacity <= 0.001) {
+      continue;
+    }
+    if (
+      options.unreadyRelationshipNodeIds?.has(rel.sourceId) ||
+      options.unreadyRelationshipNodeIds?.has(rel.targetId)
+    ) {
       continue;
     }
 
@@ -450,7 +461,7 @@ export function renderUniverseScene(
       isIncident,
       hasActiveInteraction,
       isMobile,
-      dist: geom.centerDistance,
+      dist: geom.visibleLength * transform.k,
     });
 
     if (style.coreAlpha <= 0.005) {
@@ -463,37 +474,29 @@ export function renderUniverseScene(
     const coreWidth = screenPixelsToWorldUnits(style.coreWidth, transform.k);
     if (haloWidth === null || coreWidth === null) continue;
 
-    ctx.save();
-
-    // Pass 1: Atmospheric luminous halo
-    if (style.haloAlpha > 0.01) {
-      if (typeof ctx.createLinearGradient === "function") {
-        const grad = ctx.createLinearGradient(
-          geom.path.start.x,
-          geom.path.start.y,
-          geom.path.end.x,
-          geom.path.end.y
-        );
-        grad.addColorStop(0, formatHaloColor(sourcePalette.halo, style.haloAlpha));
-        grad.addColorStop(1, formatHaloColor(targetPalette.halo, style.haloAlpha));
-        ctx.strokeStyle = grad;
-      } else {
-        ctx.strokeStyle = formatHaloColor(targetPalette.halo, style.haloAlpha);
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(geom.path.start.x, geom.path.start.y);
-      ctx.quadraticCurveTo(
-        geom.path.control.x,
-        geom.path.control.y,
-        geom.path.end.x,
-        geom.path.end.y
-      );
-      ctx.lineWidth = haloWidth;
-      ctx.stroke();
+    if (
+      !activatedPulse &&
+      options.pendingPulse?.relationshipId === rel.id &&
+      isPendingRelationshipPulseActive(
+        options.pendingPulse,
+        options.now ?? 0,
+        options.reducedMotion,
+        options.hidden
+      )
+    ) {
+      activatedPulse =
+        activatePendingRelationshipPulse(
+          options.pendingPulse,
+          new Set([rel.id]),
+          options.now ?? 0,
+          options.reducedMotion,
+          options.hidden
+        ) ?? undefined;
     }
 
-    // Pass 2: Fine, crisp luminous core trajectory
+    ctx.save();
+
+    // One clipped current path, stroked with restrained diffuse layers and a fine core.
     ctx.beginPath();
     ctx.moveTo(geom.path.start.x, geom.path.start.y);
     ctx.quadraticCurveTo(
@@ -502,62 +505,139 @@ export function renderUniverseScene(
       geom.path.end.x,
       geom.path.end.y
     );
-
-    if (style.isFocus || style.isIncident) {
-      if (typeof ctx.createLinearGradient === "function") {
-        const coreGrad = ctx.createLinearGradient(
-          geom.path.start.x,
-          geom.path.start.y,
-          geom.path.end.x,
-          geom.path.end.y
-        );
-        coreGrad.addColorStop(0, `rgba(240, 249, 255, ${style.coreAlpha.toFixed(2)})`);
-        coreGrad.addColorStop(1, `rgba(224, 242, 254, ${style.coreAlpha.toFixed(2)})`);
-        ctx.strokeStyle = coreGrad;
-      } else {
-        ctx.strokeStyle = `rgba(224, 242, 254, ${style.coreAlpha.toFixed(2)})`;
-      }
-    } else {
-      ctx.strokeStyle = `rgba(148, 163, 184, ${style.coreAlpha.toFixed(2)})`;
+    ctx.lineCap = "round";
+    const colorGradient = (alpha: number) => {
+      if (typeof ctx.createLinearGradient !== "function") return `rgba(215,235,250,${alpha})`;
+      const gradient = ctx.createLinearGradient(
+        geom.path.start.x,
+        geom.path.start.y,
+        geom.path.end.x,
+        geom.path.end.y
+      );
+      const inset = Math.min(0.18, 8 / Math.max(1, geom.visibleLength * transform.k));
+      gradient.addColorStop(0, restrainedFilamentColor(sourcePalette.halo, alpha * 0.5));
+      gradient.addColorStop(inset, restrainedFilamentColor(sourcePalette.halo, alpha));
+      gradient.addColorStop(1 - inset, restrainedFilamentColor(targetPalette.halo, alpha));
+      gradient.addColorStop(1, restrainedFilamentColor(targetPalette.halo, alpha * 0.5));
+      return gradient;
+    };
+    if (style.haloAlpha > 0.01) {
+      ctx.strokeStyle = colorGradient(style.haloAlpha * 0.4);
+      ctx.lineWidth = haloWidth;
+      ctx.stroke();
+      ctx.strokeStyle = colorGradient(style.haloAlpha * 0.65);
+      ctx.lineWidth = haloWidth * 0.62;
+      ctx.stroke();
+      ctx.strokeStyle = colorGradient(style.haloAlpha);
+      ctx.lineWidth = haloWidth * 0.38;
+      ctx.stroke();
     }
+    ctx.strokeStyle = colorGradient(style.coreAlpha);
     ctx.lineWidth = coreWidth;
     ctx.stroke();
+    visibleRelationshipIds.add(rel.id);
 
-    // Pass 3: Restrained directional terminal cue (sleek light dart & micro-spark)
-    renderDirectionalLightCue(ctx, geom, style, transform.k);
-
-    // Pass 4: Concise relationship type badge
-    if (style.renderLabel) {
-      renderRelationshipTypeBadge(
-        ctx,
-        rel,
-        sourceEndpoint,
-        targetEndpoint,
-        geom,
-        style,
-        transform.k
-      );
+    const energy = sampleRelationshipPulse(
+      activatedPulse ?? options.pulse ?? null,
+      rel,
+      geom,
+      options.now ?? 0
+    );
+    if (energy && energy.alpha > 0) {
+      const tailT = Math.max(0, energy.progress - 9 / (geom.visibleLength * transform.k));
+      const tail = quadraticPointAt(geom.path, tailT);
+      ctx.beginPath();
+      ctx.moveTo(tail.x, tail.y);
+      for (let step = 1; step <= 4; step++) {
+        const point = quadraticPointAt(geom.path, tailT + ((energy.progress - tailT) * step) / 4);
+        ctx.lineTo(point.x, point.y);
+      }
+      const light = ctx.createLinearGradient(tail.x, tail.y, energy.point.x, energy.point.y);
+      light.addColorStop(0, "rgba(220,240,255,0)");
+      light.addColorStop(1, `rgba(235,247,255,${energy.alpha * 0.85})`);
+      ctx.strokeStyle = light;
+      ctx.lineWidth = screenPixelsToWorldUnits(3.2, transform.k) ?? 0;
+      ctx.globalAlpha = 0.22;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = screenPixelsToWorldUnits(1.4, transform.k) ?? 0;
+      ctx.stroke();
     }
 
+    relationshipOverlays.push({
+      relationship: rel,
+      sourceEndpoint,
+      targetEndpoint,
+      geometry: geom,
+      style,
+    });
     ctx.restore();
   }
 
-  // 3. Render Celestial Bodies (unless delegated to hybrid DOM/SVG layer)
+  // Punch foreground ring pixels out of the luminous strands and traveling pulse first.
+  // Directional cues and labels are redrawn above this mask for readable semantics.
+  if (skipBodies) {
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-out";
+    for (const mask of options.foregroundRingOcclusions ?? []) {
+      ctx.globalAlpha = mask.opacity;
+      if (mask.image) {
+        ctx.drawImage(
+          mask.image,
+          (mask.x - transform.x) / transform.k,
+          (mask.y - transform.y) / transform.k,
+          mask.size / transform.k,
+          mask.size / transform.k
+        );
+      } else if (mask.path) {
+        ctx.save();
+        ctx.translate(mask.x, mask.y);
+        ctx.scale(mask.size, mask.size);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill(mask.path);
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  for (const overlay of relationshipOverlays) {
+    ctx.save();
+    renderDirectionalLightCue(ctx, overlay.geometry, overlay.style, transform.k);
+    if (overlay.style.renderLabel) {
+      renderRelationshipTypeBadge(
+        ctx,
+        overlay.relationship,
+        overlay.sourceEndpoint,
+        overlay.targetEndpoint,
+        overlay.geometry,
+        overlay.style,
+        transform.k,
+        scene.allNodes,
+        skipBodies
+      );
+    }
+    ctx.restore();
+  }
+
+  // Node-only suppression is used by geometry probes that intentionally leave bodies out.
   if (options.skipNodeRendering) {
     ctx.restore();
-    return;
+    return { visibleRelationshipIds, activatedPulse };
   }
 
   // Draw order: context nodes (background) -> primary nodes (midground) -> focus node (foreground)
   const orderedNodes = [...scene.contextNodes, ...scene.primaryNodes, scene.focus];
   const focusGlow = getFocusGlowSprite();
 
-  // When 3D bodies are rendered in WebGL behind Canvas 2D, punch out node circles
-  // so relationship paths terminate cleanly at body perimeters without crossing faces.
+  // Solid projected spheres remain in front of every Canvas relationship layer.
   if (skipBodies) {
     ctx.save();
     ctx.globalCompositeOperation = "destination-out";
+    ctx.globalAlpha = 1;
     for (const node of orderedNodes) {
+      if (options.bodyNotReadyNodeIds?.has(node.id)) continue;
       if (typeof node.x !== "number" || typeof node.y !== "number") continue;
       const opacity = node.opacity ?? 1.0;
       if (opacity <= 0.001) continue;
@@ -571,6 +651,7 @@ export function renderUniverseScene(
     ctx.restore();
   }
 
+  // 3. Render Celestial Bodies (unless delegated to hybrid DOM/SVG layer)
   for (const node of orderedNodes) {
     if (typeof node.x !== "number" || typeof node.y !== "number") continue;
     const opacity = node.opacity ?? 1.0;
@@ -800,6 +881,7 @@ export function renderUniverseScene(
   }
 
   ctx.restore();
+  return { visibleRelationshipIds, activatedPulse };
 }
 
 /**

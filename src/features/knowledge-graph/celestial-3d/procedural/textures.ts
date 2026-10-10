@@ -8,6 +8,12 @@ import type { GeometryLOD, RingConfig } from "../identity";
 const textureCache = new Map<string, THREE.CanvasTexture>();
 const textureReferenceCounts = new WeakMap<THREE.Texture, number>();
 const textureKeys = new WeakMap<THREE.Texture, Set<string>>();
+const ringTextureAlphaData = new WeakMap<HTMLCanvasElement, Uint8Array>();
+
+/** Reuses ring alpha generated before the CanvasTexture is uploaded to WebGL. */
+export function getRingTextureAlphaData(source: HTMLCanvasElement): Uint8Array | undefined {
+  return ringTextureAlphaData.get(source);
+}
 
 function cacheTexture(key: string, texture: THREE.CanvasTexture): void {
   textureCache.set(key, texture);
@@ -2412,10 +2418,12 @@ export function createRingTexture(config: RingConfig): THREE.CanvasTexture {
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
+  let alphaData: Uint8Array | undefined;
 
   if (ctx) {
     const img = ctx.createImageData(width, height);
     const data = img.data;
+    alphaData = new Uint8Array(width * height);
     const noise = createNoise3D(config.seed);
     const clumpNoise = createNoise3D(config.seed + 109);
     const edgeNoise = createNoise3D(config.seed + 211);
@@ -2580,10 +2588,13 @@ export function createRingTexture(config: RingConfig): THREE.CanvasTexture {
         data[idx] = r;
         data[idx + 1] = g;
         data[idx + 2] = b;
-        data[idx + 3] = Math.floor(alpha * 255);
+        const alphaByte = Math.floor(alpha * 255);
+        data[idx + 3] = alphaByte;
+        alphaData[y * width + x] = alphaByte;
       }
     }
     ctx.putImageData(img, 0, 0);
+    ringTextureAlphaData.set(canvas, alphaData);
   }
 
   texture = new THREE.CanvasTexture(canvas);

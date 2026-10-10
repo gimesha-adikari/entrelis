@@ -5,6 +5,7 @@ import type { UniverseNode, UniverseScene } from "../scene/types";
 import type { ViewportTransform } from "../types";
 import type { CelestialBodyInstance } from "./archetypes/factory";
 import type { CelestialIdentity, GeometryLOD } from "./identity";
+import * as ringOcclusion from "./ring-occlusion";
 import {
   ProductionCelestialController,
   type ProductionCelestialControllerDependencies,
@@ -274,6 +275,461 @@ describe("production celestial scene controller", () => {
     });
 
     expect(controller.isAvailable).toBe(false);
+  });
+
+  it("defers new ring-mask setup to a bounded idle callback", () => {
+    const requestIdleDescriptor = Object.getOwnPropertyDescriptor(window, "requestIdleCallback");
+    const pathDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Path2D");
+    let idleWork: IdleRequestCallback | null = null;
+    const requestIdleCallback = vi.fn((callback: IdleRequestCallback) => {
+      idleWork = callback;
+      return 12;
+    });
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: requestIdleCallback,
+    });
+    class RecordingPath2D {
+      moveTo() {}
+      lineTo() {}
+      closePath() {}
+    }
+    vi.stubGlobal("Path2D", RecordingPath2D);
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(20, 40, 16, 4),
+      new THREE.MeshBasicMaterial()
+    );
+    const body: CelestialBodyInstance = {
+      ...makeBody({ archetype: "volcanic-rocky", seed: 1 }),
+      ringMesh: ring,
+    };
+    const builder = {
+      isCurrent: vi.fn(() => true),
+      step: vi.fn(() => true),
+      commit: vi.fn(() => ({
+        ringMatrix: new THREE.Matrix4(),
+        groupRotation: new THREE.Quaternion(),
+        extent: 1,
+        isExact: true,
+        draw: { image: document.createElement("canvas"), x: 0, y: 0, size: 0, opacity: 0 },
+      })),
+    };
+    const createBuilder = vi
+      .spyOn(ringOcclusion, "createForegroundRingMaskBuilder")
+      .mockReturnValue(builder);
+    const onRingOcclusionChange = vi.fn();
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: makeRenderer,
+      createBody: () => body,
+      onRingOcclusionChange,
+    });
+
+    try {
+      controller.update(
+        makeScene(makeNode("rust", "focus", 0, 0)),
+        { x: 0, y: 0, k: 1 },
+        800,
+        600,
+        null
+      );
+      expect(createBuilder).not.toHaveBeenCalled();
+      expect(requestIdleCallback).toHaveBeenCalledOnce();
+
+      const snapshot = controller.getForegroundRingOcclusions();
+      expect(snapshot).toMatchObject({
+        masks: [{ path: expect.any(RecordingPath2D) }],
+        pending: true,
+      });
+      expect(createBuilder).not.toHaveBeenCalled();
+
+      const runIdleWork = idleWork as IdleRequestCallback | null;
+      runIdleWork?.({ didTimeout: false, timeRemaining: () => 8 });
+      expect(createBuilder).toHaveBeenCalledOnce();
+      expect(builder.step).toHaveBeenCalledWith(512, 1);
+      expect(builder.commit).toHaveBeenCalledOnce();
+      expect(onRingOcclusionChange).toHaveBeenCalledOnce();
+      const hitsBeforeRead = controller.getLifecycleStats().ringMaskCacheHits;
+      controller.getForegroundRingOcclusions();
+      expect(controller.getLifecycleStats()).toMatchObject({
+        ringMaskPreparationsStarted: 1,
+        ringMaskPreparationsCompleted: 1,
+        ringMaskCacheHits: hitsBeforeRead + 1,
+      });
+      controller.dispose();
+      expect(controller.getLifecycleStats().ringMaskCacheEvictions).toBe(1);
+      controller = null;
+    } finally {
+      if (requestIdleDescriptor) {
+        Object.defineProperty(window, "requestIdleCallback", requestIdleDescriptor);
+      } else {
+        Reflect.deleteProperty(window, "requestIdleCallback");
+      }
+      if (pathDescriptor) {
+        Object.defineProperty(globalThis, "Path2D", pathDescriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, "Path2D");
+      }
+    }
+  });
+
+  it("prioritizes the selected focus ring ahead of unrelated pending masks", () => {
+    const requestIdleDescriptor = Object.getOwnPropertyDescriptor(window, "requestIdleCallback");
+    const cancelIdleDescriptor = Object.getOwnPropertyDescriptor(window, "cancelIdleCallback");
+    const pathDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Path2D");
+    let idleWork: IdleRequestCallback | null = null;
+    let nextTaskId = 0;
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: (callback: IdleRequestCallback) => {
+        idleWork = callback;
+        return ++nextTaskId;
+      },
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    class RecordingPath2D {
+      moveTo() {}
+      lineTo() {}
+      closePath() {}
+    }
+    vi.stubGlobal("Path2D", RecordingPath2D);
+
+    const rings: THREE.Mesh[] = [];
+    const builderRings: THREE.Mesh[] = [];
+    const createBody = (identity: CelestialIdentity): CelestialBodyInstance => {
+      const body = makeBody(identity);
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(20, 40, 16, 4),
+        new THREE.MeshBasicMaterial()
+      );
+      rings.push(ring);
+      return { ...body, ringMesh: ring };
+    };
+    vi.spyOn(ringOcclusion, "createForegroundRingMaskBuilder").mockImplementation((group, ring) => {
+      builderRings.push(ring);
+      return {
+        isCurrent: () => true,
+        step: () => true,
+        commit: () => ({
+          ringMatrix: ring.matrix.clone(),
+          groupRotation: group.quaternion.clone(),
+          extent: 40,
+          isExact: true,
+          draw: { image: document.createElement("canvas"), x: 0, y: 0, size: 0, opacity: 0 },
+        }),
+      };
+    });
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: makeRenderer,
+      createBody,
+    });
+
+    try {
+      const rust = makeNode("rust", "focus", 0, 0);
+      const ownership = makeNode("ownership", "primary", 120, 30);
+      const memory = makeNode("memory", "context", -130, -40);
+      controller.update(makeScene(rust, [ownership, memory]), { x: 0, y: 0, k: 1 }, 800, 600, null);
+      controller.getForegroundRingOcclusions(memory.id);
+      (idleWork as IdleRequestCallback | null)?.({ didTimeout: true, timeRemaining: () => 8 });
+
+      expect(builderRings[0]).toBe(rings[2]);
+    } finally {
+      controller.dispose();
+      controller = null;
+      if (requestIdleDescriptor) {
+        Object.defineProperty(window, "requestIdleCallback", requestIdleDescriptor);
+      } else {
+        Reflect.deleteProperty(window, "requestIdleCallback");
+      }
+      if (cancelIdleDescriptor) {
+        Object.defineProperty(window, "cancelIdleCallback", cancelIdleDescriptor);
+      } else {
+        Reflect.deleteProperty(window, "cancelIdleCallback");
+      }
+      if (pathDescriptor) {
+        Object.defineProperty(globalThis, "Path2D", pathDescriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, "Path2D");
+      }
+    }
+  });
+
+  it("keeps geometry fallback usable after alpha-mask failure without retrying", async () => {
+    class RecordingPath2D {
+      moveTo() {}
+      lineTo() {}
+      closePath() {}
+    }
+    vi.stubGlobal("Path2D", RecordingPath2D);
+    const createBuilder = vi
+      .spyOn(ringOcclusion, "createForegroundRingMaskBuilder")
+      .mockReturnValue(null);
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(20, 40, 16, 4),
+      new THREE.MeshBasicMaterial()
+    );
+    const body: CelestialBodyInstance = {
+      ...makeBody({ archetype: "volcanic-rocky", seed: 3 }),
+      ringMesh: ring,
+    };
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: makeRenderer,
+      createBody: () => body,
+    });
+
+    try {
+      const rust = makeNode("rust", "focus", 0, 0);
+      controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+      const preparing = controller.getForegroundRingOcclusions(rust.id);
+      expect(preparing.masks).toHaveLength(1);
+      expect(preparing.pending).toBe(true);
+
+      await flushPreparationTasks();
+      const failed = controller.getForegroundRingOcclusions(rust.id);
+      expect(failed.masks).toHaveLength(1);
+      expect(failed.pending).toBe(false);
+      expect(failed.unreadyNodeIds).toEqual(new Set());
+      expect(controller.getLifecycleStats().ringMaskPreparationFailures).toBe(1);
+      controller.getForegroundRingOcclusions(rust.id);
+      expect(createBuilder).toHaveBeenCalledOnce();
+    } finally {
+      controller.dispose();
+      controller = null;
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fails closed to cached geometry when mask preparation throws, without retrying", async () => {
+    class RecordingPath2D {
+      moveTo() {}
+      lineTo() {}
+      closePath() {}
+    }
+    vi.stubGlobal("Path2D", RecordingPath2D);
+    const createBuilder = vi
+      .spyOn(ringOcclusion, "createForegroundRingMaskBuilder")
+      .mockReturnValue({
+        isCurrent: () => true,
+        step: () => {
+          throw new Error("alpha plane unavailable");
+        },
+        commit: () => null,
+      });
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(20, 40, 16, 4),
+      new THREE.MeshBasicMaterial()
+    );
+    const body: CelestialBodyInstance = {
+      ...makeBody({ archetype: "volcanic-rocky", seed: 4 }),
+      ringMesh: ring,
+    };
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: makeRenderer,
+      createBody: () => body,
+    });
+
+    try {
+      const rust = makeNode("rust", "focus", 0, 0);
+      controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+      expect(controller.getForegroundRingOcclusions(rust.id).masks).toHaveLength(1);
+
+      await flushPreparationTasks();
+      const failed = controller.getForegroundRingOcclusions(rust.id);
+      expect(failed.masks).toHaveLength(1);
+      expect(failed.pending).toBe(false);
+      expect(failed.unreadyNodeIds).toEqual(new Set());
+      expect(controller.getLifecycleStats().ringMaskPreparationFailures).toBe(1);
+      controller.getForegroundRingOcclusions(rust.id);
+      expect(createBuilder).toHaveBeenCalledOnce();
+    } finally {
+      controller.dispose();
+      controller = null;
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("stops retrying a mask whose geometry changes during every bounded build", () => {
+    const requestIdleDescriptor = Object.getOwnPropertyDescriptor(window, "requestIdleCallback");
+    const cancelIdleDescriptor = Object.getOwnPropertyDescriptor(window, "cancelIdleCallback");
+    let idleWork: IdleRequestCallback | null = null;
+    let nextTaskId = 0;
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: (callback: IdleRequestCallback) => {
+        idleWork = callback;
+        return ++nextTaskId;
+      },
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    class RecordingPath2D {
+      moveTo() {}
+      lineTo() {}
+      closePath() {}
+    }
+    vi.stubGlobal("Path2D", RecordingPath2D);
+    const createBuilder = vi.spyOn(ringOcclusion, "createForegroundRingMaskBuilder");
+    createBuilder.mockImplementation(() => ({
+      isCurrent: () => false,
+      step: () => true,
+      commit: () => null,
+    }));
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(20, 40, 16, 4),
+      new THREE.MeshBasicMaterial()
+    );
+    const body: CelestialBodyInstance = {
+      ...makeBody({ archetype: "volcanic-rocky", seed: 5 }),
+      ringMesh: ring,
+    };
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: makeRenderer,
+      createBody: () => body,
+    });
+
+    try {
+      const rust = makeNode("rust", "focus", 0, 0);
+      controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+      for (let index = 0; index < 5 && idleWork; index++) {
+        const runWork = idleWork as unknown as IdleRequestCallback;
+        idleWork = null;
+        runWork({ didTimeout: true, timeRemaining: () => 8 });
+      }
+
+      const result = controller.getForegroundRingOcclusions(rust.id);
+      expect(result.masks).toHaveLength(1);
+      expect(createBuilder).toHaveBeenCalledTimes(2);
+      expect(result.pending).toBe(false);
+      expect(result.unreadyNodeIds).toEqual(new Set());
+      expect(idleWork).toBeNull();
+      expect(createBuilder).toHaveBeenCalledTimes(2);
+    } finally {
+      controller.dispose();
+      controller = null;
+      vi.unstubAllGlobals();
+      if (requestIdleDescriptor) {
+        Object.defineProperty(window, "requestIdleCallback", requestIdleDescriptor);
+      } else {
+        Reflect.deleteProperty(window, "requestIdleCallback");
+      }
+      if (cancelIdleDescriptor) {
+        Object.defineProperty(window, "cancelIdleCallback", cancelIdleDescriptor);
+      } else {
+        Reflect.deleteProperty(window, "cancelIdleCallback");
+      }
+    }
+  });
+
+  it("marks only the visible body unready while it waits for shader preparation", async () => {
+    const compileControl: { finish: (() => void) | null } = { finish: null };
+    const compileAsync = vi.fn(
+      (object: THREE.Object3D) =>
+        new Promise<THREE.Object3D>((resolve) => {
+          compileControl.finish = () => resolve(object);
+        })
+    );
+    const ring = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial());
+    const body: CelestialBodyInstance = {
+      ...makeBody({ archetype: "volcanic-rocky", seed: 2 }),
+      ringMesh: ring,
+    };
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: () => makeAsyncShaderRenderer(compileAsync),
+      createBody: () => body,
+    });
+
+    const rust = makeNode("rust", "focus", 0, 0);
+    controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+    expect(compileAsync).toHaveBeenCalledOnce();
+    expect(controller.getLifecycleStats().activeEntries).toBe(0);
+    expect(controller.getForegroundRingOcclusions()).toMatchObject({
+      unreadyNodeIds: new Set([rust.id]),
+      bodyNotReadyNodeIds: new Set([rust.id]),
+    });
+
+    compileControl.finish?.();
+    await flushPreparationTasks();
+    expect(controller.getLifecycleStats().activeEntries).toBe(1);
+  });
+
+  it("keeps unrelated relationships eligible while a non-ringed body compiles", async () => {
+    const compileControl: { finish: (() => void) | null } = { finish: null };
+    const compileAsync = vi.fn(
+      (object: THREE.Object3D) =>
+        new Promise<THREE.Object3D>((resolve) => {
+          compileControl.finish = () => resolve(object);
+        })
+    );
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: () => makeAsyncShaderRenderer(compileAsync),
+      createBody: (identity) => makeBody(identity),
+    });
+
+    const rust = makeNode("rust", "focus", 0, 0);
+    controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+    await flushPreparationTasks();
+
+    expect(controller.getForegroundRingOcclusions()).toMatchObject({
+      pending: true,
+      unreadyNodeIds: new Set(),
+      bodyNotReadyNodeIds: new Set([rust.id]),
+    });
+
+    compileControl.finish?.();
+    await flushPreparationTasks();
+    expect(controller.getLifecycleStats().activeEntries).toBe(1);
+  });
+
+  it("applies a conservative ring mask to a body while its shader compiles", async () => {
+    const pathDescriptor = Object.getOwnPropertyDescriptor(globalThis, "Path2D");
+    class RecordingPath2D {
+      moveTo() {}
+      lineTo() {}
+      closePath() {}
+    }
+    Object.defineProperty(globalThis, "Path2D", { configurable: true, value: RecordingPath2D });
+
+    const compileControl: { finish: (() => void) | null } = { finish: null };
+    const compileAsync = vi.fn(
+      (object: THREE.Object3D) =>
+        new Promise<THREE.Object3D>((resolve) => {
+          compileControl.finish = () => resolve(object);
+        })
+    );
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(20, 40, 16, 4),
+      new THREE.MeshBasicMaterial({ transparent: true, opacity: 1 })
+    );
+    controller = new ProductionCelestialController(document.createElement("canvas"), {
+      createRenderer: () => makeAsyncShaderRenderer(compileAsync),
+      createBody: (identity) => ({ ...makeBody(identity), ringMesh: ring }),
+    });
+
+    try {
+      const rust = makeNode("rust", "focus", 0, 0);
+      controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null);
+      await flushPreparationTasks();
+      const snapshot = controller.getForegroundRingOcclusions();
+      expect(snapshot).toMatchObject({
+        masks: [{ path: expect.any(RecordingPath2D), size: expect.closeTo(0.68) }],
+        unreadyNodeIds: new Set(),
+        bodyNotReadyNodeIds: new Set([rust.id]),
+      });
+      compileControl.finish?.();
+      await flushPreparationTasks();
+    } finally {
+      if (pathDescriptor) {
+        Object.defineProperty(globalThis, "Path2D", pathDescriptor);
+      } else {
+        Reflect.deleteProperty(globalThis, "Path2D");
+      }
+    }
   });
 
   it("applies the interpolated scene opacity to the body's materials", () => {
@@ -874,6 +1330,33 @@ describe("production celestial scene controller", () => {
 
     controller.dispose();
     expect(mockUniverseDispose).toHaveBeenCalledOnce();
+  });
+
+  it("renders the settled travel snapshot immediately, then resumes ambient-only rendering", () => {
+    vi.mocked(window.matchMedia).mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as MediaQueryList);
+    vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    const renderer = makeRenderer();
+    const { controller, rust } = makeTrackedScene(() => renderer);
+    const travel = {
+      active: true,
+      progress: 0.5,
+      currentOffset: { x: 0, y: 0 },
+      fromSlug: "rust",
+      toSlug: "ownership",
+    };
+    controller.update(makeScene(rust), { x: 0, y: 0, k: 1 }, 800, 600, null, travel);
+    const before = vi.mocked(renderer.render).mock.calls.length;
+    const settled = { ...travel, active: false, progress: 1 };
+    controller.update(makeScene(rust), { x: 40, y: 0, k: 1 }, 800, 600, null, settled);
+    expect(renderer.render).toHaveBeenCalledTimes(before + 2);
+    controller.update(makeScene(rust), { x: 40, y: 0, k: 1 }, 800, 600, null, settled);
+    expect(renderer.render).toHaveBeenCalledTimes(before + 2);
+    controller.dispose();
   });
 
   it("forwards selection travel state to universe scene during update", () => {

@@ -10,11 +10,26 @@ import {
   type UniverseTravelState,
 } from "./universe";
 
+import {
+  createForegroundRingGeometryFallback,
+  createForegroundRingMaskBuilder,
+  disposeCachedForegroundRingMask,
+  getCachedForegroundRingMask,
+  type ForegroundRingMaskBuilder,
+  type ForegroundRingOcclusion,
+  type ForegroundRingOcclusionSnapshot,
+} from "./ring-occlusion";
+
 const BODY_BASE_RADIUS = 50;
 const DEFAULT_TARGET_FPS = 30;
 const MAX_WARM_ENTRIES = 8;
 const MAX_PENDING_ENTRIES = DESKTOP_SCENE_BUDGET.maxTotal;
 const RENDERER_DPR_LIMIT = 2;
+const MAX_RING_MASK_PIXEL_CANDIDATES_PER_STEP = 512;
+const MAX_RING_MASK_STEP_MS = 1;
+const MAX_RING_MASK_STEPS_PER_CALLBACK = 32;
+const MAX_RING_MASK_CALLBACK_MS = 3;
+const MAX_RING_MASK_STALE_ATTEMPTS = 2;
 
 interface ProductionEntry {
   readonly id: string;
@@ -37,6 +52,14 @@ interface PendingPreparation {
   startedAt: number;
 }
 
+interface RingMaskPreparation {
+  readonly entry: ProductionEntry;
+  readonly startedAt: number;
+  builder: ForegroundRingMaskBuilder | null;
+  readonly staleAttempts: number;
+  cpuMs: number;
+}
+
 interface MaterialOpacityState {
   readonly material: THREE.Material;
   readonly opacity: number;
@@ -44,6 +67,7 @@ interface MaterialOpacityState {
 }
 
 export interface ProductionCelestialControllerDependencies {
+  readonly onRingOcclusionChange?: () => void;
   readonly createRenderer?: (canvas: HTMLCanvasElement) => THREE.WebGLRenderer;
   readonly createBody?: (
     identity: ReturnType<typeof getConceptCelestialIdentity>,
@@ -94,6 +118,23 @@ export interface ProductionCelestialLifecycleStats {
   readonly rendererCallTotalMs: number;
   readonly rendererCallMaxMs: number;
   readonly rendererCallLastMs: number;
+  readonly ringMaskCacheHits: number;
+  readonly ringMaskCacheMisses: number;
+  readonly ringMaskCacheEvictions: number;
+  readonly ringMaskPreparationsStarted: number;
+  readonly ringMaskPreparationsCompleted: number;
+  readonly ringMaskPreparationCancellations: number;
+  readonly ringMaskPreparationFailures: number;
+  readonly ringMaskPreparationQueueP50Ms: number;
+  readonly ringMaskPreparationQueueP95Ms: number;
+  readonly ringMaskPreparationQueueMaxMs: number;
+  readonly ringMaskPreparationCpuP50Ms: number;
+  readonly ringMaskPreparationCpuP95Ms: number;
+  readonly ringMaskPreparationCpuMaxMs: number;
+  readonly ringMaskSchedulerCallbacks: number;
+  readonly ringMaskSchedulerCallbackP50Ms: number;
+  readonly ringMaskSchedulerCallbackP95Ms: number;
+  readonly ringMaskSchedulerCallbackMaxMs: number;
 }
 
 /** Select the construction LOD for a new body; live scene-role changes do not upgrade it. */
@@ -114,6 +155,12 @@ export function projectUniverseNode(
 
 function getIdentityKey(identity: ReturnType<typeof getConceptCelestialIdentity>): string {
   return JSON.stringify(identity);
+}
+
+function percentile(values: readonly number[], quantile: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((left, right) => left - right);
+  return sorted[Math.floor((sorted.length - 1) * quantile)] ?? 0;
 }
 
 function copyBodyOrientation(source: CelestialBodyInstance, target: CelestialBodyInstance): void {
@@ -193,6 +240,10 @@ function applyBodyOpacity(entry: ProductionEntry, opacity: number): void {
 /** Owns the one transparent WebGL renderer used by the production local universe. */
 export class ProductionCelestialController {
   private readonly canvas: HTMLCanvasElement;
+  private readonly ringOcclusions: ForegroundRingOcclusion[] = [];
+  private readonly unreadyNodeIds = new Set<string>();
+  private readonly bodyNotReadyNodeIds = new Set<string>();
+  private readonly onRingOcclusionChange?: () => void;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 2000);
   private readonly activeEntries = new Map<string, ProductionEntry>();
@@ -200,6 +251,8 @@ export class ProductionCelestialController {
   private readonly warmEntries = new Map<string, ProductionEntry>();
   /** Cold bodies kept off-scene until shared-renderer shader preparation completes. */
   private readonly pendingEntries = new Map<string, PendingPreparation>();
+  private readonly ringMaskPreparations = new Map<THREE.Mesh, RingMaskPreparation>();
+  private readonly unavailableRingMasks = new WeakSet<THREE.Mesh>();
   private readonly targetFps = DEFAULT_TARGET_FPS;
   private readonly createRenderer: (canvas: HTMLCanvasElement) => THREE.WebGLRenderer;
   private readonly createBody: NonNullable<ProductionCelestialControllerDependencies["createBody"]>;
@@ -228,6 +281,8 @@ export class ProductionCelestialController {
   private preparingPendingEntry: PendingPreparation | null = null;
   private preparationTaskId: number | null = null;
   private preparationTaskKind: "idle" | "timeout" | null = null;
+  private ringMaskTaskId: number | null = null;
+  private ringMaskTaskKind: "idle" | "timeout" | null = null;
   private shaderPreparationsStarted = 0;
   private shaderPreparationsCompleted = 0;
   private shaderPreparationCancellations = 0;
@@ -243,6 +298,17 @@ export class ProductionCelestialController {
   private rendererCallTotalMs = 0;
   private rendererCallMaxMs = 0;
   private rendererCallLastMs = 0;
+  private ringMaskCacheHits = 0;
+  private ringMaskCacheMisses = 0;
+  private ringMaskCacheEvictions = 0;
+  private ringMaskPreparationsStarted = 0;
+  private ringMaskPreparationsCompleted = 0;
+  private ringMaskPreparationCancellations = 0;
+  private ringMaskPreparationFailures = 0;
+  private ringMaskSchedulerCallbacks = 0;
+  private readonly ringMaskSchedulerCallbackDurations: number[] = [];
+  private readonly ringMaskPreparationQueueDurations: number[] = [];
+  private readonly ringMaskPreparationCpuDurations: number[] = [];
   private latestTravel: UniverseTravelState | null = null;
 
   private readonly handleVisibilityChange = (): void => {
@@ -250,6 +316,7 @@ export class ProductionCelestialController {
     if (this.isTabHidden) {
       this.stopLoop();
       this.cancelScheduledPreparation();
+      this.cancelScheduledRingMaskPreparation();
       return;
     }
 
@@ -258,6 +325,8 @@ export class ProductionCelestialController {
     this.activateReadyPendingEntries();
     this.startLoop();
     this.schedulePendingPreparation();
+    this.scheduleRingMaskPreparation();
+    this.onRingOcclusionChange?.();
   };
 
   private readonly handleMotionChange = (event: MediaQueryListEvent): void => {
@@ -277,6 +346,7 @@ export class ProductionCelestialController {
     dependencies: ProductionCelestialControllerDependencies = {}
   ) {
     this.canvas = canvas;
+    this.onRingOcclusionChange = dependencies.onRingOcclusionChange;
     this.createRenderer =
       dependencies.createRenderer ??
       ((targetCanvas) =>
@@ -393,6 +463,23 @@ export class ProductionCelestialController {
       rendererCallTotalMs: this.rendererCallTotalMs,
       rendererCallMaxMs: this.rendererCallMaxMs,
       rendererCallLastMs: this.rendererCallLastMs,
+      ringMaskCacheHits: this.ringMaskCacheHits,
+      ringMaskCacheMisses: this.ringMaskCacheMisses,
+      ringMaskCacheEvictions: this.ringMaskCacheEvictions,
+      ringMaskPreparationsStarted: this.ringMaskPreparationsStarted,
+      ringMaskPreparationsCompleted: this.ringMaskPreparationsCompleted,
+      ringMaskPreparationCancellations: this.ringMaskPreparationCancellations,
+      ringMaskPreparationFailures: this.ringMaskPreparationFailures,
+      ringMaskPreparationQueueP50Ms: percentile(this.ringMaskPreparationQueueDurations, 0.5),
+      ringMaskPreparationQueueP95Ms: percentile(this.ringMaskPreparationQueueDurations, 0.95),
+      ringMaskPreparationQueueMaxMs: Math.max(0, ...this.ringMaskPreparationQueueDurations),
+      ringMaskPreparationCpuP50Ms: percentile(this.ringMaskPreparationCpuDurations, 0.5),
+      ringMaskPreparationCpuP95Ms: percentile(this.ringMaskPreparationCpuDurations, 0.95),
+      ringMaskPreparationCpuMaxMs: Math.max(0, ...this.ringMaskPreparationCpuDurations),
+      ringMaskSchedulerCallbacks: this.ringMaskSchedulerCallbacks,
+      ringMaskSchedulerCallbackP50Ms: percentile(this.ringMaskSchedulerCallbackDurations, 0.5),
+      ringMaskSchedulerCallbackP95Ms: percentile(this.ringMaskSchedulerCallbackDurations, 0.95),
+      ringMaskSchedulerCallbackMaxMs: Math.max(0, ...this.ringMaskSchedulerCallbackDurations),
     };
   }
 
@@ -431,6 +518,7 @@ export class ProductionCelestialController {
     this.resize(width, height);
     if (!this.renderer) return;
 
+    const wasTravelling = this.latestTravel?.active ?? false;
     this.latestTransform = transform;
     if (travel !== undefined) {
       this.latestTravel = travel;
@@ -461,7 +549,8 @@ export class ProductionCelestialController {
       this.stopLoop();
       this.renderFrame(0);
     } else {
-      if (travel?.active) {
+      // Present the final shared snapshot without waiting for an ambient tick.
+      if (travel?.active || wasTravelling) {
         this.renderFrame(0);
       }
       this.startLoop();
@@ -568,6 +657,285 @@ export class ProductionCelestialController {
       entry.opacity = node.opacity;
     }
     entry.body.setHover(isHovered, this.prefersReducedMotion);
+  }
+
+  /** Project ready foreground masks from the same live body groups as WebGL. */
+  public getForegroundRingOcclusions(priorityNodeId?: string): ForegroundRingOcclusionSnapshot {
+    this.ringOcclusions.length = 0;
+    this.unreadyNodeIds.clear();
+    this.bodyNotReadyNodeIds.clear();
+    let pending = false;
+    for (const entry of this.activeEntries.values()) {
+      const { group, ringMesh } = entry.body;
+      if (!ringMesh || !group.visible || entry.opacity <= 0.001) continue;
+      let mask = getCachedForegroundRingMask(group, ringMesh);
+      if (mask) this.ringMaskCacheHits += 1;
+      else this.ringMaskCacheMisses += 1;
+      if (!mask) mask = createForegroundRingGeometryFallback(group, ringMesh);
+      if (!mask) {
+        pending = true;
+        this.unreadyNodeIds.add(entry.id);
+        this.beginRingMaskPreparation(entry);
+        continue;
+      }
+      if (mask.isExact || this.unavailableRingMasks.has(ringMesh)) {
+        this.cancelRingMaskPreparation(ringMesh);
+      } else {
+        pending = true;
+        this.beginRingMaskPreparation(entry);
+      }
+      this.positionRingOcclusion(mask, entry);
+    }
+    for (const pendingEntry of this.pendingEntries.values()) {
+      if (pendingEntry.node.opacity <= 0.001) continue;
+      pending = true;
+      this.bodyNotReadyNodeIds.add(pendingEntry.node.id);
+      this.applyNodeToEntry(
+        pendingEntry.entry,
+        pendingEntry.node,
+        pendingEntry.transform,
+        pendingEntry.hovered
+      );
+
+      const { group, ringMesh } = pendingEntry.entry.body;
+      if (!ringMesh || !group.visible) continue;
+      let mask = getCachedForegroundRingMask(group, ringMesh);
+      if (mask) this.ringMaskCacheHits += 1;
+      else this.ringMaskCacheMisses += 1;
+      if (!mask) mask = createForegroundRingGeometryFallback(group, ringMesh);
+      if (!mask) {
+        this.unreadyNodeIds.add(pendingEntry.node.id);
+        continue;
+      }
+      if (!mask.isExact && !this.unavailableRingMasks.has(ringMesh)) {
+        this.beginRingMaskPreparation(pendingEntry.entry);
+      }
+      this.positionRingOcclusion(mask, pendingEntry.entry);
+    }
+    this.prioritizeRingMaskPreparation(priorityNodeId);
+    this.scheduleRingMaskPreparation();
+    return {
+      masks: this.ringOcclusions,
+      pending,
+      unreadyNodeIds: this.unreadyNodeIds,
+      bodyNotReadyNodeIds: this.bodyNotReadyNodeIds,
+    };
+  }
+
+  private positionRingOcclusion(
+    mask: NonNullable<ReturnType<typeof getCachedForegroundRingMask>>,
+    entry: ProductionEntry
+  ): void {
+    const { group, ringMesh } = entry.body;
+    if (mask.draw.image) {
+      const halfSize = mask.extent * group.scale.x;
+      mask.draw.x = group.position.x - halfSize;
+      mask.draw.y = -group.position.y - halfSize;
+      mask.draw.size = halfSize * 2;
+    } else {
+      mask.draw.x = group.position.x;
+      mask.draw.y = -group.position.y;
+      mask.draw.size = group.scale.x;
+    }
+    mask.draw.opacity = (ringMesh?.material as THREE.Material | undefined)?.opacity ?? 0;
+    this.ringOcclusions.push(mask.draw);
+  }
+
+  private prioritizeRingMaskPreparation(nodeId?: string): void {
+    if (!nodeId || this.ringMaskPreparations.size < 2) return;
+    const entries = [...this.ringMaskPreparations.entries()];
+    const priority = entries.filter(([, preparation]) => preparation.entry.id === nodeId);
+    if (priority.length === 0 || entries[0]?.[1].entry.id === nodeId) return;
+    const prioritizedRings = new Set(priority.map(([ring]) => ring));
+    this.ringMaskPreparations.clear();
+    for (const [ring, preparation] of [
+      ...priority,
+      ...entries.filter(([ring]) => !prioritizedRings.has(ring)),
+    ]) {
+      this.ringMaskPreparations.set(ring, preparation);
+    }
+  }
+
+  private beginRingMaskPreparation(entry: ProductionEntry, staleAttempts = 0): void {
+    const ring = entry.body.ringMesh;
+    if (!ring || this.unavailableRingMasks.has(ring)) return;
+    const existing = this.ringMaskPreparations.get(ring);
+    if (existing) {
+      let current = !existing.builder;
+      try {
+        if (existing.builder) current = existing.builder.isCurrent();
+      } catch {
+        this.ringMaskPreparations.delete(ring);
+        this.unavailableRingMasks.add(ring);
+        this.ringMaskPreparationFailures += 1;
+        return;
+      }
+      if (current) return;
+      if (existing.builder) this.ringMaskPreparationCancellations += 1;
+      staleAttempts = Math.max(staleAttempts, existing.staleAttempts + 1);
+      this.ringMaskPreparations.delete(ring);
+    }
+    if (staleAttempts >= MAX_RING_MASK_STALE_ATTEMPTS) {
+      this.unavailableRingMasks.add(ring);
+      this.ringMaskPreparationFailures += 1;
+      return;
+    }
+
+    this.ringMaskPreparations.set(ring, {
+      entry,
+      startedAt: performance.now(),
+      builder: null,
+      staleAttempts,
+      cpuMs: 0,
+    });
+  }
+
+  private scheduleRingMaskPreparation(): void {
+    if (
+      this.isDisposed ||
+      this.isTabHidden ||
+      this.ringMaskTaskId !== null ||
+      this.ringMaskPreparations.size === 0
+    ) {
+      return;
+    }
+
+    const prepareNext = (deadline?: IdleDeadline): void => {
+      const callbackStartedAt = performance.now();
+      this.ringMaskSchedulerCallbacks += 1;
+      try {
+        this.ringMaskTaskId = null;
+        this.ringMaskTaskKind = null;
+        if (this.isDisposed || this.isTabHidden || this.ringMaskPreparations.size === 0) return;
+        if (deadline && !deadline.didTimeout && deadline.timeRemaining() < 2) {
+          this.scheduleRingMaskPreparation();
+          return;
+        }
+
+        const nextPreparation = this.ringMaskPreparations.entries().next();
+        if (nextPreparation.done) return;
+        const [ring, preparation] = nextPreparation.value;
+        let steps = 0;
+        let notifyOcclusionChange = false;
+        let builderIsCurrent = true;
+        try {
+          if (preparation.builder) builderIsCurrent = preparation.builder.isCurrent();
+        } catch {
+          this.ringMaskPreparations.delete(ring);
+          this.unavailableRingMasks.add(ring);
+          this.ringMaskPreparationFailures += 1;
+          notifyOcclusionChange = true;
+        }
+        if (!notifyOcclusionChange && !builderIsCurrent) {
+          this.beginRingMaskPreparation(preparation.entry);
+        } else if (!notifyOcclusionChange) {
+          try {
+            if (!preparation.builder) {
+              const setupStartedAt = performance.now();
+              const builder = createForegroundRingMaskBuilder(preparation.entry.body.group, ring);
+              preparation.cpuMs += performance.now() - setupStartedAt;
+              if (!builder) {
+                this.ringMaskPreparations.delete(ring);
+                this.unavailableRingMasks.add(ring);
+                this.ringMaskPreparationFailures += 1;
+                notifyOcclusionChange = true;
+              } else {
+                preparation.builder = builder;
+                this.ringMaskPreparationsStarted += 1;
+              }
+            }
+            if (preparation.builder) {
+              let complete = false;
+              while (
+                !complete &&
+                steps < MAX_RING_MASK_STEPS_PER_CALLBACK &&
+                performance.now() - callbackStartedAt < MAX_RING_MASK_CALLBACK_MS
+              ) {
+                const stepStartedAt = performance.now();
+                complete = preparation.builder.step(
+                  MAX_RING_MASK_PIXEL_CANDIDATES_PER_STEP,
+                  MAX_RING_MASK_STEP_MS
+                );
+                preparation.cpuMs += performance.now() - stepStartedAt;
+                steps += 1;
+                if (
+                  complete ||
+                  (deadline && !deadline.didTimeout && deadline.timeRemaining() < 1.5)
+                ) {
+                  break;
+                }
+              }
+
+              if (complete) {
+                const commitStartedAt = performance.now();
+                const mask = preparation.builder.commit();
+                preparation.cpuMs += performance.now() - commitStartedAt;
+                this.ringMaskPreparations.delete(ring);
+                if (mask) {
+                  this.ringMaskPreparationsCompleted += 1;
+                  this.ringMaskPreparationQueueDurations.push(
+                    performance.now() - preparation.startedAt
+                  );
+                  this.ringMaskPreparationCpuDurations.push(preparation.cpuMs);
+                  if (this.ringMaskPreparationQueueDurations.length > 512) {
+                    this.ringMaskPreparationQueueDurations.shift();
+                    this.ringMaskPreparationCpuDurations.shift();
+                  }
+                  notifyOcclusionChange = true;
+                } else if (preparation.builder.isCurrent()) {
+                  this.unavailableRingMasks.add(ring);
+                  this.ringMaskPreparationFailures += 1;
+                  notifyOcclusionChange = true;
+                } else {
+                  this.beginRingMaskPreparation(preparation.entry, preparation.staleAttempts + 1);
+                }
+              }
+            }
+          } catch {
+            this.ringMaskPreparations.delete(ring);
+            this.unavailableRingMasks.add(ring);
+            this.ringMaskPreparationFailures += 1;
+            notifyOcclusionChange = true;
+          }
+        }
+        if (notifyOcclusionChange) this.onRingOcclusionChange?.();
+      } finally {
+        const duration = performance.now() - callbackStartedAt;
+        this.ringMaskSchedulerCallbackDurations.push(duration);
+        if (this.ringMaskSchedulerCallbackDurations.length > 512) {
+          this.ringMaskSchedulerCallbackDurations.shift();
+        }
+        this.scheduleRingMaskPreparation();
+      }
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      this.ringMaskTaskKind = "idle";
+      this.ringMaskTaskId = window.requestIdleCallback(prepareNext, { timeout: 100 });
+    } else {
+      this.ringMaskTaskKind = "timeout";
+      this.ringMaskTaskId = window.setTimeout(() => prepareNext(), 0);
+    }
+  }
+
+  private cancelRingMaskPreparation(ring: THREE.Mesh): void {
+    if (!this.ringMaskPreparations.delete(ring)) return;
+    this.ringMaskPreparationCancellations += 1;
+    if (this.ringMaskPreparations.size > 0) return;
+    this.cancelScheduledRingMaskPreparation();
+  }
+
+  private cancelScheduledRingMaskPreparation(): void {
+    if (this.ringMaskTaskId === null || this.ringMaskTaskKind === null) return;
+    if (this.ringMaskTaskKind === "idle") {
+      if (typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(this.ringMaskTaskId);
+      }
+    } else {
+      window.clearTimeout(this.ringMaskTaskId);
+    }
+    this.ringMaskTaskId = null;
+    this.ringMaskTaskKind = null;
   }
 
   private hasParallelShaderCompileExtension(): boolean {
@@ -714,6 +1082,11 @@ export class ProductionCelestialController {
     this.renderFrame(0);
     this.startLoop();
     this.schedulePendingPreparation();
+    if (this.onRingOcclusionChange) {
+      queueMicrotask(() => {
+        if (!this.isDisposed && !this.isTabHidden) this.onRingOcclusionChange?.();
+      });
+    }
   }
 
   private cancelPendingEntry(id: string, pending: PendingPreparation): void {
@@ -749,7 +1122,7 @@ export class ProductionCelestialController {
       this.bodyCreateTotalMs += performance.now() - startedAt;
     }
     body.group.userData["conceptId"] = id;
-    return {
+    const entry: ProductionEntry = {
       id,
       identityKey,
       constructionLod,
@@ -759,9 +1132,15 @@ export class ProductionCelestialController {
       hovered: false,
       opacity: -1,
     };
+    if (body.ringMesh) {
+      this.beginRingMaskPreparation(entry);
+      this.scheduleRingMaskPreparation();
+    }
+    return entry;
   }
 
   private parkEntry(id: string, entry: ProductionEntry): void {
+    if (entry.body.ringMesh) this.cancelRingMaskPreparation(entry.body.ringMesh);
     const duplicate = this.warmEntries.get(id);
     if (duplicate) {
       this.warmEntries.delete(id);
@@ -784,6 +1163,10 @@ export class ProductionCelestialController {
 
   private disposeEntry(entry: ProductionEntry): void {
     this.bodyDisposals += 1;
+    if (entry.body.ringMesh) {
+      this.cancelRingMaskPreparation(entry.body.ringMesh);
+      if (disposeCachedForegroundRingMask(entry.body.ringMesh)) this.ringMaskCacheEvictions += 1;
+    }
     entry.body.dispose();
   }
 
@@ -884,6 +1267,8 @@ export class ProductionCelestialController {
     this.isDisposed = true;
     this.stopLoop();
     this.cancelScheduledPreparation();
+    this.cancelScheduledRingMaskPreparation();
+    this.ringMaskPreparations.clear();
     document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     this.motionQuery?.removeEventListener?.("change", this.handleMotionChange);
 

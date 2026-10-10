@@ -8,6 +8,13 @@ import { buildLocalUniverseScene } from "../scene/build-local-scene";
 import { layoutLocalUniverseScene } from "../scene/layout-local-scene";
 import { interpolateScenes, SCENE_TRANSITION_DURATION_MS } from "../scene/transition-scene";
 import { renderUniverseScene } from "../rendering/universe-renderer";
+import {
+  isPendingRelationshipPulseActive,
+  isRelationshipPulseActive,
+  requestRelationshipPulse,
+  type PendingRelationshipPulse,
+  type RelationshipPulse,
+} from "../rendering/relationship-pulse";
 import { hitTestUniverseNode } from "../rendering/hit-test";
 import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import ProductionCelestialLayer, {
@@ -71,6 +78,21 @@ export default function GraphCanvas({
   // Animation frame reference strictly for bounded transitions (zero idle loop)
   const animationFrameRef = useRef<number | null>(null);
   const isInitialMountRef = useRef(true);
+  const pulseRef = useRef<RelationshipPulse | null>(null);
+  const pendingPulseRef = useRef<PendingRelationshipPulse | null>(null);
+  const drawRef = useRef<(syncBodies?: boolean) => void>(() => {});
+
+  const animateEnergy = useCallback(function animateEnergyFrame(now: number) {
+    animationFrameRef.current = null;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    if (!isRelationshipPulseActive(pulseRef.current, now, reduced, document.hidden)) {
+      pulseRef.current = null;
+      drawRef.current(false);
+      return;
+    }
+    drawRef.current(false);
+    animationFrameRef.current = requestAnimationFrame(animateEnergyFrame);
+  }, []);
 
   // Currently displayed universe scene on the canvas
   const currentSceneRef = useRef<UniverseScene | null>(null);
@@ -94,46 +116,102 @@ export default function GraphCanvas({
   }, [dataset, index, selectedConceptSlug, isMobile, dimensions.width, dimensions.height]);
 
   // Single-pass canvas drawing function
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const draw = useCallback(
+    (syncBodies = true) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-    const scene = currentSceneRef.current ?? targetScene;
-    const width = canvas.width;
-    const height = canvas.height;
+      const scene = currentSceneRef.current ?? targetScene;
+      const width = canvas.width;
+      const height = canvas.height;
 
-    renderUniverseScene(ctx, width, height, transformRef.current, scene, {
+      if (syncBodies)
+        productionCelestialLayerRef.current?.update(
+          scene,
+          transformRef.current,
+          dimensions.width,
+          dimensions.height,
+          hoveredNodeId,
+          travelStateRef.current
+        );
+      const ringOcclusions = productionCelestialLayerRef.current?.getForegroundRingOcclusions(
+        scene.focus.id
+      );
+      const now = performance.now();
+      const reducedMotion =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      if (
+        !isPendingRelationshipPulseActive(
+          pendingPulseRef.current,
+          now,
+          reducedMotion,
+          document.hidden
+        )
+      ) {
+        pendingPulseRef.current = null;
+      }
+
+      const result = renderUniverseScene(ctx, width, height, transformRef.current, scene, {
+        pulse: pulseRef.current,
+        pendingPulse: pendingPulseRef.current,
+        reducedMotion,
+        hidden: document.hidden,
+        now,
+        hoveredNodeId,
+        focusedNodeId,
+        isMobile,
+        skipBodyRendering: hasProductionRenderer,
+        skipBackgroundStars: hasProductionRenderer,
+        foregroundRingOcclusions: ringOcclusions?.masks,
+        unreadyRelationshipNodeIds: ringOcclusions?.unreadyNodeIds,
+        bodyNotReadyNodeIds: ringOcclusions?.bodyNotReadyNodeIds,
+      });
+      if (result.activatedPulse) {
+        pulseRef.current = result.activatedPulse;
+        pendingPulseRef.current = null;
+        if (!travelStateRef.current?.active && animationFrameRef.current === null) {
+          animationFrameRef.current = requestAnimationFrame(animateEnergy);
+        }
+      }
+    },
+    [
+      targetScene,
       hoveredNodeId,
       focusedNodeId,
       isMobile,
-      skipBodyRendering: hasProductionRenderer,
-      skipBackgroundStars: hasProductionRenderer,
-    });
-
-    productionCelestialLayerRef.current?.update(
-      scene,
-      transformRef.current,
       dimensions.width,
       dimensions.height,
-      hoveredNodeId,
-      travelStateRef.current
-    );
-  }, [
-    targetScene,
-    hoveredNodeId,
-    focusedNodeId,
-    isMobile,
-    dimensions.width,
-    dimensions.height,
-    hasProductionRenderer,
-  ]);
+      hasProductionRenderer,
+      animateEnergy,
+    ]
+  );
 
-  const drawRef = useRef(draw);
   useEffect(() => {
     drawRef.current = draw;
   }, [draw]);
+
+  const handleRingOcclusionChange = useCallback(() => drawRef.current(), []);
+
+  const cancelEnergy = useCallback(() => {
+    pulseRef.current = null;
+    pendingPulseRef.current = null;
+    if (!travelStateRef.current?.active && animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    drawRef.current(false);
+  }, []);
+
+  useEffect(() => {
+    const query = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const changed = () => {
+      if (query?.matches) cancelEnergy();
+    };
+    query?.addEventListener?.("change", changed);
+    return () => query?.removeEventListener?.("change", changed);
+  }, [cancelEnergy]);
 
   // Page visibility listener to pause compositor animations when tab is hidden
   useEffect(() => {
@@ -141,8 +219,10 @@ export default function GraphCanvas({
       if (typeof document !== "undefined") {
         if (document.hidden) {
           document.documentElement.setAttribute("data-visibility", "hidden");
+          cancelEnergy();
         } else {
           document.documentElement.removeAttribute("data-visibility");
+          drawRef.current();
         }
       }
     };
@@ -150,7 +230,7 @@ export default function GraphCanvas({
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [cancelEnergy]);
 
   // Handle scene transition or initial render
   useEffect(() => {
@@ -161,6 +241,8 @@ export default function GraphCanvas({
 
     if (isInitialMountRef.current || prefersReducedMotion) {
       isInitialMountRef.current = false;
+      pulseRef.current = null;
+      pendingPulseRef.current = null;
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
@@ -197,6 +279,7 @@ export default function GraphCanvas({
 
     // If already displaying this exact focus concept, just update scene and redraw
     if (fromScene.focus.slug === toScene.focus.slug) {
+      pulseRef.current = null;
       const settledAnchor =
         getRememberedAnchor(conceptAnchorsRef.current, toScene.focus.id, toScene.focus.slug) ??
         persistentCameraOffsetRef.current;
@@ -246,10 +329,36 @@ export default function GraphCanvas({
     const fromSlug = fromScene.focus.slug;
     const toSlug = toScene.focus.slug;
 
+    travelStateRef.current = {
+      active: true,
+      progress: 0,
+      currentOffset: startOffset,
+      startOffset,
+      targetOffset,
+      fromSlug,
+      toSlug,
+    };
+
     const startTime = performance.now();
+    pulseRef.current = null;
+    pendingPulseRef.current = document.hidden
+      ? null
+      : (requestRelationshipPulse(
+          toScene.relationships,
+          fromScene.focus.id,
+          toScene.focus.id,
+          startTime
+        ) ??
+        requestRelationshipPulse(
+          fromScene.relationships,
+          fromScene.focus.id,
+          toScene.focus.id,
+          startTime
+        ));
     const duration = SCENE_TRANSITION_DURATION_MS;
 
     const animateTransition = (now: number) => {
+      animationFrameRef.current = null;
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
       const currentOffset = interpolateTravelOffset(startOffset, targetOffset, progress);
@@ -270,7 +379,7 @@ export default function GraphCanvas({
       if (progress < 1) {
         animationFrameRef.current = requestAnimationFrame(animateTransition);
       } else {
-        // Transition finished: stop RAF completely, ensure scene is static, CPU idle
+        // Settle the shared scene, then continue only finite Canvas energy if needed.
         animationFrameRef.current = null;
         persistentCameraOffsetRef.current = targetOffset;
         travelStateRef.current = {
@@ -284,6 +393,12 @@ export default function GraphCanvas({
         };
         currentSceneRef.current = toScene;
         drawRef.current();
+        if (
+          isRelationshipPulseActive(pulseRef.current, now, false, document.hidden) &&
+          animationFrameRef.current === null
+        ) {
+          animationFrameRef.current = requestAnimationFrame(animateEnergy);
+        }
       }
     };
 
@@ -295,7 +410,7 @@ export default function GraphCanvas({
         animationFrameRef.current = null;
       }
     };
-  }, [targetScene]);
+  }, [animateEnergy, targetScene]);
 
   // Handle reactive container resizing and HiDPI canvas backing store scaling
   useEffect(() => {
@@ -377,10 +492,13 @@ export default function GraphCanvas({
 
   // Pointer event handlers (Desktop mouse)
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    pulseRef.current = null;
+    pendingPulseRef.current = null;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    drawRef.current();
     isDraggingRef.current = true;
     pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
     lastPointerPosRef.current = { x: e.clientX, y: e.clientY };
@@ -423,6 +541,8 @@ export default function GraphCanvas({
 
   const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    pulseRef.current = null;
+    pendingPulseRef.current = null;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -446,11 +566,14 @@ export default function GraphCanvas({
 
   // Touch event handlers for mobile
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    pulseRef.current = null;
+    pendingPulseRef.current = null;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
 
+    drawRef.current();
     if (e.touches.length === 1) {
       const touch = e.touches[0];
       if (!touch) return;
@@ -564,6 +687,8 @@ export default function GraphCanvas({
   };
 
   const handleZoom = (direction: "in" | "out") => {
+    pulseRef.current = null;
+    pendingPulseRef.current = null;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -584,6 +709,8 @@ export default function GraphCanvas({
   };
 
   const handleReturnHome = () => {
+    pulseRef.current = null;
+    pendingPulseRef.current = null;
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -619,6 +746,7 @@ export default function GraphCanvas({
       <ProductionCelestialLayer
         ref={productionCelestialLayerRef}
         onRendererAvailabilityChange={setHasProductionRenderer}
+        onRingOcclusionChange={handleRingOcclusionChange}
       />
 
       {/* Keyboard and screen-reader controls mirror the visible concept scene. */}
