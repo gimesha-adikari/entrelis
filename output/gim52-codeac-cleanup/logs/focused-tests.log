@@ -1,0 +1,12 @@
+
+ RUN  v5.0.3 /workspace/entrelis-gim52-integration
+
+
+ Test Files  2 passed (2)
+      Tests  18 passed (18)
+   Start at  13:04:23
+   Duration  3.17s (tests 55%, environment 28%, transform 8%, setup 5%, import 3%)
+
+    Isolate  2 workers spawned · ~492ms startup each (spawn + environment, per file)
+             at least ~492ms faster with isolate: false — reuses workers across files instead of one per file
+

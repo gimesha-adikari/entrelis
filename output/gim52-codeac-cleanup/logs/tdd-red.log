@@ -1,0 +1,9 @@
+Command: npx --yes --package=node@22.23.3 -c "node ./node_modules/vitest/vitest.mjs run src/features/knowledge-graph/__tests__/filament-motion.test.tsx"
+Exit code: 1 (expected during RED)
+
+New regression test result before the effect cleanup was added:
+- 1 failed, 9 passed in filament-motion.test.tsx
+- Failure: expected [Function] to be null after unmount
+- Location: filament-motion.test.tsx:118
+
+The callback remained registered after unmount, confirming the missing cleanup behavior.

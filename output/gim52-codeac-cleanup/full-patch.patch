@@ -1,0 +1,79 @@
+diff --git a/src/features/knowledge-graph/__tests__/filament-motion.test.tsx b/src/features/knowledge-graph/__tests__/filament-motion.test.tsx
+index 2ff914d..331759d 100644
+--- a/src/features/knowledge-graph/__tests__/filament-motion.test.tsx
++++ b/src/features/knowledge-graph/__tests__/filament-motion.test.tsx
+@@ -15,7 +15,15 @@ vi.mock("../celestial-3d/ProductionCelestialLayer", async () => {
+       { onRingOcclusionChange }: { onRingOcclusionChange?: () => void },
+       ref
+     ) {
+-      mockLayer.onRingOcclusionChange = onRingOcclusionChange ?? null;
++      React.useEffect(() => {
++        const callback = onRingOcclusionChange ?? null;
++        mockLayer.onRingOcclusionChange = callback;
++        return () => {
++          if (mockLayer.onRingOcclusionChange === callback) {
++            mockLayer.onRingOcclusionChange = null;
++          }
++        };
++      }, [onRingOcclusionChange]);
+       React.useImperativeHandle(ref, () => ({
+         update: mockLayer.bodyUpdate,
+         getForegroundRingOcclusions() {
+@@ -110,6 +118,14 @@ afterEach(() => {
+   vi.unstubAllGlobals();
+ });
+ describe("GraphCanvas bounded filament scheduler", () => {
++  it("clears the ring-occlusion callback when the celestial layer unmounts", () => {
++    const view = render(<GraphCanvas {...props("rust")} />);
++
++    expect(mockLayer.onRingOcclusionChange).toEqual(expect.any(Function));
++    view.unmount();
++    expect(mockLayer.onRingOcclusionChange).toBeNull();
++  });
++
+   it("uses the transition scheduler, continues until energy expires, then stops", () => {
+     const view = render(<GraphCanvas {...props("rust")} />);
+     view.rerender(<GraphCanvas {...props("ownership")} />);
+diff --git a/src/features/knowledge-graph/celestial-3d/ring-occlusion.ts b/src/features/knowledge-graph/celestial-3d/ring-occlusion.ts
+index 5f9d7f0..7850501 100644
+--- a/src/features/knowledge-graph/celestial-3d/ring-occlusion.ts
++++ b/src/features/knowledge-graph/celestial-3d/ring-occlusion.ts
+@@ -351,6 +351,14 @@ export function disposeCachedForegroundRingMask(ring: THREE.Mesh): boolean {
+   return hadMask;
+ }
+ 
++function captureRingMaskTransform(body: THREE.Group, ring: THREE.Mesh) {
++  ring.updateMatrix();
++  const ringMatrix = ring.matrix.clone();
++  const groupRotation = body.quaternion.clone();
++  const matrix = new THREE.Matrix4().makeRotationFromQuaternion(groupRotation).multiply(ringMatrix);
++  return { ringMatrix, groupRotation, matrix };
++}
++
+ /**
+  * Publishes a conservative, geometry-only occlusion path without sampling texture pixels.
+  * The exact texture-alpha mask replaces it after the incremental raster completes.
+@@ -366,10 +374,7 @@ export function createForegroundRingGeometryFallback(
+   const index = ring.geometry.index;
+   if (!position) return null;
+ 
+-  ring.updateMatrix();
+-  const ringMatrix = ring.matrix.clone();
+-  const groupRotation = body.quaternion.clone();
+-  const matrix = new THREE.Matrix4().makeRotationFromQuaternion(groupRotation).multiply(ringMatrix);
++  const { ringMatrix, groupRotation, matrix } = captureRingMaskTransform(body, ring);
+   const vertices: ProjectedVertex[] = [];
+   const point = new THREE.Vector3();
+   let extent = 1;
+@@ -426,10 +431,7 @@ export function createForegroundRingMaskBuilder(
+   // texture lacks it, fail closed so the Canvas does not draw unmasked strands over its ring.
+   if (!textureAlpha) return null;
+ 
+-  ring.updateMatrix();
+-  const ringMatrix = ring.matrix.clone();
+-  const groupRotation = body.quaternion.clone();
+-  const matrix = new THREE.Matrix4().makeRotationFromQuaternion(groupRotation).multiply(ringMatrix);
++  const { ringMatrix, groupRotation, matrix } = captureRingMaskTransform(body, ring);
+   const rasterizer = createForegroundRingRasterizer(
+     ring.geometry,
+     matrix,

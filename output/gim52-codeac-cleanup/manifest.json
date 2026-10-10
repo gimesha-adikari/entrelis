@@ -1,0 +1,33 @@
+{
+  "repository": "gimesha-adikari/entrelis",
+  "source_branch": "m1-5-local-universe-ui",
+  "baseline_sha": "520f7d40ccbe61f6dd0672e91e2d4e83075f105f",
+  "pull_request": "https://github.com/gimesha-adikari/entrelis/pull/5",
+  "artifact_branch": "gim51-qa-artifact",
+  "artifact_directory": "output/gim52-codeac-cleanup/",
+  "generated_at_utc": "2026-10-10T13:06:04Z",
+  "runtime": {
+    "node": "v22.23.3",
+    "npm": "11.9.0"
+  },
+  "source_change_files": [
+    "src/features/knowledge-graph/__tests__/filament-motion.test.tsx",
+    "src/features/knowledge-graph/celestial-3d/ring-occlusion.ts"
+  ],
+  "validation": {
+    "format_check": "passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "test_files": 35,
+    "tests_passed": 332,
+    "production_build": "passed",
+    "git_diff_check": "passed"
+  },
+  "patch": {
+    "file": "full-patch.patch",
+    "sha256": "a00764a0254b1b446da8a6a7f79f979614580eb435342f5795a700b45efc0421"
+  },
+  "source_commit_created": false,
+  "source_commit_pushed": false,
+  "codeac_remote_post_change_run": "pending independent review and source integration"
+}

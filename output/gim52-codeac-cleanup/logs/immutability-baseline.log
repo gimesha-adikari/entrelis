@@ -1,0 +1,4 @@
+Command: git show HEAD:src/features/knowledge-graph/__tests__/filament-motion.test.tsx | npx eslint --stdin --stdin-filename src/features/knowledge-graph/__tests__/filament-motion.test.tsx
+Exit code: 0; no diagnostics.
+
+The installed ESLint configuration did not reproduce the Codeac annotation on the baseline file, even though `react-hooks/immutability` is configured at error severity. The remote Codeac check has not been rerun on these unpushed source changes.
