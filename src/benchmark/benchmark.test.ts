@@ -1,92 +1,120 @@
 import { describe, it, expect } from "vitest";
 import { performance } from "node:perf_hooks";
-import { forceSimulation, forceLink, forceManyBody, forceCenter } from "d3-force";
 import { generateSyntheticDataset } from "./generator";
-import { createGraphData, type GraphNode, type GraphLink } from "@/features/knowledge-graph";
+import {
+  createKnowledgeGraphIndex,
+  buildLocalUniverseScene,
+  layoutLocalUniverseScene,
+} from "@/features/knowledge-graph";
 
-interface D3BenchmarkResult {
+interface BenchmarkSummary {
   nodeCount: number;
   edgeCount: number;
-  adapterMs: number;
-  sim100TicksMs: number;
-  neighborLookupMs: number;
+  indexBuildMs: number;
+  navMedianMs: number;
+  navMinMs: number;
+  navMaxMs: number;
+  visibleNodes: number;
+  visibleRels: number;
 }
 
-function runBenchmarkForSize(nodeCount: number): D3BenchmarkResult {
+function runBenchmarkForSize(nodeCount: number): BenchmarkSummary {
   const dataset = generateSyntheticDataset(nodeCount);
   const edgeCount = dataset.relationships.length;
-  const targetConcept = dataset.concepts[Math.floor(nodeCount / 2)];
-  const targetNodeId = targetConcept ? targetConcept.id : "";
 
-  // 1. Adapter conversion time
+  // 1. One-time dataset indexing (scales with total dataset size)
   const t0 = performance.now();
-  const graphData = createGraphData(dataset);
-  const adapterMs = performance.now() - t0;
+  const index = createKnowledgeGraphIndex(dataset);
+  const indexBuildMs = performance.now() - t0;
 
-  // 2. D3 simulation calculation (100 ticks)
-  const t1 = performance.now();
-  const sim = forceSimulation(graphData.nodes)
-    .force(
-      "link",
-      forceLink<GraphNode, GraphLink>(graphData.links).id((d) => d.id)
-    )
-    .force("charge", forceManyBody().strength(-100))
-    .force("center", forceCenter(0, 0))
-    .stop();
+  expect(index.conceptById.size).toBe(nodeCount);
 
-  for (let i = 0; i < 100; i++) {
-    sim.tick();
+  // 2. Per-navigation local scene construction (measured across multiple focus points)
+  const sampleIndices = [
+    0,
+    Math.floor(nodeCount * 0.25),
+    Math.floor(nodeCount * 0.5),
+    Math.floor(nodeCount * 0.75),
+    nodeCount - 1,
+  ];
+
+  const navTimes: number[] = [];
+  let sampleVisibleNodes = 0;
+  let sampleVisibleRels = 0;
+
+  for (const idx of sampleIndices) {
+    const concept = dataset.concepts[idx];
+    if (!concept) continue;
+
+    const navStart = performance.now();
+    const scene = buildLocalUniverseScene({
+      index,
+      focusSlug: concept.slug,
+      isMobile: false,
+    });
+    const laidOutScene = layoutLocalUniverseScene(scene, {
+      viewportWidth: 1280,
+      viewportHeight: 800,
+      isMobile: false,
+    });
+    const navDuration = performance.now() - navStart;
+    navTimes.push(navDuration);
+
+    sampleVisibleNodes = laidOutScene.allNodes.length;
+    sampleVisibleRels = laidOutScene.relationships.length;
+
+    // Structural invariant: local scene complexity is strictly bounded
+    expect(laidOutScene.allNodes.length).toBeLessThanOrEqual(10);
+    expect(laidOutScene.primaryNodes.length).toBeLessThanOrEqual(6);
+    expect(laidOutScene.contextNodes.length).toBeLessThanOrEqual(3);
+    expect(laidOutScene.focus.id).toBe(concept.id);
   }
-  const sim100TicksMs = performance.now() - t1;
 
-  // 3. Selection / neighbor lookup time
-  const t2 = performance.now();
-  const neighbors = new Set<string>();
-  for (const link of graphData.links) {
-    const s = typeof link.source === "object" ? link.source.id : link.source;
-    const t = typeof link.target === "object" ? link.target.id : link.target;
-    if (s === targetNodeId) neighbors.add(t);
-    if (t === targetNodeId) neighbors.add(s);
-  }
-  const neighborLookupMs = performance.now() - t2;
-
-  expect(neighbors.size).toBeGreaterThan(0);
+  navTimes.sort((a, b) => a - b);
+  const navMedianMs = navTimes[Math.floor(navTimes.length / 2)] ?? 0;
+  const navMinMs = navTimes[0] ?? 0;
+  const navMaxMs = navTimes[navTimes.length - 1] ?? 0;
 
   return {
     nodeCount,
     edgeCount,
-    adapterMs,
-    sim100TicksMs,
-    neighborLookupMs,
+    indexBuildMs,
+    navMedianMs,
+    navMinMs,
+    navMaxMs,
+    visibleNodes: sampleVisibleNodes,
+    visibleRels: sampleVisibleRels,
   };
 }
 
-describe("D3-force Synthetic Benchmarks (Production Engine)", () => {
-  it("benchmarks 50, 500, and 5,000 synthetic nodes accurately", () => {
+describe("Local Universe Synthetic Benchmarks (Production Engine)", () => {
+  it("benchmarks 50, 500, and 5,000 synthetic nodes with strictly bounded scene complexity", () => {
     const sizes = [50, 500, 5000];
-    const results: D3BenchmarkResult[] = [];
+    const results: BenchmarkSummary[] = [];
 
     for (const size of sizes) {
       const res = runBenchmarkForSize(size);
       results.push(res);
     }
 
+    // Benchmark summary table for evidence logging
     console.table(
       results.map((r) => ({
-        Nodes: r.nodeCount,
-        Edges: r.edgeCount,
-        "Adapter (ms)": r.adapterMs.toFixed(2),
-        "Sim 100 Ticks (ms)": r.sim100TicksMs.toFixed(2),
-        "Neighbor Lookup (ms)": r.neighborLookupMs.toFixed(3),
+        "Total Nodes": r.nodeCount,
+        "Total Edges": r.edgeCount,
+        "Index Build (ms)": r.indexBuildMs.toFixed(3),
+        "Nav Median (ms)": r.navMedianMs.toFixed(3),
+        "Nav Min-Max (ms)": `${r.navMinMs.toFixed(3)} - ${r.navMaxMs.toFixed(3)}`,
+        "Visible Nodes": r.visibleNodes,
+        "Visible Edges": r.visibleRels,
       }))
     );
 
+    // Assert strictly structural invariants (no brittle wall-clock pass/fail thresholds)
     expect(results.length).toBe(3);
-    expect(results[0]?.nodeCount).toBe(50);
-    expect(results[1]?.nodeCount).toBe(500);
-    expect(results[2]?.nodeCount).toBe(5000);
-    expect(results[0]?.edgeCount).toBeGreaterThan(0);
-    expect(results[1]?.edgeCount).toBeGreaterThan(0);
-    expect(results[2]?.edgeCount).toBeGreaterThan(0);
+    for (const res of results) {
+      expect(res.visibleNodes).toBeGreaterThan(0);
+      expect(res.visibleNodes).toBeLessThanOrEqual(10);
+    }
   });
 });

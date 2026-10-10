@@ -405,7 +405,7 @@ The project can load a small typed knowledge dataset and expose it cleanly to th
 
 ---
 
-## M1 — First explorable graph
+## M1 — First interactive knowledge journey
 
 Goal: prove the central interaction.
 
@@ -413,14 +413,14 @@ Deliverables:
 
 - render curated concept nodes
 - render relationships
-- pan
-- zoom
+- pan and zoom
 - focus a node
 - reveal/fade neighboring nodes appropriately
 - open concept details
 - navigate from one concept to a neighbor
 - basic transition system
-- basic loading/error states
+- App Router routes (`/`, `/concept/[slug]`, 404)
+- provenance sources disclosure
 
 Exit condition:
 
@@ -428,53 +428,48 @@ A user can meaningfully explore the initial Rust-centered knowledge slice throug
 
 ---
 
-## M2 — Knowledge navigation
+## M1.5 — Local-universe UI
 
-Goal: make the graph usable as a real knowledge interface.
+Goal: transform the experience from a global force graph into a beautiful, lightweight knowledge universe ("Local universe, not global graph").
 
 Deliverables:
 
-- concept search
+- explicit `UniverseScene` boundary separating knowledge dataset from canvas rendering
+- strictly bounded visual complexity (Desktop <= 10 nodes, Mobile <= 6 nodes)
+- deterministic orbital layout (no live physics or D3 force simulation)
+- removal of `d3-force` and `@types/d3-force` runtime dependencies
+- celestial body styling with multi-layer halos, cores, and fine orbital rings
+- curved quadratic Bézier relationship paths preserving `SOURCE --TYPE--> TARGET` orientation
+- bounded 350–500ms scene transitions with single cubic ease-out
+- zero permanent `requestAnimationFrame` loop while idle (CPU idle)
+- integrated knowledge observatory detail surface with lighter connection hierarchy
+- compact spatial Home control
+
+Exit condition:
+
+Every selected concept generates an art-directed local celestial scene that halts animation completely when idle and scales instantly regardless of graph size.
+
+---
+
+## M2 — Discovery & graph growth
+
+Goal: make the universe searchable and expand the connected knowledge corpus.
+
+Deliverables:
+
+- concept search and autocomplete
 - direct concept navigation
-- stable shareable URLs
-- browser back/forward behavior
 - exploration history
-- relationship explanations
-- keyboard navigation
-- sources/references
-- suggested next concepts
+- expanded seed knowledge across science, technology, and philosophy
+- suggested next paths
 
 Exit condition:
 
-Users can reliably find, explore, understand, share, and revisit concepts.
+Users can search, discover, and traverse an expanded knowledge corpus with seamless local-universe rendering.
 
 ---
 
-## M3 — Experience polish
-
-Goal: turn the functional prototype into an intentional product experience.
-
-Deliverables:
-
-- refined visual system
-- cinematic focus transitions
-- responsive layout
-- dedicated mobile interaction patterns
-- reduced-motion support
-- accessibility improvements
-- performance profiling
-- graph-density handling
-- loading optimization
-- error/empty states
-- animation tuning
-
-Exit condition:
-
-The experience feels coherent and polished across desktop and mobile.
-
----
-
-## M4 — Random Journey
+## M3 — Random Journey
 
 Goal: introduce curiosity-driven exploration.
 
@@ -493,9 +488,9 @@ Users can launch a journey and receive an interesting sequence of meaningfully c
 
 ---
 
-## M5 — First interactive concept
+## M4 — First interactive concept
 
-Goal: prove that Entrelis can go beyond reading and graph navigation.
+Goal: prove that Entrelis can go beyond reading and navigation.
 
 Recommended first candidate:
 

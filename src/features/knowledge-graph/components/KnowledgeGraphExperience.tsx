@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { KnowledgeDataset, Concept } from "@/domain/knowledge/types";
 import { SEED_DATASET } from "@/data/seed";
+import { getOrCreateKnowledgeGraphIndex } from "../knowledge-index";
 import GraphCanvas from "./GraphCanvas";
 import ConceptPanel from "./ConceptPanel";
 import styles from "./KnowledgeGraph.module.css";
@@ -18,12 +19,18 @@ export default function KnowledgeGraphExperience({
 }: Props) {
   const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
 
-  // Find the active concept, falling back cleanly to rust
+  // Memoize knowledge index once per dataset reference
+  const index = useMemo(() => getOrCreateKnowledgeGraphIndex(dataset), [dataset]);
+
+  // Find the active concept using O(1) index lookup
   const selectedConcept = useMemo<Concept | null>(() => {
-    const found = dataset.concepts.find((c) => c.slug === selectedSlug);
-    if (found) return found;
-    return dataset.concepts.find((c) => c.slug === "rust") ?? dataset.concepts[0] ?? null;
-  }, [dataset.concepts, selectedSlug]);
+    return (
+      index.conceptBySlug.get(selectedSlug) ??
+      index.conceptBySlug.get("rust") ??
+      index.conceptById.values().next().value ??
+      null
+    );
+  }, [index, selectedSlug]);
 
   /**
    * Synchronize selection changes with browser history and URL.
@@ -93,16 +100,24 @@ export default function KnowledgeGraphExperience({
         <p className={styles.brandTagline}>Everything is connected</p>
       </header>
 
-      {/* Main 2D Canvas viewport */}
-      <GraphCanvas
-        dataset={dataset}
-        selectedConceptSlug={selectedSlug}
-        onSelectConcept={selectConcept}
-        onResetCamera={handleResetCamera}
-      />
+      <main className={styles.mainContent}>
+        {/* Main 2D Canvas viewport */}
+        <GraphCanvas
+          dataset={dataset}
+          index={index}
+          selectedConceptSlug={selectedSlug}
+          onSelectConcept={selectConcept}
+          onResetCamera={handleResetCamera}
+        />
 
-      {/* Semantic Right / Lower Detail Panel */}
-      <ConceptPanel concept={selectedConcept} dataset={dataset} onSelectConcept={selectConcept} />
+        {/* Semantic Right / Lower Detail Panel */}
+        <ConceptPanel
+          concept={selectedConcept}
+          dataset={dataset}
+          index={index}
+          onSelectConcept={selectConcept}
+        />
+      </main>
     </div>
   );
 }
