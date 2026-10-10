@@ -1,0 +1,34 @@
+{
+  "repository": "gimesha-adikari/entrelis",
+  "source_branch": "m1-5-local-universe-ui",
+  "baseline_sha": "520f7d40ccbe61f6dd0672e91e2d4e83075f105f",
+  "integrated_commit_sha": "30ce2e805c33474d0a2b84a359e66026543f562b",
+  "pull_request": 5,
+  "pull_request_state": "open",
+  "pull_request_merged": false,
+  "approved_source_files": [
+    "src/features/knowledge-graph/__tests__/filament-motion.test.tsx",
+    "src/features/knowledge-graph/celestial-3d/ring-occlusion.ts"
+  ],
+  "node": "v22.23.3",
+  "npm": "11.9.0",
+  "tests": {
+    "files": 35,
+    "passed": 332
+  },
+  "codeac": {
+    "status": "completed",
+    "conclusion": "success",
+    "errors": 1,
+    "warnings": 32,
+    "annotations": 33,
+    "check_run_id": 114224633087
+  },
+  "vercel": {
+    "status": "unverified",
+    "reason": "connector returned HTTP 403; CLI unavailable; no GitHub deployment/check record visible"
+  },
+  "qa_branch": "gim51-qa-artifact",
+  "artifact_only": true,
+  "generated_utc": "2026-10-10 13:33 UTC"
+}

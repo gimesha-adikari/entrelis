@@ -1,0 +1,103 @@
+{
+  "id": 114224633087,
+  "name": "Codeac Code Quality",
+  "node_id": "CR_kwDOU85lAs8AAAAamFGU_w",
+  "head_sha": "30ce2e805c33474d0a2b84a359e66026543f562b",
+  "external_id": "",
+  "url": "https://api.github.com/repos/gimesha-adikari/entrelis/check-runs/114224633087",
+  "html_url": "https://github.com/gimesha-adikari/entrelis/runs/114224633087",
+  "details_url": "https://app.codeac.io/github/gimesha-adikari/entrelis/commits/30ce2e805c33474d0a2b84a359e66026543f562b",
+  "status": "completed",
+  "conclusion": "success",
+  "started_at": "2026-10-10T13:30:30Z",
+  "completed_at": "2026-10-10T13:31:13Z",
+  "output": {
+    "title": "Codeac Code Quality",
+    "summary": "This PR contains 1 errors and 32 warnings.",
+    "text": null,
+    "annotations_count": 33,
+    "annotations_url": "https://api.github.com/repos/gimesha-adikari/entrelis/check-runs/114224633087/annotations"
+  },
+  "check_suite": {
+    "id": 103113074970
+  },
+  "app": {
+    "id": 190172,
+    "client_id": "Iv1.b3aa2b992e3d81a5",
+    "slug": "codeac-io",
+    "node_id": "A_kwHOAwupw84AAubc",
+    "owner": {
+      "login": "codeacio",
+      "id": 51096003,
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjUxMDk2MDAz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51096003?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/codeacio",
+      "html_url": "https://github.com/codeacio",
+      "followers_url": "https://api.github.com/users/codeacio/followers",
+      "following_url": "https://api.github.com/users/codeacio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/codeacio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/codeacio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/codeacio/subscriptions",
+      "organizations_url": "https://api.github.com/users/codeacio/orgs",
+      "repos_url": "https://api.github.com/users/codeacio/repos",
+      "events_url": "https://api.github.com/users/codeacio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/codeacio/received_events",
+      "type": "Organization",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "name": "Codeac.io",
+    "description": "**Codeac** is an Automated Code Review Tool that monitors your technical debt. It helps you improve your code quality and teaches best practices to your developers to save time during Code Reviews.\r\n\r\nCodeac brings a set of analyzers to your workflow with unified standards across the whole team. This helps you get actionable feedback after each commit so you are able to keep the quality of the codebase at a high level.\r\n\r\n### Track your technical debt\r\nCodeac helps you guard all the critical metrics to give you **actionable feedback** and insight about the current state of your codebase. This will help you keep track of your code quality over time.\r\n\r\n### Seamless integration\r\nFor all commits and pull requests, Codeac sends the results back to GitHub.\r\n\r\n### 12+ different languages - one platform\r\nAll projects consist of various technologies; sometimes, it can be hard to keep all the analyzers updated. Now, you can leave the update on us and focus on what's important - developing your software.\r\n\r\n### Infrastructure as Code analyses\r\nCodeac can analyze all the code in your repositories, including Infrastructure as Code like Ansible, Terraform, and more.\r\n\r\nCodeac supports PHP, Python, Ruby, Java, JavaScript, and TypeScript, among others. Codeac is free for Open Source projects.\r\n\r\n![Project dashboard](https://www.codeac.io/images/report-window.png)",
+    "external_url": "https://www.codeac.io",
+    "html_url": "https://github.com/apps/codeac-io",
+    "created_at": "2022-04-13T05:27:09Z",
+    "updated_at": "2026-01-28T15:48:58Z",
+    "permissions": {
+      "checks": "write",
+      "contents": "write",
+      "emails": "read",
+      "members": "read",
+      "metadata": "read",
+      "pull_requests": "write",
+      "repository_hooks": "write",
+      "statuses": "write"
+    },
+    "events": [
+      "create",
+      "delete",
+      "member",
+      "membership",
+      "organization",
+      "pull_request",
+      "push",
+      "repository",
+      "team"
+    ]
+  },
+  "pull_requests": [
+    {
+      "url": "https://api.github.com/repos/gimesha-adikari/entrelis/pulls/5",
+      "id": 4754550109,
+      "number": 5,
+      "head": {
+        "ref": "m1-5-local-universe-ui",
+        "sha": "30ce2e805c33474d0a2b84a359e66026543f562b",
+        "repo": {
+          "id": 1406035202,
+          "url": "https://api.github.com/repos/gimesha-adikari/entrelis",
+          "name": "entrelis"
+        }
+      },
+      "base": {
+        "ref": "main",
+        "sha": "b5e82b789de2555edef11ffe1d38a0a273403f8c",
+        "repo": {
+          "id": 1406035202,
+          "url": "https://api.github.com/repos/gimesha-adikari/entrelis",
+          "name": "entrelis"
+        }
+      }
+    }
+  ]
+}

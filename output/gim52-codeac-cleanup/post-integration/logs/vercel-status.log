@@ -1,0 +1,1 @@
+Vercel status: UNVERIFIED. The Vercel deployments connector returned HTTP 403 (permission denied) for the project listing. CLI fallback could not run because the `vercel` CLI is not installed. GitHub deployments API for the commit returned an empty list, and the commit had no Vercel check run.
