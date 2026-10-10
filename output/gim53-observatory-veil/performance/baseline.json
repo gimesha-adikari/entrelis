@@ -1,0 +1,293 @@
+{
+  "phase": "baseline",
+  "baseUrl": "http://127.0.0.1:3100",
+  "capturedAt": "2026-10-10T14:34:52.233Z",
+  "browser": {
+    "version": "151.0.7922.173",
+    "executable": "/usr/bin/chromium",
+    "rendering": "SwiftShader software WebGL",
+    "viewportBeforeResize": {
+      "width": 1350,
+      "height": 900
+    },
+    "viewportAfterResize": {
+      "width": 1220,
+      "height": 900
+    },
+    "deviceScaleFactor": 1,
+    "reducedMotion": "no-preference"
+  },
+  "load": {
+    "coldLoadMs": 477,
+    "coldNavigationEntry": {
+      "responseStart": 9.299999999813735,
+      "domInteractive": 89.39999999990687,
+      "domContentLoaded": 89.60000000009313,
+      "loadEventEnd": 462
+    },
+    "warmLoadMs": 2457
+  },
+  "navigationBeforeResize": {
+    "rustToOwnershipMs": 1224.3999999999069,
+    "ownershipToMemoryMs": 677.8999999999069
+  },
+  "navigationAfterResize": {
+    "rustToOwnershipMs": 208.90000000037253,
+    "ownershipToMemoryMs": 220.5
+  },
+  "resize": {
+    "interactionElapsedMs": 663,
+    "measurementInteractionElapsedMs": 2316,
+    "resizeCycles": 2,
+    "pageBeforeResize": {
+      "title": "Rust",
+      "canvasWidth": 970,
+      "canvasHeight": 900,
+      "productionCanvasCount": 1,
+      "webglCanvasWidth": 970,
+      "webglCanvasHeight": 900,
+      "separatorAvailable": false,
+      "webglContextAttempts": [
+        "webgl2"
+      ],
+      "webglContexts": 1,
+      "resources": {
+        "createBuffer": 72,
+        "deleteBuffer": 0,
+        "createTexture": 24,
+        "deleteTexture": 0,
+        "createProgram": 12,
+        "deleteProgram": 0,
+        "createShader": 24,
+        "deleteShader": 24,
+        "createRenderbuffer": 0,
+        "deleteRenderbuffer": 0
+      }
+    },
+    "pageAfterResize": {
+      "title": "Rust",
+      "canvasWidth": 840,
+      "canvasHeight": 900,
+      "productionCanvasCount": 1,
+      "webglCanvasWidth": 840,
+      "webglCanvasHeight": 900,
+      "separatorAvailable": false,
+      "webglContextAttempts": [
+        "webgl2"
+      ],
+      "webglContexts": 1,
+      "resources": {
+        "createBuffer": 72,
+        "deleteBuffer": 0,
+        "createTexture": 24,
+        "deleteTexture": 0,
+        "createProgram": 12,
+        "deleteProgram": 0,
+        "createShader": 24,
+        "deleteShader": 24,
+        "createRenderbuffer": 0,
+        "deleteRenderbuffer": 0
+      },
+      "frameIntervals": [
+        133.39999999999964,
+        416.60000000000036,
+        33.29999999999927,
+        116.70000000000073,
+        33.29999999999927,
+        366.60000000000036,
+        16.699999999999818,
+        66.69999999999982,
+        150,
+        16.700000000000728,
+        249.89999999999964,
+        16.700000000000728,
+        283.2999999999993,
+        83.39999999999964,
+        49.899999999999636,
+        200,
+        50,
+        200.10000000000036,
+        99.89999999999964,
+        116.70000000000073,
+        100,
+        100,
+        16.700000000000728,
+        99.89999999999964,
+        166.6999999999989,
+        116.70000000000073
+      ],
+      "resizeResponseFrameLatencies": [],
+      "canvasResizeFrameLatencies": [
+        546,
+        396.39999999990687,
+        221.29999999981374,
+        307.60000000009313,
+        240.1999999997206
+      ],
+      "longTasks": [
+        {
+          "startTime": 6719.600000000093,
+          "duration": 536
+        },
+        {
+          "startTime": 7416.200000000186,
+          "duration": 394
+        },
+        {
+          "startTime": 7828.899999999907,
+          "duration": 215
+        },
+        {
+          "startTime": 8314.80000000028,
+          "duration": 305
+        },
+        {
+          "startTime": 8711.200000000186,
+          "duration": 234
+        }
+      ],
+      "pointerTypes": []
+    },
+    "cdpBeforeResize": {
+      "Timestamp": 2579.582502,
+      "AudioHandlers": 0,
+      "AudioWorkletProcessors": 0,
+      "Documents": 2,
+      "Frames": 2,
+      "JSEventListeners": 362,
+      "LayoutObjects": 241,
+      "MediaKeySessions": 0,
+      "MediaKeys": 0,
+      "Nodes": 614,
+      "Resources": 15,
+      "ContextLifecycleStateObservers": 34,
+      "V8PerContextDatas": 2,
+      "WorkerGlobalScopes": 0,
+      "UACSSResources": 0,
+      "RTCPeerConnections": 0,
+      "ResourceFetchers": 2,
+      "AdSubframes": 0,
+      "DetachedScriptStates": 4,
+      "ArrayBufferContents": 152,
+      "LayoutCount": 0,
+      "RecalcStyleCount": 0,
+      "LayoutDuration": 0,
+      "RecalcStyleDuration": 0,
+      "DevToolsCommandDuration": 0.000021,
+      "ScriptDuration": 0,
+      "V8CompileDuration": 0,
+      "TaskDuration": 0.000026,
+      "TaskOtherDuration": 0.000005,
+      "ThreadTime": 0.000089,
+      "ProcessTime": 1.55,
+      "JSHeapUsedSize": 10528508,
+      "JSHeapTotalSize": 21897216,
+      "FirstMeaningfulPaint": 2575.373776,
+      "DomContentLoaded": 2573.913101,
+      "NavigationStart": 2572.956874
+    },
+    "cdpAfterResize": {
+      "Timestamp": 2583.064898,
+      "AudioHandlers": 0,
+      "AudioWorkletProcessors": 0,
+      "Documents": 2,
+      "Frames": 2,
+      "JSEventListeners": 415,
+      "LayoutObjects": 241,
+      "MediaKeySessions": 0,
+      "MediaKeys": 0,
+      "Nodes": 614,
+      "Resources": 15,
+      "ContextLifecycleStateObservers": 35,
+      "V8PerContextDatas": 2,
+      "WorkerGlobalScopes": 0,
+      "UACSSResources": 0,
+      "RTCPeerConnections": 0,
+      "ResourceFetchers": 2,
+      "AdSubframes": 0,
+      "DetachedScriptStates": 4,
+      "ArrayBufferContents": 152,
+      "LayoutCount": 15,
+      "RecalcStyleCount": 15,
+      "LayoutDuration": 0.054635,
+      "RecalcStyleDuration": 0.002292,
+      "DevToolsCommandDuration": 0.025976,
+      "ScriptDuration": 1.719795,
+      "V8CompileDuration": 0,
+      "TaskDuration": 1.836547,
+      "TaskOtherDuration": 0.033849,
+      "ThreadTime": 0.075701,
+      "ProcessTime": 1.68,
+      "JSHeapUsedSize": 12879908,
+      "JSHeapTotalSize": 22228992,
+      "FirstMeaningfulPaint": 2575.373776,
+      "DomContentLoaded": 2573.913101,
+      "NavigationStart": 2572.956874
+    },
+    "cdpDeltas": {
+      "Timestamp": 3.4823959999998806,
+      "AudioHandlers": 0,
+      "AudioWorkletProcessors": 0,
+      "Documents": 0,
+      "Frames": 0,
+      "JSEventListeners": 53,
+      "LayoutObjects": 0,
+      "MediaKeySessions": 0,
+      "MediaKeys": 0,
+      "Nodes": 0,
+      "Resources": 0,
+      "ContextLifecycleStateObservers": 1,
+      "V8PerContextDatas": 0,
+      "WorkerGlobalScopes": 0,
+      "UACSSResources": 0,
+      "RTCPeerConnections": 0,
+      "ResourceFetchers": 0,
+      "AdSubframes": 0,
+      "DetachedScriptStates": 0,
+      "ArrayBufferContents": 0,
+      "LayoutCount": 15,
+      "RecalcStyleCount": 15,
+      "LayoutDuration": 0.054635,
+      "RecalcStyleDuration": 0.002292,
+      "DevToolsCommandDuration": 0.025955,
+      "ScriptDuration": 1.719795,
+      "V8CompileDuration": 0,
+      "TaskDuration": 1.8365209999999998,
+      "TaskOtherDuration": 0.033844,
+      "ThreadTime": 0.075612,
+      "ProcessTime": 0.1299999999999999,
+      "JSHeapUsedSize": 2351400,
+      "JSHeapTotalSize": 331776,
+      "FirstMeaningfulPaint": 0,
+      "DomContentLoaded": 0,
+      "NavigationStart": 0
+    },
+    "frames": {
+      "count": 26,
+      "p50Ms": 100,
+      "p95Ms": 283.2999999999993,
+      "maxMs": 416.60000000000036,
+      "above33_3ms": 20,
+      "above50ms": 18,
+      "above100ms": 12
+    },
+    "resizeResponseFrameLatency": {
+      "count": 0,
+      "p50Ms": null,
+      "p95Ms": null,
+      "maxMs": null
+    },
+    "longTasks": {
+      "count": 5,
+      "totalMs": 1684,
+      "maxMs": 536
+    },
+    "canvasResizeFrameLatency": {
+      "count": 5,
+      "p50Ms": 307.60000000009313,
+      "p95Ms": 396.39999999990687,
+      "maxMs": 546
+    }
+  },
+  "pageErrors": []
+}

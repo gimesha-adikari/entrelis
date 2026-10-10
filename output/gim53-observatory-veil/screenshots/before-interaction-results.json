@@ -1,0 +1,16 @@
+{
+  "phase": "before",
+  "baseUrl": "http://127.0.0.1:3100",
+  "capturedAt": "2026-10-10T14:22:29.355Z",
+  "browser": "151.0.7922.173",
+  "rendering": "SwiftShader software WebGL",
+  "checks": {},
+  "screenshots": [
+    {
+      "name": "rust-1440-boundary.png",
+      "edgeX": 1060,
+      "width": 128
+    }
+  ],
+  "errors": []
+}

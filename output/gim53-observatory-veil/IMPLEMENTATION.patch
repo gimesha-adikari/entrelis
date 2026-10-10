@@ -1,0 +1,1454 @@
+diff --git a/src/features/knowledge-graph/__tests__/KnowledgeGraph.test.tsx b/src/features/knowledge-graph/__tests__/KnowledgeGraph.test.tsx
+index f702a16..68f331e 100644
+--- a/src/features/knowledge-graph/__tests__/KnowledgeGraph.test.tsx
++++ b/src/features/knowledge-graph/__tests__/KnowledgeGraph.test.tsx
+@@ -267,3 +267,59 @@ describe("KnowledgeGraphExperience Production Integration", () => {
+     pushStateSpy.mockRestore();
+   });
+ });
++
++describe("Observatory panel resizing integration", () => {
++  it("preserves the chosen width through concept links, Back, and Home without changing selection on resize", () => {
++    const originalWidth = window.innerWidth;
++    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1440 });
++    window.history.replaceState({}, "", "/concept/rust");
++
++    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
++
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++    expect(handle.getAttribute("aria-valuenow")).toBe("470");
++
++    fireEvent.keyDown(handle, { key: "ArrowLeft" });
++    expect(handle.getAttribute("aria-valuenow")).toBe("486");
++    expect(window.location.pathname).toBe("/concept/rust");
++    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
++
++    fireEvent.click(screen.getByRole("button", { name: /Explore connected concept: Ownership/i }));
++    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
++    fireEvent.click(screen.getByRole("button", { name: /Explore connected concept: Memory/i }));
++    expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
++    fireEvent.click(
++      screen.getByRole("button", { name: /Explore connected concept: Stack & Heap/i })
++    );
++    expect(screen.getByRole("heading", { name: "Stack & Heap" })).toBeDefined();
++    fireEvent.click(
++      screen.getByRole("button", { name: /Explore connected concept: Operating Systems/i })
++    );
++    expect(screen.getByRole("heading", { name: "Operating Systems" })).toBeDefined();
++    expect(handle.getAttribute("aria-valuenow")).toBe("486");
++
++    window.history.replaceState({}, "", "/concept/stack-and-heap");
++    fireEvent(window, new PopStateEvent("popstate"));
++    expect(screen.getByRole("heading", { name: "Stack & Heap" })).toBeDefined();
++    expect(handle.getAttribute("aria-valuenow")).toBe("486");
++
++    fireEvent.click(screen.getByRole("button", { name: "Return to Rust" }));
++    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
++    expect(window.location.pathname).toBe("/");
++    expect(handle.getAttribute("aria-valuenow")).toBe("486");
++
++    Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth });
++  });
++
++  it("does not render a resizing control on mobile viewports", () => {
++    const originalWidth = window.innerWidth;
++    Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 });
++
++    render(<KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />);
++
++    expect(screen.queryByRole("separator", { name: "Resize knowledge panel" })).toBeNull();
++    expect(screen.getByRole("complementary", { name: "Selected Concept Details" })).toBeDefined();
++
++    Object.defineProperty(window, "innerWidth", { configurable: true, value: originalWidth });
++  });
++});
+diff --git a/src/features/knowledge-graph/celestial-3d/production-controller.test.ts b/src/features/knowledge-graph/celestial-3d/production-controller.test.ts
+index bf638cf..1280cdf 100644
+--- a/src/features/knowledge-graph/celestial-3d/production-controller.test.ts
++++ b/src/features/knowledge-graph/celestial-3d/production-controller.test.ts
+@@ -215,6 +215,42 @@ describe("production celestial scene controller", () => {
+     expect(projectUniverseNode(node, transform)).toEqual({ x: 210, y: 120 });
+   });
+ 
++  it("resizes the existing shared renderer without rebuilding stable celestial bodies", () => {
++    const renderer = makeRenderer();
++    const createRenderer = vi.fn(() => renderer);
++    const createdBodies: CelestialBodyInstance[] = [];
++    const rust = makeNode("rust", "focus", 0, 0);
++    const ownership = makeNode("ownership", "primary", 120, -40);
++    const scene = makeScene(rust, [ownership]);
++    controller = new ProductionCelestialController(document.createElement("canvas"), {
++      createRenderer,
++      createBody: (identity) => {
++        const body = makeBody(identity);
++        createdBodies.push(body);
++        return body;
++      },
++    });
++
++    controller.update(scene, { x: 30, y: -14, k: 1.4 }, 1000, 900, null);
++    const before = controller.getLifecycleStats();
++    const setSizeCallsBeforeResize = vi.mocked(renderer.setSize).mock.calls.length;
++    const identitiesBeforeResize = createdBodies.map((body) => body.identity);
++
++    controller.update(scene, { x: 130, y: -14, k: 1.4 }, 800, 900, null);
++    const after = controller.getLifecycleStats();
++
++    expect(createRenderer).toHaveBeenCalledOnce();
++    expect(vi.mocked(renderer.setSize)).toHaveBeenCalledTimes(setSizeCallsBeforeResize + 1);
++    expect(after).toMatchObject({
++      activeEntries: before.activeEntries,
++      bodyCreates: before.bodyCreates,
++      bodyDisposals: before.bodyDisposals,
++      identityReplacements: before.identityReplacements,
++      rendererAvailable: true,
++    });
++    expect(createdBodies.map((body) => body.identity)).toEqual(identitiesBeforeResize);
++  });
++
+   it("projects the production sphere to its CSS-pixel radius at every zoom and DPR", () => {
+     const originalDpr = window.devicePixelRatio;
+     const node = { ...makeNode("rust", "focus", 40, -20), radius: 34 };
+diff --git a/src/features/knowledge-graph/components/ConceptPanel.tsx b/src/features/knowledge-graph/components/ConceptPanel.tsx
+index b76dcaa..6de7634 100644
+--- a/src/features/knowledge-graph/components/ConceptPanel.tsx
++++ b/src/features/knowledge-graph/components/ConceptPanel.tsx
+@@ -77,7 +77,11 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept
+ 
+   if (!concept) {
+     return (
+-      <aside className={styles.detailPanel} aria-label="Selected Concept Details">
++      <aside
++        id="concept-details-panel"
++        className={styles.detailPanel}
++        aria-label="Selected Concept Details"
++      >
+         <div ref={scrollContainerRef} className={styles.panelScroll}>
+           <p className={styles.conceptSummary}>No concept selected.</p>
+           <p className={styles.emptyPrompt}>
+@@ -92,7 +96,11 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept
+   const reviewStatusLabel = REVIEW_STATUS_LABELS[concept.reviewStatus] ?? "Reviewed";
+ 
+   return (
+-    <aside className={styles.detailPanel} aria-label="Selected Concept Details">
++    <aside
++      id="concept-details-panel"
++      className={styles.detailPanel}
++      aria-label="Selected Concept Details"
++    >
+       {/* Live announcement region for assistive technologies */}
+       <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
+         {`Selected concept: ${concept.name}. ${connectedRelationships.length} connected relationships.`}
+diff --git a/src/features/knowledge-graph/components/GraphCanvas.resize.test.tsx b/src/features/knowledge-graph/components/GraphCanvas.resize.test.tsx
+new file mode 100644
+index 0000000..1272b48
+--- /dev/null
++++ b/src/features/knowledge-graph/components/GraphCanvas.resize.test.tsx
+@@ -0,0 +1,121 @@
++import { act, fireEvent, render, waitFor } from "@testing-library/react";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { SEED_DATASET } from "@/data/seed";
++import { getOrCreateKnowledgeGraphIndex } from "../knowledge-index";
++import type { UniverseScene } from "../scene/types";
++import GraphCanvas from "./GraphCanvas";
++import { renderUniverseScene } from "../rendering/universe-renderer";
++
++interface DrawSnapshot {
++  readonly width: number;
++  readonly height: number;
++  readonly transform: { readonly x: number; readonly y: number; readonly k: number };
++  readonly nodes: readonly { readonly id: string; readonly x: number; readonly y: number }[];
++}
++
++const drawSnapshots: DrawSnapshot[] = [];
++let resizeObservedCanvas: (() => void) | null = null;
++let measuredWidth = 1000;
++let measuredHeight = 900;
++
++vi.mock("../rendering/universe-renderer", () => ({
++  renderUniverseScene: vi.fn(),
++}));
++
++class ControlledResizeObserver {
++  constructor(private readonly callback: ResizeObserverCallback) {}
++
++  observe(target: Element) {
++    if (target.className.toString().includes("canvasArea")) {
++      resizeObservedCanvas = () => this.callback([], this as unknown as ResizeObserver);
++    }
++  }
++
++  disconnect() {}
++}
++
++describe("GraphCanvas resizing continuity", () => {
++  beforeEach(() => {
++    drawSnapshots.length = 0;
++    resizeObservedCanvas = null;
++    measuredWidth = 1000;
++    measuredHeight = 900;
++    vi.stubGlobal("ResizeObserver", ControlledResizeObserver);
++    vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockImplementation(function (
++      this: HTMLElement
++    ) {
++      return this.className.toString().includes("canvasArea") ? measuredWidth : 0;
++    });
++    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockImplementation(function (
++      this: HTMLElement
++    ) {
++      return this.className.toString().includes("canvasArea") ? measuredHeight : 0;
++    });
++    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(((type: string) =>
++      type === "2d" ? ({} as CanvasRenderingContext2D) : null) as HTMLCanvasElement["getContext"]);
++
++    vi.mocked(renderUniverseScene).mockImplementation(
++      (_context, width, height, transform, scene) => {
++        drawSnapshots.push({
++          width,
++          height,
++          transform: { ...transform },
++          nodes: (scene as UniverseScene).allNodes.map((node) => ({
++            id: node.id,
++            x: node.x,
++            y: node.y,
++          })),
++        });
++        return { activatedPulse: undefined } as ReturnType<typeof renderUniverseScene>;
++      }
++    );
++  });
++
++  afterEach(() => {
++    vi.restoreAllMocks();
++    vi.unstubAllGlobals();
++  });
++
++  it("synchronizes canvas backing size and preserves scene and camera through a panel resize", async () => {
++    const onSelectConcept = vi.fn();
++    const { container } = render(
++      <GraphCanvas
++        dataset={SEED_DATASET}
++        index={getOrCreateKnowledgeGraphIndex(SEED_DATASET)}
++        selectedConceptSlug="rust"
++        onSelectConcept={onSelectConcept}
++        isMobileViewport={false}
++      />
++    );
++
++    const canvas = container.querySelector<HTMLCanvasElement>(
++      "canvas:not([data-production-celestial-layer])"
++    )!;
++    await waitFor(() => expect(drawSnapshots.length).toBeGreaterThan(0));
++    expect(resizeObservedCanvas).not.toBeNull();
++
++    fireEvent.mouseDown(canvas, { clientX: 200, clientY: 200 });
++    fireEvent.mouseMove(canvas, { clientX: 240, clientY: 180 });
++    fireEvent.mouseUp(canvas, { clientX: 240, clientY: 180 });
++    fireEvent.wheel(canvas, { deltaY: -100, clientX: 420, clientY: 350 });
++    const beforeResize = drawSnapshots.at(-1)!;
++    expect(beforeResize.transform.k).toBeGreaterThan(1);
++    expect(onSelectConcept).not.toHaveBeenCalled();
++
++    measuredWidth = 800;
++    act(() => resizeObservedCanvas?.());
++
++    await waitFor(() => expect(drawSnapshots.at(-1)?.width).toBe(800));
++    const afterResize = drawSnapshots.at(-1)!;
++
++    expect(canvas.width).toBe(800);
++    expect(canvas.height).toBe(900);
++    expect(canvas.style.width).toBe("800px");
++    expect(canvas.style.height).toBe("900px");
++    expect(afterResize.transform.x).toBeCloseTo(beforeResize.transform.x + 100);
++    expect(afterResize.transform.y).toBe(beforeResize.transform.y);
++    expect(afterResize.transform.k).toBe(beforeResize.transform.k);
++    expect(afterResize.nodes).toEqual(beforeResize.nodes);
++    expect(afterResize.nodes.find((node) => node.id === "concept-rust")).toBeDefined();
++  });
++});
+diff --git a/src/features/knowledge-graph/components/GraphCanvas.tsx b/src/features/knowledge-graph/components/GraphCanvas.tsx
+index df91c3b..c95a88f 100644
+--- a/src/features/knowledge-graph/components/GraphCanvas.tsx
++++ b/src/features/knowledge-graph/components/GraphCanvas.tsx
+@@ -29,6 +29,7 @@ import {
+   type ConceptAnchorMap,
+   type UniverseTravelState,
+ } from "../celestial-3d/universe";
++import { preserveViewportPositionOnCanvasResize } from "./resize-continuity";
+ import styles from "./KnowledgeGraph.module.css";
+ 
+ import type { KnowledgeGraphIndex } from "../knowledge-index";
+@@ -39,6 +40,7 @@ interface Props {
+   selectedConceptSlug: string | null;
+   onSelectConcept: (slug: string) => void;
+   onResetCamera?: () => void;
++  isMobileViewport?: boolean;
+ }
+ 
+ export default function GraphCanvas({
+@@ -47,6 +49,7 @@ export default function GraphCanvas({
+   selectedConceptSlug,
+   onSelectConcept,
+   onResetCamera,
++  isMobileViewport,
+ }: Props) {
+   const canvasRef = useRef<HTMLCanvasElement>(null);
+   const containerRef = useRef<HTMLDivElement>(null);
+@@ -62,11 +65,13 @@ export default function GraphCanvas({
+     width: 1280,
+     height: 800,
+   });
++  const [sceneLayoutDimensions, setSceneLayoutDimensions] = useState(dimensions);
+ 
+-  const isMobile = dimensions.width <= 768;
++  const isMobile = isMobileViewport ?? dimensions.width <= 768;
+ 
+   // Camera transform state (pan offset x, y, and scale k)
+   const transformRef = useRef<ViewportTransform>({ x: 0, y: 0, k: 1 });
++  const previousCanvasWidthRef = useRef<number | null>(null);
+   const isDraggingRef = useRef(false);
+   const isPinchingRef = useRef(false);
+   const wasPinchingRef = useRef(false);
+@@ -109,11 +114,18 @@ export default function GraphCanvas({
+       isMobile,
+     });
+     return layoutLocalUniverseScene(rawScene, {
+-      viewportWidth: dimensions.width,
+-      viewportHeight: dimensions.height,
++      viewportWidth: sceneLayoutDimensions.width,
++      viewportHeight: sceneLayoutDimensions.height,
+       isMobile,
+     });
+-  }, [dataset, index, selectedConceptSlug, isMobile, dimensions.width, dimensions.height]);
++  }, [
++    dataset,
++    index,
++    selectedConceptSlug,
++    isMobile,
++    sceneLayoutDimensions.width,
++    sceneLayoutDimensions.height,
++  ]);
+ 
+   // Single-pass canvas drawing function
+   const draw = useCallback(
+@@ -412,12 +424,12 @@ export default function GraphCanvas({
+     };
+   }, [animateEnergy, targetScene]);
+ 
+-  // Handle reactive container resizing and HiDPI canvas backing store scaling
++  // Keep the layout stable during panel-width changes while resizing both render surfaces.
+   useEffect(() => {
+     const container = containerRef.current;
+     if (!container) return;
+ 
+-    const updateDimensions = () => {
++    const updateDimensions = (refreshSceneLayout: boolean) => {
+       const canvas = canvasRef.current;
+       if (!canvas || !container) return;
+ 
+@@ -429,44 +441,57 @@ export default function GraphCanvas({
+       const height = container.clientHeight;
+ 
+       if (width > 0 && height > 0) {
+-        setDimensions((prev) => {
+-          if (Math.abs(prev.width - width) < 1 && Math.abs(prev.height - height) < 1) {
+-            return prev;
++        const previousWidth = previousCanvasWidthRef.current;
++        if (previousWidth !== null && !refreshSceneLayout) {
++          transformRef.current = preserveViewportPositionOnCanvasResize(
++            transformRef.current,
++            previousWidth,
++            width
++          );
++        }
++        previousCanvasWidthRef.current = width;
++
++        setDimensions((previous) => {
++          if (Math.abs(previous.width - width) < 1 && Math.abs(previous.height - height) < 1) {
++            return previous;
+           }
+           return { width, height };
+         });
+ 
++        if (refreshSceneLayout || previousWidth === null) {
++          setSceneLayoutDimensions((previous) => {
++            if (previous.width === width && previous.height === height) return previous;
++            return { width, height };
++          });
++        }
++
+         canvas.width = width * effectiveDpr;
+         canvas.height = height * effectiveDpr;
+-        canvas.style.width = `${width}px`;
+-        canvas.style.height = `${height}px`;
++        canvas.style.width = width + "px";
++        canvas.style.height = height + "px";
+ 
+         drawRef.current();
+       }
+     };
+ 
+-    updateDimensions();
++    updateDimensions(true);
++    const observer =
++      typeof ResizeObserver !== "undefined"
++        ? new ResizeObserver(() => updateDimensions(false))
++        : null;
++    observer?.observe(container);
+ 
+-    if (typeof ResizeObserver !== "undefined") {
+-      const observer = new ResizeObserver(updateDimensions);
+-      observer.observe(container);
+-      return () => {
+-        observer.disconnect();
+-        if (animationFrameRef.current) {
+-          cancelAnimationFrame(animationFrameRef.current);
+-          animationFrameRef.current = null;
+-        }
+-      };
+-    } else {
+-      window.addEventListener("resize", updateDimensions);
+-      return () => {
+-        window.removeEventListener("resize", updateDimensions);
+-        if (animationFrameRef.current) {
+-          cancelAnimationFrame(animationFrameRef.current);
+-          animationFrameRef.current = null;
+-        }
+-      };
+-    }
++    const handleViewportResize = () => updateDimensions(true);
++    window.addEventListener("resize", handleViewportResize);
++
++    return () => {
++      observer?.disconnect();
++      window.removeEventListener("resize", handleViewportResize);
++      if (animationFrameRef.current) {
++        cancelAnimationFrame(animationFrameRef.current);
++        animationFrameRef.current = null;
++      }
++    };
+   }, []);
+ 
+   // Redraw when hover changes
+@@ -727,7 +752,7 @@ export default function GraphCanvas({
+   };
+ 
+   return (
+-    <div ref={containerRef} className={styles.canvasArea}>
++    <div ref={containerRef} className={styles.canvasArea} data-testid="graph-canvas-area">
+       <canvas
+         ref={canvasRef}
+         onMouseDown={handleMouseDown}
+diff --git a/src/features/knowledge-graph/components/KnowledgeGraph.module.css b/src/features/knowledge-graph/components/KnowledgeGraph.module.css
+index 47567eb..513f2a1 100644
+--- a/src/features/knowledge-graph/components/KnowledgeGraph.module.css
++++ b/src/features/knowledge-graph/components/KnowledgeGraph.module.css
+@@ -18,6 +18,7 @@
+ 
+ .canvasArea {
+   flex: 1;
++  min-width: 0;
+   height: 100%;
+   position: relative;
+   background:
+@@ -214,25 +215,101 @@
+   letter-spacing: 0.02em;
+ }
+ 
+-/* Contextual Right Detail Panel (Knowledge Observatory Surface) */
++/* Right-docked Observatory Veil and its atmospheric transition into the universe. */
++.observatoryDock {
++  position: relative;
++  z-index: 20;
++  flex: 0 0 var(--observatory-panel-width, 470px);
++  width: var(--observatory-panel-width, 470px);
++  min-width: var(--observatory-panel-min-width, 360px);
++  max-width: min(var(--observatory-panel-max-width, 600px), 50vw);
++  height: 100%;
++  overflow: visible;
++}
++
++.observatoryDock::before {
++  content: "";
++  position: absolute;
++  z-index: 0;
++  top: 0;
++  right: 100%;
++  bottom: 0;
++  width: 64px;
++  pointer-events: none;
++  background:
++    radial-gradient(ellipse 84% 45% at 100% 50%, rgba(62, 91, 154, 0.16), transparent 82%),
++    linear-gradient(
++      90deg,
++      transparent 0%,
++      rgba(18, 27, 49, 0.32) 34%,
++      rgba(8, 12, 25, 0.78) 78%,
++      rgba(6, 9, 19, 0.98) 100%
++    );
++}
++
+ .detailPanel {
+-  width: 380px;
+-  min-width: 320px;
+-  max-width: min(420px, 34vw);
++  position: relative;
++  z-index: 1;
++  box-sizing: border-box;
++  width: 100%;
+   height: 100%;
+-  background: rgba(4, 7, 16, 0.78);
+-  backdrop-filter: blur(28px) saturate(130%);
+-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+-  box-shadow: -12px 0 36px rgba(0, 0, 0, 0.45);
++  background: linear-gradient(180deg, rgba(7, 10, 19, 0.98), rgba(5, 8, 17, 0.99));
++  border-left: 1px solid rgba(185, 202, 230, 0.16);
++  box-shadow: -12px 0 38px rgba(0, 0, 0, 0.32);
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+-  z-index: 20;
++}
++
++.resizeHandle {
++  position: absolute;
++  z-index: 2;
++  top: 0;
++  bottom: 0;
++  left: 0;
++  display: flex;
++  width: 26px;
++  align-items: center;
++  justify-content: center;
++  cursor: ew-resize;
++  touch-action: none;
++  user-select: none;
++  background: transparent;
++  outline: none;
++}
++
++.resizeHandle::before {
++  content: "";
++  width: 1px;
++  height: 100%;
++  background: linear-gradient(
++    180deg,
++    transparent 8%,
++    rgba(184, 202, 232, 0.11) 30%,
++    rgba(184, 202, 232, 0.17) 50%,
++    rgba(184, 202, 232, 0.11) 70%,
++    transparent 92%
++  );
++  transform: translateX(-13px);
++  box-shadow: 0 0 10px rgba(88, 118, 178, 0.17);
++}
++
++.resizeHandle:focus-visible {
++  outline: 2px solid rgba(125, 211, 252, 0.82);
++  outline-offset: -3px;
++  border-radius: 5px;
++}
++
++.resizeHandle:focus-visible::before {
++  width: 2px;
++  background: linear-gradient(180deg, transparent, rgba(125, 211, 252, 0.82), transparent);
++  box-shadow: 0 0 12px rgba(83, 165, 220, 0.48);
+ }
+ 
+ .panelScroll {
+   flex: 1;
+-  padding: var(--space-8) var(--space-6);
++  min-width: 0;
++  padding: 48px 32px 40px;
+   overflow-y: auto;
+   overflow-x: hidden;
+   scrollbar-width: thin;
+@@ -240,22 +317,23 @@
+ }
+ 
+ .emptyPrompt {
+-  font-size: 0.8rem;
+-  color: #64748b;
+-  margin-top: var(--space-2);
+-  line-height: 1.5;
++  font-size: 0.9rem;
++  color: #9aa9bf;
++  margin-top: var(--space-3);
++  line-height: 1.7;
+ }
+ 
+ .panelHeader {
+-  margin-bottom: var(--space-5);
++  margin-bottom: 28px;
+ }
+ 
+ .metaRow {
+   display: flex;
++  flex-wrap: wrap;
+   align-items: center;
+   justify-content: space-between;
+   gap: var(--space-2);
+-  margin-bottom: var(--space-3);
++  margin-bottom: 16px;
+ }
+ 
+ .categoryBadge {
+@@ -291,33 +369,34 @@
+ }
+ 
+ .conceptTitle {
+-  font-size: 1.85rem;
+-  font-weight: 700;
+-  letter-spacing: -0.02em;
+-  color: #f8fafc;
+-  margin: 0 0 var(--space-2) 0;
+-  line-height: 1.18;
++  font-size: 2rem;
++  font-weight: 650;
++  letter-spacing: -0.035em;
++  color: #f3f6fb;
++  margin: 0 0 12px;
++  line-height: 1.15;
+ }
+ 
+ .conceptSummary {
+-  font-size: 0.92rem;
+-  color: #cbd5e1;
+-  line-height: 1.62;
+-  margin: 0 0 var(--space-3) 0;
++  font-size: 1rem;
++  color: #d2dbea;
++  line-height: 1.72;
++  margin: 0 0 16px;
+   font-weight: 400;
+ }
+ 
+ .conceptDescription {
+-  font-size: 0.83rem;
+-  color: #94a3b8;
+-  line-height: 1.65;
+-  margin: 0 0 var(--space-6) 0;
+-  padding-bottom: var(--space-5);
++  font-size: 0.9rem;
++  color: #a7b5c9;
++  line-height: 1.78;
++  margin: 0 0 30px;
++  padding-bottom: 24px;
+   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+ }
+ 
+ .sectionHeader {
+   display: flex;
++  flex-wrap: wrap;
+   align-items: baseline;
+   justify-content: space-between;
+   margin-bottom: var(--space-2);
+@@ -364,8 +443,8 @@
+   background: transparent;
+   border: none;
+   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+-  padding: var(--space-3) 0 var(--space-4) 0;
+-  transition: all var(--motion-duration-fast) ease;
++  padding: 16px 0 20px;
++  transition: background-color var(--motion-duration-fast) ease;
+ }
+ 
+ .connectionItem:last-child {
+@@ -378,6 +457,7 @@
+ 
+ .connectionRow {
+   display: flex;
++  min-width: 0;
+   align-items: center;
+   justify-content: space-between;
+   gap: var(--space-2);
+@@ -386,6 +466,8 @@
+ 
+ .connectionLink {
+   display: inline-flex;
++  min-width: 0;
++  max-width: 100%;
+   align-items: center;
+   gap: 4px;
+   background: none;
+@@ -396,6 +478,8 @@
+   color: #38bdf8;
+   cursor: pointer;
+   text-align: start;
++  white-space: normal;
++  overflow-wrap: anywhere;
+   text-decoration: underline;
+   text-decoration-color: transparent;
+   transition: all var(--motion-duration-fast) ease;
+@@ -441,19 +525,25 @@
+ 
+ .connectionPath {
+   display: flex;
++  min-width: 0;
++  flex-wrap: wrap;
+   align-items: center;
+   gap: 0.45rem;
+   font-size: 0.75rem;
+-  color: rgba(148, 163, 184, 0.75);
+-  margin-bottom: 6px;
++  color: rgba(168, 181, 202, 0.82);
++  margin-bottom: 8px;
+ }
+ 
+ .pathNodeCurrent {
++  min-width: 0;
++  overflow-wrap: anywhere;
+   font-weight: 600;
+   color: #e2e8f0;
+ }
+ 
+ .pathNode {
++  min-width: 0;
++  overflow-wrap: anywhere;
+   font-weight: 400;
+   color: #94a3b8;
+ }
+@@ -473,9 +563,9 @@
+ }
+ 
+ .connectionExplanation {
+-  font-size: 0.78rem;
+-  color: #94a3b8;
+-  line-height: 1.58;
++  font-size: 0.82rem;
++  color: #a6b3c7;
++  line-height: 1.68;
+   margin: 0;
+ }
+ 
+@@ -563,6 +653,7 @@
+ }
+ 
+ .sourceTitle {
++  overflow-wrap: anywhere;
+   font-size: 0.8rem;
+   font-weight: 600;
+   color: #f1f5f9;
+@@ -583,8 +674,8 @@
+ }
+ 
+ .sourcePublisher {
+-  font-size: 0.72rem;
+-  color: #94a3b8;
++  font-size: 0.78rem;
++  color: #a2afc3;
+   margin: 0 0 var(--space-2) 0;
+   line-height: 1.4;
+ }
+@@ -664,19 +755,38 @@
+     height: 54vh;
+   }
+ 
+-  .detailPanel {
++  .observatoryDock {
+     flex: 1 1 46vh;
+     width: 100%;
+     max-width: 100%;
+     min-width: 0;
+     height: 46vh;
++  }
++
++  .observatoryDock::before {
++    top: -44px;
++    right: 0;
++    bottom: auto;
++    left: 0;
++    width: auto;
++    height: 44px;
++    background:
++      radial-gradient(ellipse 62% 44px at 50% 100%, rgba(62, 91, 154, 0.16), transparent 82%),
++      linear-gradient(180deg, transparent, rgba(6, 9, 19, 0.98));
++  }
++
++  .detailPanel {
+     border-left: none;
+-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+-    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.7);
++    border-top: 1px solid rgba(185, 202, 230, 0.13);
++    box-shadow: 0 -8px 26px rgba(0, 0, 0, 0.23);
++  }
++
++  .resizeHandle {
++    display: none;
+   }
+ 
+   .panelScroll {
+-    padding: var(--space-4) var(--space-4) var(--space-6) var(--space-4);
++    padding: 24px 20px 32px;
+     -webkit-overflow-scrolling: touch;
+   }
+ 
+diff --git a/src/features/knowledge-graph/components/KnowledgeGraphExperience.tsx b/src/features/knowledge-graph/components/KnowledgeGraphExperience.tsx
+index 7b1c79e..cf1e419 100644
+--- a/src/features/knowledge-graph/components/KnowledgeGraphExperience.tsx
++++ b/src/features/knowledge-graph/components/KnowledgeGraphExperience.tsx
+@@ -1,11 +1,19 @@
+ "use client";
+ 
+ import { useState, useEffect, useCallback, useMemo } from "react";
++import type { CSSProperties } from "react";
+ import type { KnowledgeDataset, Concept } from "@/domain/knowledge/types";
+ import { SEED_DATASET } from "@/data/seed";
+ import { getOrCreateKnowledgeGraphIndex } from "../knowledge-index";
+ import GraphCanvas from "./GraphCanvas";
+ import ConceptPanel from "./ConceptPanel";
++import ObservatoryResizeHandle from "./ObservatoryResizeHandle";
++import {
++  OBSERVATORY_DESKTOP_BREAKPOINT,
++  OBSERVATORY_PANEL_DEFAULT_WIDTH,
++  clampObservatoryPanelWidth,
++  getObservatoryPanelWidthConstraints,
++} from "./observatory-layout";
+ import styles from "./KnowledgeGraph.module.css";
+ 
+ interface Props {
+@@ -18,6 +26,34 @@ export default function KnowledgeGraphExperience({
+   initialSlug = "rust",
+ }: Props) {
+   const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
++  const [viewportWidth, setViewportWidth] = useState<number | null>(null);
++  const [panelWidth, setPanelWidth] = useState(OBSERVATORY_PANEL_DEFAULT_WIDTH);
++
++  useEffect(() => {
++    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
++    updateViewportWidth();
++    window.addEventListener("resize", updateViewportWidth);
++    return () => window.removeEventListener("resize", updateViewportWidth);
++  }, []);
++
++  // Keep the user's width in this experience instance as they navigate concepts.
++  const widthConstraints = useMemo(
++    () => getObservatoryPanelWidthConstraints(viewportWidth ?? 1440),
++    [viewportWidth]
++  );
++  const visiblePanelWidth = clampObservatoryPanelWidth(panelWidth, widthConstraints);
++  const observatoryStyle = {
++    "--observatory-panel-width": visiblePanelWidth + "px",
++    "--observatory-panel-min-width": widthConstraints.minimum + "px",
++    "--observatory-panel-max-width": widthConstraints.maximum + "px",
++  } as CSSProperties;
++
++  const updatePanelWidth = useCallback(
++    (width: number) => {
++      setPanelWidth(clampObservatoryPanelWidth(width, widthConstraints));
++    },
++    [widthConstraints]
++  );
+ 
+   // Memoize knowledge index once per dataset reference
+   const index = useMemo(() => getOrCreateKnowledgeGraphIndex(dataset), [dataset]);
+@@ -36,7 +72,6 @@ export default function KnowledgeGraphExperience({
+    * Synchronize selection changes with browser history and URL.
+    *
+    * Architecture note on native History API:
+-   * We intentionally use window.history.pushState and popstate rather than full router transitions:
+    * 1. URLs remain shareable and deep-linkable (/concept/<slug>).
+    * 2. Direct App Router routes work cleanly on initial load, static SSG generation, and reload.
+    * 3. In-graph client exploration preserves the active canvas simulation and spatial camera
+@@ -45,7 +80,7 @@ export default function KnowledgeGraphExperience({
+   const selectConcept = useCallback((slug: string) => {
+     setSelectedSlug(slug);
+     if (typeof window !== "undefined") {
+-      const targetUrl = `/concept/${slug}`;
++      const targetUrl = "/concept/" + slug;
+       if (window.location.pathname !== targetUrl) {
+         window.history.pushState({ slug }, "", targetUrl);
+       }
+@@ -80,7 +115,7 @@ export default function KnowledgeGraphExperience({
+     ) {
+       document.title = "Entrelis — Everything is connected";
+     } else {
+-      document.title = `${selectedConcept.name} — Entrelis`;
++      document.title = selectedConcept.name + " — Entrelis";
+     }
+   }, [selectedConcept, selectedSlug]);
+ 
+@@ -100,23 +135,34 @@ export default function KnowledgeGraphExperience({
+         <p className={styles.brandTagline}>Everything is connected</p>
+       </header>
+ 
+-      <main className={styles.mainContent}>
+-        {/* Main 2D Canvas viewport */}
++      <main className={styles.mainContent} style={observatoryStyle}>
+         <GraphCanvas
+           dataset={dataset}
+           index={index}
+           selectedConceptSlug={selectedSlug}
+           onSelectConcept={selectConcept}
+           onResetCamera={handleResetCamera}
++          isMobileViewport={
++            viewportWidth === null ? undefined : viewportWidth <= OBSERVATORY_DESKTOP_BREAKPOINT
++          }
+         />
+ 
+-        {/* Semantic Right / Lower Detail Panel */}
+-        <ConceptPanel
+-          concept={selectedConcept}
+-          dataset={dataset}
+-          index={index}
+-          onSelectConcept={selectConcept}
+-        />
++        <div className={styles.observatoryDock}>
++          {viewportWidth !== null && viewportWidth > OBSERVATORY_DESKTOP_BREAKPOINT && (
++            <ObservatoryResizeHandle
++              value={visiblePanelWidth}
++              constraints={widthConstraints}
++              panelId="concept-details-panel"
++              onWidthChange={updatePanelWidth}
++            />
++          )}
++          <ConceptPanel
++            concept={selectedConcept}
++            dataset={dataset}
++            index={index}
++            onSelectConcept={selectConcept}
++          />
++        </div>
+       </main>
+     </div>
+   );
+diff --git a/src/features/knowledge-graph/components/ObservatoryResizeHandle.test.tsx b/src/features/knowledge-graph/components/ObservatoryResizeHandle.test.tsx
+new file mode 100644
+index 0000000..503aed4
+--- /dev/null
++++ b/src/features/knowledge-graph/components/ObservatoryResizeHandle.test.tsx
+@@ -0,0 +1,132 @@
++import { cleanup, fireEvent, render, screen } from "@testing-library/react";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import ObservatoryResizeHandle from "./ObservatoryResizeHandle";
++
++const constraints = { minimum: 360, maximum: 600 };
++
++describe("ObservatoryResizeHandle", () => {
++  const onWidthChange = vi.fn();
++  const capturedPointers = new Set<number>();
++
++  beforeEach(() => {
++    onWidthChange.mockReset();
++    capturedPointers.clear();
++    Object.defineProperty(HTMLElement.prototype, "setPointerCapture", {
++      configurable: true,
++      value: vi.fn(function (this: HTMLElement, pointerId: number) {
++        capturedPointers.add(pointerId);
++      }),
++    });
++    Object.defineProperty(HTMLElement.prototype, "hasPointerCapture", {
++      configurable: true,
++      value: vi.fn((pointerId: number) => capturedPointers.has(pointerId)),
++    });
++    Object.defineProperty(HTMLElement.prototype, "releasePointerCapture", {
++      configurable: true,
++      value: vi.fn(function (this: HTMLElement, pointerId: number) {
++        capturedPointers.delete(pointerId);
++        this.dispatchEvent(new Event("lostpointercapture"));
++      }),
++    });
++  });
++
++  afterEach(() => {
++    cleanup();
++    vi.restoreAllMocks();
++  });
++
++  function renderHandle() {
++    return render(
++      <ObservatoryResizeHandle
++        value={470}
++        constraints={constraints}
++        panelId="concept-details-panel"
++        onWidthChange={onWidthChange}
++      />
++    );
++  }
++
++  it("exposes an adjustable vertical separator with the current width", () => {
++    renderHandle();
++
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++    expect(handle.getAttribute("aria-orientation")).toBe("vertical");
++    expect(handle.getAttribute("aria-controls")).toBe("concept-details-panel");
++    expect(handle.getAttribute("aria-valuemin")).toBe("360");
++    expect(handle.getAttribute("aria-valuemax")).toBe("600");
++    expect(handle.getAttribute("aria-valuenow")).toBe("470");
++    expect(handle.getAttribute("aria-valuetext")).toBe("470 pixels wide");
++    expect(handle.getAttribute("tabindex")).toBe("0");
++  });
++
++  it("captures pointer movement and widens as the left edge moves left", () => {
++    renderHandle();
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++
++    fireEvent.pointerDown(handle, {
++      pointerId: 4,
++      pointerType: "mouse",
++      button: 0,
++      isPrimary: true,
++      clientX: 600,
++    });
++    fireEvent.pointerMove(handle, { pointerId: 4, pointerType: "mouse", buttons: 1, clientX: 540 });
++    expect(onWidthChange).toHaveBeenLastCalledWith(530);
++
++    fireEvent.pointerUp(handle, { pointerId: 4, pointerType: "mouse", button: 0, clientX: 540 });
++    expect(HTMLElement.prototype.setPointerCapture).toHaveBeenCalledWith(4);
++    expect(HTMLElement.prototype.releasePointerCapture).toHaveBeenCalledWith(4);
++    expect(capturedPointers.size).toBe(0);
++  });
++
++  it("restores the starting width when pointer movement is cancelled", () => {
++    renderHandle();
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++
++    fireEvent.pointerDown(handle, { pointerId: 2, button: 0, isPrimary: true, clientX: 500 });
++    fireEvent.pointerMove(handle, { pointerId: 2, buttons: 1, clientX: 450 });
++    fireEvent.pointerCancel(handle, { pointerId: 2 });
++
++    expect(onWidthChange.mock.calls.map(([width]) => width)).toEqual([520, 470]);
++    expect(capturedPointers.size).toBe(0);
++  });
++
++  it("restores the starting width and cleans up on window blur", () => {
++    renderHandle();
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++
++    fireEvent.pointerDown(handle, { pointerId: 1, button: 0, isPrimary: true, clientX: 500 });
++    fireEvent.pointerMove(handle, { pointerId: 1, buttons: 1, clientX: 450 });
++    fireEvent(window, new Event("blur"));
++
++    expect(onWidthChange.mock.calls.map(([width]) => width)).toEqual([520, 470]);
++    expect(capturedPointers.size).toBe(0);
++    fireEvent(window, new Event("blur"));
++    expect(onWidthChange).toHaveBeenCalledTimes(2);
++  });
++
++  it("cancels an active drag and restores its width when unmounted", () => {
++    const { unmount } = renderHandle();
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++
++    fireEvent.pointerDown(handle, { pointerId: 8, button: 0, isPrimary: true, clientX: 500 });
++    fireEvent.pointerMove(handle, { pointerId: 8, buttons: 1, clientX: 450 });
++    unmount();
++
++    expect(onWidthChange.mock.calls.map(([width]) => width)).toEqual([520, 470]);
++  });
++
++  it("resizes with arrow keys and offers minimum and maximum shortcuts", () => {
++    renderHandle();
++    const handle = screen.getByRole("separator", { name: "Resize knowledge panel" });
++
++    handle.focus();
++    expect(document.activeElement).toBe(handle);
++    fireEvent.keyDown(handle, { key: "ArrowLeft" });
++    fireEvent.keyDown(handle, { key: "ArrowRight", shiftKey: true });
++    fireEvent.keyDown(handle, { key: "Home" });
++    fireEvent.keyDown(handle, { key: "End" });
++
++    expect(onWidthChange.mock.calls.map(([width]) => width)).toEqual([486, 406, 360, 600]);
++  });
++});
+diff --git a/src/features/knowledge-graph/components/ObservatoryResizeHandle.tsx b/src/features/knowledge-graph/components/ObservatoryResizeHandle.tsx
+new file mode 100644
+index 0000000..021b095
+--- /dev/null
++++ b/src/features/knowledge-graph/components/ObservatoryResizeHandle.tsx
+@@ -0,0 +1,153 @@
++import { useCallback, useEffect, useRef } from "react";
++import type { KeyboardEvent, PointerEvent } from "react";
++import type { ObservatoryPanelWidthConstraints } from "./observatory-layout";
++import {
++  getObservatoryPanelWidthForKeyboardInput,
++  getObservatoryPanelWidthForPointerMove,
++} from "./observatory-layout";
++import styles from "./KnowledgeGraph.module.css";
++
++interface Props {
++  readonly value: number;
++  readonly constraints: ObservatoryPanelWidthConstraints;
++  readonly panelId: string;
++  readonly onWidthChange: (width: number) => void;
++}
++
++interface ActiveDrag {
++  readonly pointerId: number;
++  readonly startX: number;
++  readonly startWidth: number;
++  readonly element: HTMLDivElement;
++  readonly handleWindowBlur: () => void;
++}
++
++export default function ObservatoryResizeHandle({
++  value,
++  constraints,
++  panelId,
++  onWidthChange,
++}: Props) {
++  const activeDragRef = useRef<ActiveDrag | null>(null);
++  const onWidthChangeRef = useRef(onWidthChange);
++
++  useEffect(() => {
++    onWidthChangeRef.current = onWidthChange;
++  }, [onWidthChange]);
++
++  const finishDrag = useCallback((commit: boolean) => {
++    const drag = activeDragRef.current;
++    if (!drag) return;
++
++    activeDragRef.current = null;
++    window.removeEventListener("blur", drag.handleWindowBlur);
++
++    if (!commit) onWidthChangeRef.current(drag.startWidth);
++
++    if (
++      drag.element.hasPointerCapture &&
++      drag.element.releasePointerCapture &&
++      drag.element.hasPointerCapture(drag.pointerId)
++    ) {
++      drag.element.releasePointerCapture(drag.pointerId);
++    }
++  }, []);
++
++  const cancelOnWindowBlur = useCallback(() => finishDrag(false), [finishDrag]);
++
++  useEffect(
++    () => () => {
++      finishDrag(false);
++    },
++    [finishDrag]
++  );
++
++  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
++    if (event.button !== 0 || event.isPrimary === false) return;
++
++    event.preventDefault();
++    event.currentTarget.focus({ preventScroll: true });
++
++    const drag: ActiveDrag = {
++      pointerId: event.pointerId,
++      startX: event.clientX,
++      startWidth: value,
++      element: event.currentTarget,
++      handleWindowBlur: cancelOnWindowBlur,
++    };
++    activeDragRef.current = drag;
++    window.addEventListener("blur", drag.handleWindowBlur);
++
++    if (event.currentTarget.setPointerCapture) {
++      event.currentTarget.setPointerCapture(event.pointerId);
++    }
++  };
++
++  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
++    const drag = activeDragRef.current;
++    if (!drag || drag.pointerId !== event.pointerId) return;
++
++    event.preventDefault();
++    onWidthChangeRef.current(
++      getObservatoryPanelWidthForPointerMove(
++        drag.startWidth,
++        drag.startX,
++        event.clientX,
++        constraints
++      )
++    );
++  };
++
++  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
++    if (activeDragRef.current?.pointerId !== event.pointerId) return;
++
++    event.preventDefault();
++    finishDrag(true);
++  };
++
++  const handlePointerCancel = (event: PointerEvent<HTMLDivElement>) => {
++    if (activeDragRef.current?.pointerId !== event.pointerId) return;
++
++    event.preventDefault();
++    finishDrag(false);
++  };
++
++  const handleLostPointerCapture = (event: PointerEvent<HTMLDivElement>) => {
++    if (activeDragRef.current?.pointerId === event.pointerId) finishDrag(false);
++  };
++
++  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
++    const nextWidth = getObservatoryPanelWidthForKeyboardInput(
++      value,
++      event.key,
++      event.shiftKey,
++      constraints
++    );
++    if (nextWidth === null) return;
++
++    event.preventDefault();
++    onWidthChangeRef.current(nextWidth);
++  };
++
++  return (
++    <div
++      className={styles.resizeHandle}
++      role="separator"
++      aria-label="Resize knowledge panel"
++      aria-orientation="vertical"
++      aria-controls={panelId}
++      aria-valuemin={constraints.minimum}
++      aria-valuemax={constraints.maximum}
++      aria-valuenow={value}
++      aria-valuetext={value + " pixels wide"}
++      aria-keyshortcuts="ArrowLeft ArrowRight Home End"
++      tabIndex={0}
++      onKeyDown={handleKeyDown}
++      onPointerDown={handlePointerDown}
++      onPointerMove={handlePointerMove}
++      onPointerUp={handlePointerUp}
++      onPointerCancel={handlePointerCancel}
++      onLostPointerCapture={handleLostPointerCapture}
++    />
++  );
++}
+diff --git a/src/features/knowledge-graph/components/observatory-layout.test.ts b/src/features/knowledge-graph/components/observatory-layout.test.ts
+new file mode 100644
+index 0000000..0774a11
+--- /dev/null
++++ b/src/features/knowledge-graph/components/observatory-layout.test.ts
+@@ -0,0 +1,62 @@
++import { describe, expect, it } from "vitest";
++import {
++  getDefaultObservatoryPanelWidth,
++  getObservatoryPanelWidthConstraints,
++  getObservatoryPanelWidthForKeyboardInput,
++  getObservatoryPanelWidthForPointerMove,
++} from "./observatory-layout";
++
++describe("Observatory panel width rules", () => {
++  it("uses the approved desktop default and bounds", () => {
++    expect(getObservatoryPanelWidthConstraints(1440)).toEqual({
++      minimum: 360,
++      maximum: 600,
++    });
++    expect(getDefaultObservatoryPanelWidth(1440)).toBe(470);
++  });
++
++  it("leaves at least half the desktop viewport for the universe", () => {
++    expect(getObservatoryPanelWidthConstraints(1024)).toEqual({
++      minimum: 360,
++      maximum: 512,
++    });
++    expect(getObservatoryPanelWidthConstraints(769)).toEqual({
++      minimum: 360,
++      maximum: 384,
++    });
++    expect(getDefaultObservatoryPanelWidth(769)).toBe(384);
++  });
++
++  it("clamps to available space when 360 pixels is not available", () => {
++    expect(getObservatoryPanelWidthConstraints(640)).toEqual({
++      minimum: 320,
++      maximum: 320,
++    });
++  });
++
++  it("widens when the pointer moves left and clamps at both limits", () => {
++    const constraints = { minimum: 360, maximum: 600 };
++
++    expect(getObservatoryPanelWidthForPointerMove(470, 900, 830, constraints)).toBe(540);
++    expect(getObservatoryPanelWidthForPointerMove(470, 900, 1200, constraints)).toBe(360);
++    expect(getObservatoryPanelWidthForPointerMove(470, 900, 700, constraints)).toBe(600);
++  });
++
++  it("maps arrow and Home/End keys to the edge movement", () => {
++    const constraints = { minimum: 360, maximum: 600 };
++
++    expect(getObservatoryPanelWidthForKeyboardInput(470, "ArrowLeft", false, constraints)).toBe(
++      486
++    );
++    expect(getObservatoryPanelWidthForKeyboardInput(470, "ArrowRight", false, constraints)).toBe(
++      454
++    );
++    expect(getObservatoryPanelWidthForKeyboardInput(470, "Home", false, constraints)).toBe(360);
++    expect(getObservatoryPanelWidthForKeyboardInput(470, "End", false, constraints)).toBe(600);
++    expect(getObservatoryPanelWidthForKeyboardInput(470, "ArrowLeft", true, constraints)).toBe(534);
++    expect(getObservatoryPanelWidthForKeyboardInput(590, "ArrowLeft", false, constraints)).toBe(
++      600
++    );
++    expect(getObservatoryPanelWidthForKeyboardInput(470, "PageUp", false, constraints)).toBeNull();
++  });
++});
+diff --git a/src/features/knowledge-graph/components/observatory-layout.ts b/src/features/knowledge-graph/components/observatory-layout.ts
+new file mode 100644
+index 0000000..d070277
+--- /dev/null
++++ b/src/features/knowledge-graph/components/observatory-layout.ts
+@@ -0,0 +1,68 @@
++export const OBSERVATORY_PANEL_MIN_WIDTH = 360;
++export const OBSERVATORY_PANEL_MAX_WIDTH = 600;
++export const OBSERVATORY_PANEL_DEFAULT_WIDTH = 470;
++export const OBSERVATORY_GRAPH_MINIMUM_FRACTION = 0.5;
++export const OBSERVATORY_DESKTOP_BREAKPOINT = 768;
++export const OBSERVATORY_RESIZE_STEP = 16;
++export const OBSERVATORY_RESIZE_LARGE_STEP = 64;
++
++export interface ObservatoryPanelWidthConstraints {
++  readonly minimum: number;
++  readonly maximum: number;
++}
++
++export function getObservatoryPanelWidthConstraints(
++  viewportWidth: number
++): ObservatoryPanelWidthConstraints {
++  const availableWidth = Math.max(0, Number.isFinite(viewportWidth) ? viewportWidth : 0);
++  const maximum = Math.min(
++    OBSERVATORY_PANEL_MAX_WIDTH,
++    Math.floor(availableWidth * OBSERVATORY_GRAPH_MINIMUM_FRACTION)
++  );
++
++  return {
++    minimum: Math.min(OBSERVATORY_PANEL_MIN_WIDTH, maximum),
++    maximum,
++  };
++}
++
++export function clampObservatoryPanelWidth(
++  width: number,
++  constraints: ObservatoryPanelWidthConstraints
++): number {
++  const safeWidth = Number.isFinite(width) ? width : constraints.minimum;
++  return Math.round(Math.max(constraints.minimum, Math.min(constraints.maximum, safeWidth)));
++}
++
++export function getDefaultObservatoryPanelWidth(viewportWidth: number): number {
++  return clampObservatoryPanelWidth(
++    OBSERVATORY_PANEL_DEFAULT_WIDTH,
++    getObservatoryPanelWidthConstraints(viewportWidth)
++  );
++}
++
++export function getObservatoryPanelWidthForPointerMove(
++  startWidth: number,
++  startX: number,
++  currentX: number,
++  constraints: ObservatoryPanelWidthConstraints
++): number {
++  // The separator sits on a right-docked panel's left edge: moving it left widens the panel.
++  return clampObservatoryPanelWidth(startWidth - (currentX - startX), constraints);
++}
++
++export function getObservatoryPanelWidthForKeyboardInput(
++  currentWidth: number,
++  key: string,
++  useLargeStep: boolean,
++  constraints: ObservatoryPanelWidthConstraints
++): number | null {
++  if (key === "Home") return constraints.minimum;
++  if (key === "End") return constraints.maximum;
++
++  const step = useLargeStep ? OBSERVATORY_RESIZE_LARGE_STEP : OBSERVATORY_RESIZE_STEP;
++  if (key === "ArrowLeft") return clampObservatoryPanelWidth(currentWidth + step, constraints);
++  if (key === "ArrowRight") return clampObservatoryPanelWidth(currentWidth - step, constraints);
++
++  return null;
++}
+diff --git a/src/features/knowledge-graph/components/resize-continuity.test.ts b/src/features/knowledge-graph/components/resize-continuity.test.ts
+new file mode 100644
+index 0000000..a2afa92
+--- /dev/null
++++ b/src/features/knowledge-graph/components/resize-continuity.test.ts
+@@ -0,0 +1,21 @@
++import { describe, expect, it } from "vitest";
++import type { ViewportTransform } from "../types";
++import { preserveViewportPositionOnCanvasResize } from "./resize-continuity";
++
++describe("canvas width resize continuity", () => {
++  it("keeps visible world positions steady as the left-docked panel changes canvas width", () => {
++    const transform: ViewportTransform = { x: 37, y: -21, k: 1.7 };
++
++    expect(preserveViewportPositionOnCanvasResize(transform, 1000, 800)).toEqual({
++      x: 137,
++      y: -21,
++      k: 1.7,
++    });
++  });
++
++  it("leaves pan and zoom unchanged when the width has not changed", () => {
++    const transform: ViewportTransform = { x: -82, y: 23, k: 2.25 };
++
++    expect(preserveViewportPositionOnCanvasResize(transform, 800, 800)).toEqual(transform);
++  });
++});
+diff --git a/src/features/knowledge-graph/components/resize-continuity.ts b/src/features/knowledge-graph/components/resize-continuity.ts
+new file mode 100644
+index 0000000..bc9f5d9
+--- /dev/null
++++ b/src/features/knowledge-graph/components/resize-continuity.ts
+@@ -0,0 +1,21 @@
++import type { ViewportTransform } from "../types";
++
++/**
++ * Compensates for a right-docked panel changing the canvas center while preserving the visible
++ * world positions. A resize from the left edge changes only canvas width; pan and zoom history stay.
++ */
++export function preserveViewportPositionOnCanvasResize(
++  transform: ViewportTransform,
++  previousWidth: number,
++  nextWidth: number
++): ViewportTransform {
++  if (!Number.isFinite(previousWidth) || !Number.isFinite(nextWidth)) return transform;
++
++  const widthChange = previousWidth - nextWidth;
++  if (Math.abs(widthChange) < 1) return transform;
++
++  return {
++    ...transform,
++    x: transform.x + widthChange / 2,
++  };
++}
+diff --git a/src/features/knowledge-graph/scene/layout-local-scene.test.ts b/src/features/knowledge-graph/scene/layout-local-scene.test.ts
+index 9ebd90d..36e5a7d 100644
+--- a/src/features/knowledge-graph/scene/layout-local-scene.test.ts
++++ b/src/features/knowledge-graph/scene/layout-local-scene.test.ts
+@@ -160,7 +160,7 @@ describe("layoutLocalUniverseScene", () => {
+     });
+ 
+     // Mobile focal position centered or elevated slightly for bottom panel
+-    expect(laidOut.focus.x).toBe(0);
++    expect(laidOut.focus.x).toBeCloseTo(0);
+ 
+     // Radii on mobile should be more compact than desktop
+     for (const primary of laidOut.primaryNodes) {
+@@ -262,3 +262,20 @@ describe("layoutLocalUniverseScene", () => {
+     expect(desktopLaidOut.focus.x).toBe(-100);
+   });
+ });
++
++describe("narrow desktop observatory composition", () => {
++  it("keeps the selected celestial near the center when the dock leaves a narrow universe view", () => {
++    const scene = buildLocalUniverseScene({
++      dataset: SEED_DATASET,
++      focusSlug: "stack-and-heap",
++      isMobile: false,
++    });
++    const laidOut = layoutLocalUniverseScene(scene, {
++      viewportWidth: 385,
++      viewportHeight: 900,
++      isMobile: false,
++    });
++
++    expect(laidOut.focus.x).toBeCloseTo(0);
++  });
++});
+diff --git a/src/features/knowledge-graph/scene/layout-local-scene.ts b/src/features/knowledge-graph/scene/layout-local-scene.ts
+index 685438d..2eb8e0b 100644
+--- a/src/features/knowledge-graph/scene/layout-local-scene.ts
++++ b/src/features/knowledge-graph/scene/layout-local-scene.ts
+@@ -52,7 +52,7 @@ export function layoutLocalUniverseScene(
+     : Math.max(0.8, Math.min(1.35, minDim / 800));
+ 
+   // 2. Focal Origin
+-  const defaultOffsetX = isMobile ? 0 : -100;
++  const defaultOffsetX = isMobile ? 0 : -Math.min(100, Math.max(0, (viewportWidth - 400) * 0.65));
+   const defaultOffsetY = isMobile ? -30 : 0;
+   const originX = config.focalOffsetX ?? defaultOffsetX;
+   const originY = config.focalOffsetY ?? defaultOffsetY;

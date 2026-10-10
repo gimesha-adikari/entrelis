@@ -1,0 +1,79 @@
+{
+  "issue": "GIM-53",
+  "title": "Observatory Veil",
+  "createdAt": "2026-10-10T14:38:55Z",
+  "source": {
+    "repository": "gimesha-adikari/entrelis",
+    "implementationBranch": "m1-5-local-universe-ui",
+    "baseSha": "30ce2e805c33474d0a2b84a359e66026543f562b",
+    "featureBranchHeadAtFinalCheck": "30ce2e805c33474d0a2b84a359e66026543f562b",
+    "implementationChangesPushed": false,
+    "patch": "IMPLEMENTATION.patch",
+    "patchBaseSha": "30ce2e805c33474d0a2b84a359e66026543f562b"
+  },
+  "artifactPublication": {
+    "branch": "gim51-qa-artifact",
+    "path": "output/gim53-observatory-veil/",
+    "readableIndividualFilesIncluded": true,
+    "zip": "gim53-observatory-veil-qa.zip",
+    "zipChecksum": "gim53-observatory-veil-qa.zip.sha256"
+  },
+  "runtime": {
+    "node": "v22.23.3",
+    "npm": "11.9.0",
+    "next": "16.3.8",
+    "browser": "Chromium 151.0.7922.173",
+    "playwright": "Playwright package from external QA workspace",
+    "webglRenderer": "SwiftShader software WebGL",
+    "deviceScaleFactor": 1,
+    "physicalGpuAvailable": false
+  },
+  "validation": {
+    "cleanNpmCi": "passed; 444 packages installed; existing eslint@9.39.5 deprecation warning",
+    "formatCheck": "passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "tests": {
+      "passed": 350,
+      "filesPassed": 39,
+      "baselinePassed": 332,
+      "baselineFilesPassed": 35,
+      "warnings": "existing jsdom canvas getContext not-implemented warnings"
+    },
+    "productionBuild": "passed",
+    "gitDiffCheck": "passed",
+    "browserPageErrors": 0,
+    "screenshots": {
+      "before": 11,
+      "after": 26
+    }
+  },
+  "performance": {
+    "baseline": "performance/baseline.json",
+    "after": "performance/after.json",
+    "canvasPixelsBeforeAndAfter": [
+      "970x900",
+      "840x900"
+    ],
+    "rendererCanvasCountAfter": 1,
+    "webglContextCountAfter": 1,
+    "physicalIntelUhd630Acceptance": "deferred to GIM-54"
+  },
+  "changedFiles": [
+    "src/features/knowledge-graph/__tests__/KnowledgeGraph.test.tsx",
+    "src/features/knowledge-graph/celestial-3d/production-controller.test.ts",
+    "src/features/knowledge-graph/components/ConceptPanel.tsx",
+    "src/features/knowledge-graph/components/GraphCanvas.resize.test.tsx",
+    "src/features/knowledge-graph/components/GraphCanvas.tsx",
+    "src/features/knowledge-graph/components/KnowledgeGraph.module.css",
+    "src/features/knowledge-graph/components/KnowledgeGraphExperience.tsx",
+    "src/features/knowledge-graph/components/ObservatoryResizeHandle.test.tsx",
+    "src/features/knowledge-graph/components/ObservatoryResizeHandle.tsx",
+    "src/features/knowledge-graph/components/observatory-layout.test.ts",
+    "src/features/knowledge-graph/components/observatory-layout.ts",
+    "src/features/knowledge-graph/components/resize-continuity.test.ts",
+    "src/features/knowledge-graph/components/resize-continuity.ts",
+    "src/features/knowledge-graph/scene/layout-local-scene.test.ts",
+    "src/features/knowledge-graph/scene/layout-local-scene.ts"
+  ]
+}

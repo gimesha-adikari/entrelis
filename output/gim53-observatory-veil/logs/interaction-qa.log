@@ -1,0 +1,542 @@
+{
+  "phase": "after",
+  "baseUrl": "http://127.0.0.1:3200",
+  "capturedAt": "2026-10-10T14:30:33.363Z",
+  "browser": "151.0.7922.173",
+  "rendering": "SwiftShader software WebGL",
+  "checks": {
+    "atmosphericBoundaryPointerTarget": {
+      "targetTag": "canvas",
+      "canvasReceivesPointer": true,
+      "separatorReceivesPointer": false
+    },
+    "keyboardFocus": {
+      "role": "separator",
+      "orientation": "vertical",
+      "min": 360,
+      "max": 600,
+      "now": 486,
+      "text": "486 pixels wide",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    },
+    "desktopWidthRange": {
+      "minimum": 360,
+      "maximum": 600
+    },
+    "mouseResize": {
+      "before": 470,
+      "during": 530,
+      "after": 600,
+      "canvasAfter": 840,
+      "selectedConcept": "Rust",
+      "url": "/concept/rust"
+    },
+    "touchResizeAndCancel": {
+      "during": 540,
+      "after": 540,
+      "cancelRestored": 540,
+      "pointerTypes": [
+        "touch",
+        "touch"
+      ],
+      "pointerCancels": 1
+    },
+    "sessionNavigation": {
+      "routeStates": [
+        {
+          "title": "Ownership",
+          "url": "/concept/ownership",
+          "panelWidth": 540
+        },
+        {
+          "title": "Memory",
+          "url": "/concept/memory",
+          "panelWidth": 540
+        },
+        {
+          "title": "Stack & Heap",
+          "url": "/concept/stack-and-heap",
+          "panelWidth": 540
+        },
+        {
+          "title": "Operating Systems",
+          "url": "/concept/operating-systems",
+          "panelWidth": 540
+        }
+      ],
+      "back": {
+        "title": "Stack & Heap",
+        "url": "/concept/stack-and-heap",
+        "panelWidth": 540
+      },
+      "home": {
+        "title": "Rust",
+        "url": "/",
+        "panelWidth": 540
+      }
+    },
+    "reducedMotion": {
+      "matched": true,
+      "viewportWidth": 390,
+      "panelWidth": 390,
+      "separatorCount": 0
+    },
+    "textEnlargement": {
+      "rootFontSize": "32px",
+      "panelWidth": 390,
+      "panelScrollWidth": 390,
+      "panelClientWidth": 390,
+      "bodyScrollWidth": 390,
+      "documentScrollWidth": 390
+    }
+  },
+  "screenshots": [
+    {
+      "name": "rust-1440-boundary.png",
+      "edgeX": 970,
+      "width": 128
+    },
+    {
+      "name": "rust-1440-interaction-default.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 470,
+      "canvasWidth": 970,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 469,
+      "panelClientWidth": 469,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 470,
+        "text": "470 pixels wide",
+        "outlineStyle": "none",
+        "outlineWidth": "3px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0
+    },
+    {
+      "name": "rust-1440-keyboard-focus.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 486,
+      "canvasWidth": 954,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 485,
+      "panelClientWidth": 485,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 486,
+        "text": "486 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "action": "ArrowLeft widened from 470px to 486px"
+    },
+    {
+      "name": "rust-1440-minimum.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 360,
+      "canvasWidth": 1080,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 359,
+      "panelClientWidth": 359,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 360,
+        "text": "360 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "action": "Home"
+    },
+    {
+      "name": "rust-1440-maximum.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 600,
+      "canvasWidth": 840,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 599,
+      "panelClientWidth": 599,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 600,
+        "text": "600 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "action": "End"
+    },
+    {
+      "name": "rust-1440-resize-before-panned-zoomed.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 470,
+      "canvasWidth": 970,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 469,
+      "panelClientWidth": 469,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 470,
+        "text": "470 pixels wide",
+        "outlineStyle": "none",
+        "outlineWidth": "3px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "action": "Universe panned and zoomed before resize"
+    },
+    {
+      "name": "rust-1440-resize-during-mouse.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 530,
+      "canvasWidth": 910,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 529,
+      "panelClientWidth": 529,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 530,
+        "text": "530 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [
+        "mouse"
+      ],
+      "pointerCancels": 0,
+      "action": "Mouse drag in progress"
+    },
+    {
+      "name": "rust-1440-resize-after-mouse.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 600,
+      "canvasWidth": 840,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 599,
+      "panelClientWidth": 599,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 600,
+        "text": "600 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [
+        "mouse"
+      ],
+      "pointerCancels": 0,
+      "action": "Mouse drag committed"
+    },
+    {
+      "name": "rust-1280-default.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 470,
+      "canvasWidth": 810,
+      "bodyScrollWidth": 1280,
+      "documentScrollWidth": 1280,
+      "panelScrollWidth": 469,
+      "panelClientWidth": 469,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 470,
+        "text": "470 pixels wide",
+        "outlineStyle": "none",
+        "outlineWidth": "3px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "state": "default"
+    },
+    {
+      "name": "rust-1280-maximum.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 600,
+      "canvasWidth": 680,
+      "bodyScrollWidth": 1280,
+      "documentScrollWidth": 1280,
+      "panelScrollWidth": 599,
+      "panelClientWidth": 599,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 600,
+        "text": "600 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "state": "maximum"
+    },
+    {
+      "name": "ownership-1024-default.png",
+      "title": "Ownership",
+      "url": "/concept/ownership",
+      "panelWidth": 470,
+      "canvasWidth": 554,
+      "bodyScrollWidth": 1024,
+      "documentScrollWidth": 1024,
+      "panelScrollWidth": 469,
+      "panelClientWidth": 469,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 512,
+        "now": 470,
+        "text": "470 pixels wide",
+        "outlineStyle": "none",
+        "outlineWidth": "3px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "state": "default"
+    },
+    {
+      "name": "ownership-1024-maximum.png",
+      "title": "Ownership",
+      "url": "/concept/ownership",
+      "panelWidth": 512,
+      "canvasWidth": 512,
+      "bodyScrollWidth": 1024,
+      "documentScrollWidth": 1024,
+      "panelScrollWidth": 511,
+      "panelClientWidth": 511,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 512,
+        "now": 512,
+        "text": "512 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "state": "maximum"
+    },
+    {
+      "name": "stack-and-heap-769-default.png",
+      "title": "Stack & Heap",
+      "url": "/concept/stack-and-heap",
+      "panelWidth": 384,
+      "canvasWidth": 385,
+      "bodyScrollWidth": 769,
+      "documentScrollWidth": 769,
+      "panelScrollWidth": 383,
+      "panelClientWidth": 383,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 384,
+        "now": 384,
+        "text": "384 pixels wide",
+        "outlineStyle": "none",
+        "outlineWidth": "3px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 769,
+        "height": 900
+      },
+      "state": "default"
+    },
+    {
+      "name": "stack-and-heap-769-maximum.png",
+      "title": "Stack & Heap",
+      "url": "/concept/stack-and-heap",
+      "panelWidth": 384,
+      "canvasWidth": 385,
+      "bodyScrollWidth": 769,
+      "documentScrollWidth": 769,
+      "panelScrollWidth": 383,
+      "panelClientWidth": 383,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 384,
+        "now": 384,
+        "text": "384 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 769,
+        "height": 900
+      },
+      "state": "maximum"
+    },
+    {
+      "name": "stack-and-heap-769-minimum.png",
+      "title": "Stack & Heap",
+      "url": "/concept/stack-and-heap",
+      "panelWidth": 360,
+      "canvasWidth": 409,
+      "bodyScrollWidth": 769,
+      "documentScrollWidth": 769,
+      "panelScrollWidth": 359,
+      "panelClientWidth": 359,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 384,
+        "now": 360,
+        "text": "360 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "viewport": {
+        "width": 769,
+        "height": 900
+      },
+      "state": "minimum"
+    },
+    {
+      "name": "rust-1440-touch-resized.png",
+      "title": "Rust",
+      "url": "/concept/rust",
+      "panelWidth": 540,
+      "canvasWidth": 900,
+      "bodyScrollWidth": 1440,
+      "documentScrollWidth": 1440,
+      "panelScrollWidth": 539,
+      "panelClientWidth": 539,
+      "separator": {
+        "role": "separator",
+        "orientation": "vertical",
+        "min": 360,
+        "max": 600,
+        "now": 540,
+        "text": "540 pixels wide",
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "mainCount": 1,
+      "pointerTypes": [
+        "touch"
+      ],
+      "pointerCancels": 0,
+      "action": "Touch pointer drag"
+    },
+    {
+      "name": "ownership-390-reduced-motion.png",
+      "title": "Ownership",
+      "url": "/concept/ownership",
+      "panelWidth": 390,
+      "canvasWidth": 390,
+      "bodyScrollWidth": 390,
+      "documentScrollWidth": 390,
+      "panelScrollWidth": 390,
+      "panelClientWidth": 390,
+      "separator": null,
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "action": "prefers-reduced-motion: reduce"
+    },
+    {
+      "name": "ownership-390-text-enlarged-200.png",
+      "title": "Ownership",
+      "url": "/concept/ownership",
+      "panelWidth": 390,
+      "canvasWidth": 390,
+      "bodyScrollWidth": 390,
+      "documentScrollWidth": 390,
+      "panelScrollWidth": 390,
+      "panelClientWidth": 390,
+      "separator": null,
+      "mainCount": 1,
+      "pointerTypes": [],
+      "pointerCancels": 0,
+      "action": "Root text size set to 200%"
+    }
+  ],
+  "errors": []
+}
