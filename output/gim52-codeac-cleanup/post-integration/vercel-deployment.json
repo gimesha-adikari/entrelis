@@ -1,0 +1,12 @@
+{
+  "deployment_id": 6981599058,
+  "sha": "30ce2e805c33474d0a2b84a359e66026543f562b",
+  "environment": "Preview",
+  "state": "success",
+  "description": "Deployment has completed",
+  "environment_url": "https://entrelis-5uut85bm0-gimeshas-projects.vercel.app",
+  "target_url": "https://entrelis-5uut85bm0-gimeshas-projects.vercel.app",
+  "deployment_created_at": "2026-10-10T13:33:50Z",
+  "status_updated_at": "2026-10-10T13:33:51Z",
+  "deployment_url": "https://github.com/gimesha-adikari/entrelis/deployments/6981599058"
+}

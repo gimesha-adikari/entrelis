@@ -55,13 +55,16 @@ Remaining duplication findings (16 pairs / 32 annotations):
 
 ## Vercel
 
-Vercel status could not be verified from this environment. The Vercel deployments connector returned HTTP 403 for the project listing, and the mapped Vercel CLI fallback is unavailable because the CLI is not installed. GitHub exposed no deployment record and no Vercel check run for this SHA; only the Codeac check run was present. This report does not claim that a Vercel deployment succeeded or failed. See [`logs/vercel-status.log`](logs/vercel-status.log).
+The Vercel Preview deployment for `30ce2e805c33474d0a2b84a359e66026543f562b` completed successfully. GitHub deployment ID `6981599058` has status `success` (“Deployment has completed”), with preview URL: https://entrelis-5uut85bm0-gimeshas-projects.vercel.app. The separate `Vercel Preview Comments` check also completed successfully. The accessible GitHub deployment/status records provide this verification; the Vercel listing connector itself returned HTTP 403. See [`vercel-deployment.json`](vercel-deployment.json), [`github-check-runs.json`](github-check-runs.json), and [`logs/vercel-status.log`](logs/vercel-status.log).
 
 ## Evidence files
 
 - [`validation-results.md`](validation-results.md)
 - [`codeac-findings.md`](codeac-findings.md)
 - [`codeac-check-run.json`](codeac-check-run.json)
+- [`vercel-deployment.json`](vercel-deployment.json)
+- [`github-check-runs.json`](github-check-runs.json)
+- [`github-commit-status.json`](github-commit-status.json)
 - [`codeac-annotations.json`](codeac-annotations.json)
 - [`github-pr-verification.json`](github-pr-verification.json)
 - [`github-compare-verification.json`](github-compare-verification.json)

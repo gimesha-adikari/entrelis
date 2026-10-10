@@ -25,10 +25,26 @@
     "check_run_id": 114224633087
   },
   "vercel": {
-    "status": "unverified",
-    "reason": "connector returned HTTP 403; CLI unavailable; no GitHub deployment/check record visible"
+    "status": "success",
+    "environment": "Preview",
+    "deployment_id": 6981599058,
+    "status_id": 19566882771,
+    "preview_url": "https://entrelis-5uut85bm0-gimeshas-projects.vercel.app",
+    "preview_comments_check": "success"
   },
   "qa_branch": "gim51-qa-artifact",
   "artifact_only": true,
-  "generated_utc": "2026-10-10 13:33 UTC"
+  "generated_utc": "2026-10-10 13:33 UTC",
+  "github_checks": [
+    {
+      "name": "Vercel Preview Comments",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Codeac Code Quality",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
 }

@@ -1,0 +1,18 @@
+{
+  "sha": "30ce2e805c33474d0a2b84a359e66026543f562b",
+  "state": "success",
+  "statuses": [
+    {
+      "context": "Codeac analyze results",
+      "state": "success",
+      "description": "1 errors and 32 warnings. Check Codeac analysis results.",
+      "target_url": "https://app.codeac.io/github/gimesha-adikari/entrelis/pull-requests/5"
+    },
+    {
+      "context": "Vercel",
+      "state": "success",
+      "description": "Deployment has completed",
+      "target_url": "https://vercel.com/gimeshas-projects/entrelis/3M9sMsddErMebujgeRP1gUs5gwQo"
+    }
+  ]
+}

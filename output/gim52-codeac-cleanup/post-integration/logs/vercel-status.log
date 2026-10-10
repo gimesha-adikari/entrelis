@@ -1,1 +1,7 @@
-Vercel status: UNVERIFIED. The Vercel deployments connector returned HTTP 403 (permission denied) for the project listing. CLI fallback could not run because the `vercel` CLI is not installed. GitHub deployments API for the commit returned an empty list, and the commit had no Vercel check run.
+Vercel Preview deployment: SUCCESS
+Commit: 30ce2e805c33474d0a2b84a359e66026543f562b
+Deployment ID: 6981599058
+Environment: Preview
+Status: success — Deployment has completed
+Preview URL: https://entrelis-5uut85bm0-gimeshas-projects.vercel.app
+The separate Vercel Preview Comments check completed successfully: 💬 0 unresolved, 0 resolved. [Go to feedback](https://vercel.live/open-feedback/entrelis-git-m1-5-local-universe-ui-gimeshas-projects.vercel.app?via=pr-comment-feedback-link)
