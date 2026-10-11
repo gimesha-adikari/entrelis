@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect, useState, forwardRef } from "react";
 import type {
   Concept,
   KnowledgeDataset,
@@ -10,13 +10,25 @@ import type {
   Source,
 } from "@/domain/knowledge/types";
 import { getOrCreateKnowledgeGraphIndex, type KnowledgeGraphIndex } from "../knowledge-index";
+import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import styles from "./KnowledgeGraph.module.css";
 
-interface Props {
+export type ProjectedVariant =
+  | "anchored"
+  | "continuous"
+  | "meridian"
+  | "corona"
+  | "codex"
+  | "hybrid";
+
+export interface ConceptPanelProps {
   concept: Concept | null;
   dataset: KnowledgeDataset;
   index?: KnowledgeGraphIndex;
   onSelectConcept: (slug: string) => void;
+  variant?: ProjectedVariant;
+  isMobileExpanded?: boolean;
+  onToggleMobileExpanded?: () => void;
 }
 
 const STRENGTH_WEIGHT: Record<RelationshipStrength, number> = {
@@ -32,13 +44,55 @@ const REVIEW_STATUS_LABELS: Record<ReviewStatus, string> = {
   verified: "Verified",
 };
 
-export default function ConceptPanel({ concept, dataset, index, onSelectConcept }: Props) {
+const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function ConceptPanel(
+  {
+    concept,
+    dataset,
+    index,
+    onSelectConcept,
+    variant = "anchored",
+    isMobileExpanded: controlledMobileExpanded,
+    onToggleMobileExpanded,
+  },
+  ref
+) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [internalMobileExpanded, setInternalMobileExpanded] = useState(false);
+
+  const isExpanded =
+    controlledMobileExpanded !== undefined
+      ? controlledMobileExpanded
+      : internalMobileExpanded;
+
+  const toggleExpanded = () => {
+    if (onToggleMobileExpanded) {
+      onToggleMobileExpanded();
+    } else {
+      setInternalMobileExpanded((prev) => !prev);
+    }
+  };
+
+  // Keyboard accessibility: Escape key collapses mobile expanded lens
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isExpanded) {
+        if (onToggleMobileExpanded) onToggleMobileExpanded();
+        else setInternalMobileExpanded(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isExpanded, onToggleMobileExpanded]);
 
   const graphIndex = useMemo(
     () => index ?? getOrCreateKnowledgeGraphIndex(dataset),
     [index, dataset]
   );
+
+  const celestialIdentity = useMemo(() => {
+    if (!concept) return null;
+    return getConceptCelestialIdentity(concept.slug);
+  }, [concept]);
 
   // Reset scroll position to top whenever active concept changes
   useEffect(() => {
@@ -75,9 +129,31 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
       .filter((s): s is Source => Boolean(s));
   }, [concept, graphIndex]);
 
+  const variantClass = useMemo(() => {
+    switch (variant) {
+      case "continuous":
+        return styles.variantContinuous;
+      case "anchored":
+        return styles.variantAnchored;
+      case "corona":
+        return styles.variantCorona;
+      case "codex":
+        return styles.variantCodex;
+      case "hybrid":
+        return styles.variantHybrid;
+      case "meridian":
+      default:
+        return styles.variantAnchored;
+    }
+  }, [variant]);
+
   if (!concept) {
     return (
-      <aside className={styles.detailPanel} aria-label="Selected Concept Details">
+      <aside
+        ref={ref}
+        className={`${styles.detailPanel} ${variantClass}`}
+        aria-label="Selected Concept Details"
+      >
         <div ref={scrollContainerRef} className={styles.panelScroll}>
           <p className={styles.conceptSummary}>No concept selected.</p>
           <p className={styles.emptyPrompt}>
@@ -90,15 +166,104 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
 
   const primaryDomain = concept.domains[0];
   const reviewStatusLabel = REVIEW_STATUS_LABELS[concept.reviewStatus] ?? "Reviewed";
+  const archetypeKey = celestialIdentity?.archetype ?? "volcanic-rocky";
 
   return (
-    <aside className={styles.detailPanel} aria-label="Selected Concept Details">
+    <aside
+      ref={ref}
+      className={`${styles.detailPanel} ${variantClass} ${
+        isExpanded ? styles.mobileExpanded : styles.mobileCompact
+      }`}
+      aria-label="Selected Concept Details"
+      data-archetype={archetypeKey}
+    >
+      {/* Mobile Cosmic Lens Header & Expand/Collapse Toggle Affordance */}
+      <div className={styles.lensToggleBar}>
+        <button
+          type="button"
+          className={styles.lensToggleBtn}
+          onClick={toggleExpanded}
+          aria-expanded={isExpanded}
+          aria-label={
+            isExpanded
+              ? "Collapse to compact exploration lens"
+              : "Expand to read full knowledge"
+          }
+        >
+          <span className={styles.lensHandleBar} aria-hidden="true" />
+          <span className={styles.lensToggleLabel}>
+            {isExpanded ? "▼ Compact Universe" : "▲ Expand Reading"}
+          </span>
+        </button>
+      </div>
+
+      {/* Direction A: Planet-Anchored Knowledge Projection atmospheric boundary */}
+      {variant === "anchored" && (
+        <div className={styles.anchoredBoundary} aria-hidden="true">
+          <div className={styles.anchoredAura} />
+          <div className={styles.anchoredContourArc} />
+          <div className={styles.anchoredGlow} />
+        </div>
+      )}
+
+      {/* Direction B: Continuous Cosmic Reading Field */}
+      {variant === "continuous" && (
+        <div className={styles.continuousAtmosphere} aria-hidden="true">
+          <div className={styles.continuousAura} />
+        </div>
+      )}
+
+      {/* Backwards-compatible legacy preview boundaries */}
+      {variant === "meridian" && (
+        <div className={styles.meridianBoundary} aria-hidden="true">
+          <div className={styles.meridianLine} />
+          <div className={styles.meridianGlow} />
+        </div>
+      )}
+
+      {variant === "corona" && (
+        <div className={styles.coronaBoundary} aria-hidden="true">
+          <div className={styles.coronaAura} />
+          <div className={styles.coronaMeniscus} />
+        </div>
+      )}
+
+      {variant === "codex" && (
+        <div className={styles.codexBoundary} aria-hidden="true">
+          <div className={styles.codexPrimaryGuide} />
+          <div className={styles.codexSecondaryGuide} />
+        </div>
+      )}
+
+      {variant === "hybrid" && (
+        <div className={styles.hybridBoundary} aria-hidden="true">
+          <div className={styles.hybridAura} />
+          <div className={styles.hybridLine} />
+          <div className={styles.hybridGlow} />
+        </div>
+      )}
+
       {/* Live announcement region for assistive technologies */}
       <div className={styles.srOnly} aria-live="polite" aria-atomic="true">
         {`Selected concept: ${concept.name}. ${connectedRelationships.length} connected relationships.`}
       </div>
 
       <div ref={scrollContainerRef} className={styles.panelScroll}>
+        {/* Subtle return action matching Option C reference */}
+        {concept.slug !== "rust" && (
+          <button
+            type="button"
+            className={styles.projectedBackBtn}
+            onClick={() => onSelectConcept("rust")}
+            aria-label="Back to Universe Root"
+          >
+            <span className={styles.projectedBackArrow} aria-hidden="true">
+              ←
+            </span>
+            <span>Return to Universe Root</span>
+          </button>
+        )}
+
         {/* Region A: Concept Identity */}
         <header className={styles.panelHeader}>
           <div className={styles.metaRow}>
@@ -119,7 +284,21 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
           <p className={styles.conceptSummary}>{concept.shortDescription}</p>
         </header>
 
-        {concept.description && <p className={styles.conceptDescription}>{concept.description}</p>}
+        {/* Mobile Compact State Quick Exploration Prompt */}
+        <div className={styles.compactExplorationPrompt} onClick={toggleExpanded}>
+          <span className={styles.compactCountBadge}>
+            {connectedRelationships.length} Connections
+          </span>
+          <span className={styles.compactPromptText}>Tap to explore knowledge</span>
+          <span className={styles.compactChevron} aria-hidden="true">
+            {isExpanded ? "▼" : "▲"}
+          </span>
+        </div>
+
+        {/* Full Long-Form Description */}
+        {concept.description && (
+          <p className={styles.conceptDescription}>{concept.description}</p>
+        )}
 
         {/* Region B: Knowledge Connections */}
         <nav className={styles.connectionsNav} aria-label="Concept Connections">
@@ -132,47 +311,74 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
           </div>
 
           <ul className={styles.connectionsList}>
-            {orderedRelationships.map((rel) => {
+            {orderedRelationships.map((rel, idx) => {
               const isSource = rel.sourceConceptId === concept.id;
               const otherConceptId = isSource ? rel.targetConceptId : rel.sourceConceptId;
               const otherConcept = graphIndex.conceptById.get(otherConceptId);
 
               if (!otherConcept) return null;
 
+              const otherIdentity = getConceptCelestialIdentity(otherConcept.slug);
+              const otherArchetype = otherIdentity?.archetype ?? "volcanic-rocky";
+
               return (
-                <li key={rel.id} className={styles.connectionItem}>
+                <li key={rel.id} className={styles.connectionItem} data-index={idx}>
+                  {/* Direction A: Orbital anchor pip on the curved contour */}
+                  {(variant === "anchored" || variant === "meridian" || variant === "hybrid") && (
+                    <span
+                      className={styles.anchoredAnchorPip}
+                      data-archetype={otherArchetype}
+                      aria-hidden="true"
+                    />
+                  )}
+
                   <div className={styles.connectionRow}>
-                    <button
-                      type="button"
-                      className={styles.connectionLink}
-                      onClick={() => onSelectConcept(otherConcept.slug)}
-                      aria-label={`Explore connected concept: ${otherConcept.name}`}
-                    >
-                      <span>{otherConcept.name}</span>
-                      <span className={styles.exploreArrow} aria-hidden="true">
-                        ↗
-                      </span>
-                    </button>
-                    <span className={styles.typePill}>{rel.type}</span>
-                  </div>
+                    {/* Mini Procedural Celestial Avatar for Related World */}
+                    <div className={styles.connectionAvatarCol}>
+                      <span
+                        className={styles.celestialOrbMini}
+                        data-archetype={otherArchetype}
+                        aria-hidden="true"
+                      />
+                    </div>
 
-                  {/* Strictly maintain SOURCE → TARGET directional invariant */}
-                  <div className={styles.connectionPath}>
-                    <span className={isSource ? styles.pathNodeCurrent : styles.pathNode}>
-                      {isSource ? concept.name : otherConcept.name}
-                    </span>
-                    <span className={styles.arrowIcon} aria-hidden="true">
-                      →
-                    </span>
-                    <span className={!isSource ? styles.pathNodeCurrent : styles.pathNode}>
-                      {isSource ? otherConcept.name : concept.name}
-                    </span>
-                    <span className={styles.directionTag}>
-                      {isSource ? "outgoing" : "incoming"}
-                    </span>
-                  </div>
+                    <div className={styles.connectionMainCol}>
+                      <div className={styles.connectionTitleRow}>
+                        <button
+                          type="button"
+                          className={styles.connectionLink}
+                          onClick={() => onSelectConcept(otherConcept.slug)}
+                          aria-label={`Explore connected concept: ${otherConcept.name}`}
+                        >
+                          <span>{otherConcept.name}</span>
+                          <span className={styles.exploreArrow} aria-hidden="true">
+                            ↗
+                          </span>
+                        </button>
+                        <span className={styles.typePill} data-archetype={otherArchetype}>
+                          {rel.type}
+                        </span>
+                      </div>
 
-                  <p className={styles.connectionExplanation}>{rel.explanation}</p>
+                      {/* Strictly maintain SOURCE → TARGET directional invariant */}
+                      <div className={styles.connectionPath}>
+                        <span className={isSource ? styles.pathNodeCurrent : styles.pathNode}>
+                          {isSource ? concept.name : otherConcept.name}
+                        </span>
+                        <span className={styles.arrowIcon} aria-hidden="true">
+                          →
+                        </span>
+                        <span className={!isSource ? styles.pathNodeCurrent : styles.pathNode}>
+                          {isSource ? otherConcept.name : concept.name}
+                        </span>
+                        <span className={styles.directionTag}>
+                          {isSource ? "outgoing" : "incoming"}
+                        </span>
+                      </div>
+
+                      <p className={styles.connectionExplanation}>{rel.explanation}</p>
+                    </div>
+                  </div>
                 </li>
               );
             })}
@@ -229,4 +435,6 @@ export default function ConceptPanel({ concept, dataset, index, onSelectConcept 
       </div>
     </aside>
   );
-}
+});
+
+export default ConceptPanel;

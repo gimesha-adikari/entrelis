@@ -345,6 +345,75 @@ describe("ConceptPanel Knowledge Observatory", () => {
       expect(scrollContainer.scrollTop).toBe(0);
     }
   });
+
+  it("supports mobile compact state with toggle button and aria-expanded=false", () => {
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+      />
+    );
+
+    const expandBtn = screen.getByRole("button", { name: /Expand to read full knowledge/i });
+    expect(expandBtn).toBeDefined();
+    expect(expandBtn.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByText("▲ Expand Reading")).toBeDefined();
+  });
+
+  it("toggles to expanded state when expand button is clicked", () => {
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+      />
+    );
+
+    const expandBtn = screen.getByRole("button", { name: /Expand to read full knowledge/i });
+    fireEvent.click(expandBtn);
+
+    const collapseBtn = screen.getByRole("button", { name: /Collapse to compact exploration lens/i });
+    expect(collapseBtn).toBeDefined();
+    expect(collapseBtn.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByText("▼ Compact Universe")).toBeDefined();
+  });
+
+  it("collapses expanded state when Escape key is pressed", () => {
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+      />
+    );
+
+    const expandBtn = screen.getByRole("button", { name: /Expand to read full knowledge/i });
+    fireEvent.click(expandBtn);
+
+    expect(screen.getByRole("button", { name: /Collapse to compact exploration lens/i })).toBeDefined();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(screen.getByRole("button", { name: /Expand to read full knowledge/i })).toBeDefined();
+  });
+
+  it("renders mini celestial avatar orbs next to connected concepts", () => {
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    const { container } = render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+      />
+    );
+
+    const miniOrbs = container.querySelectorAll("[class*='celestialOrbMini']");
+    expect(miniOrbs.length).toBeGreaterThan(0);
+  });
 });
 
 // Helper to find connection path class name in rendered container

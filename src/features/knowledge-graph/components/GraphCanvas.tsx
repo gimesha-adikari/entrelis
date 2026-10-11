@@ -39,6 +39,7 @@ interface Props {
   selectedConceptSlug: string | null;
   onSelectConcept: (slug: string) => void;
   onResetCamera?: () => void;
+  onFocusPositionChange?: (pos: { x: number; y: number; radius: number } | null) => void;
 }
 
 export default function GraphCanvas({
@@ -47,6 +48,7 @@ export default function GraphCanvas({
   selectedConceptSlug,
   onSelectConcept,
   onResetCamera,
+  onFocusPositionChange,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,6 +101,7 @@ export default function GraphCanvas({
   const travelStateRef = useRef<UniverseTravelState | null>(null);
   const persistentCameraOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const conceptAnchorsRef = useRef<ConceptAnchorMap>(new Map());
+  const lastReportedPosRef = useRef<{ x: number; y: number; radius: number } | null>(null);
 
   // Build and lay out target scene using prebuilt index and exact available CSS dimensions
   const targetScene = useMemo<UniverseScene>(() => {
@@ -168,6 +171,23 @@ export default function GraphCanvas({
         unreadyRelationshipNodeIds: ringOcclusions?.unreadyNodeIds,
         bodyNotReadyNodeIds: ringOcclusions?.bodyNotReadyNodeIds,
       });
+
+      // Report dynamic screen-space coordinates of focus planet to parent projection system
+      if (onFocusPositionChange && scene?.focus) {
+        const fx = dimensions.width / 2 + transformRef.current.x + scene.focus.x * transformRef.current.k;
+        const fy = dimensions.height / 2 + transformRef.current.y + scene.focus.y * transformRef.current.k;
+        const fr = Math.max(22, Math.min(64, (scene.focus.radius ?? 38) * transformRef.current.k));
+
+        if (
+          !lastReportedPosRef.current ||
+          Math.hypot(lastReportedPosRef.current.x - fx, lastReportedPosRef.current.y - fy) > 0.5 ||
+          Math.abs(lastReportedPosRef.current.radius - fr) > 0.5
+        ) {
+          lastReportedPosRef.current = { x: fx, y: fy, radius: fr };
+          onFocusPositionChange({ x: fx, y: fy, radius: fr });
+        }
+      }
+
       if (result.activatedPulse) {
         pulseRef.current = result.activatedPulse;
         pendingPulseRef.current = null;
@@ -185,6 +205,7 @@ export default function GraphCanvas({
       dimensions.height,
       hasProductionRenderer,
       animateEnergy,
+      onFocusPositionChange,
     ]
   );
 
