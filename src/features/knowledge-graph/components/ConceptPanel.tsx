@@ -357,17 +357,19 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
         {/* Region A: Concept Identity */}
         <header className={styles.panelHeader}>
           <div className={styles.metaRow}>
-            {primaryDomain && (
-              <span className={styles.categoryBadge}>{primaryDomain.replace(/-/g, " ")}</span>
-            )}
-            <span
-              className={styles.reviewBadge}
-              title={`Verification status: ${reviewStatusLabel}`}
-              aria-label={`Verification status: ${reviewStatusLabel}`}
-            >
-              <span className={styles.reviewDot} aria-hidden="true" />
-              {reviewStatusLabel}
-            </span>
+            <div className={styles.metaBadges}>
+              {primaryDomain && (
+                <span className={styles.categoryBadge}>{primaryDomain.replace(/-/g, " ")}</span>
+              )}
+              <span
+                className={styles.reviewBadge}
+                title={`Verification status: ${reviewStatusLabel}`}
+                aria-label={`Verification status: ${reviewStatusLabel}`}
+              >
+                <span className={styles.reviewDot} aria-hidden="true" />
+                {reviewStatusLabel}
+              </span>
+            </div>
 
             {/* Desktop Knowledge Field Extent Slider Control */}
             {variant === "anchored" && onFieldWidthChange && fieldWidth !== undefined && (

@@ -46,3 +46,7 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+nextjs-portal {
+  display: none !important;
+}
