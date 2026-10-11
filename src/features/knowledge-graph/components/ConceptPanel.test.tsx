@@ -414,6 +414,86 @@ describe("ConceptPanel Knowledge Observatory", () => {
     const miniOrbs = container.querySelectorAll("[class*='celestialOrbMini']");
     expect(miniOrbs.length).toBeGreaterThan(0);
   });
+
+  it("renders accessible desktop field extent slider and responds to change events", () => {
+    const onWidthChange = vi.fn();
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+        variant="anchored"
+        fieldWidth={480}
+        minFieldWidth={360}
+        maxFieldWidth={700}
+        onFieldWidthChange={onWidthChange}
+      />
+    );
+
+    const slider = screen.getByRole("slider", { name: /Knowledge field extent/i });
+    expect(slider).toBeDefined();
+    expect(slider.getAttribute("aria-valuenow")).toBe("480");
+    expect(slider.getAttribute("aria-valuemin")).toBe("360");
+    expect(slider.getAttribute("aria-valuemax")).toBe("700");
+
+    fireEvent.change(slider, { target: { value: "540" } });
+    expect(onWidthChange).toHaveBeenCalledWith(540);
+  });
+
+  it("renders contour drag handle with slider role and responds to arrow keys", () => {
+    const onWidthChange = vi.fn();
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+        variant="anchored"
+        fieldWidth={480}
+        minFieldWidth={360}
+        maxFieldWidth={700}
+        onFieldWidthChange={onWidthChange}
+      />
+    );
+
+    const dragHandle = screen.getByRole("slider", { name: /Knowledge field contour width/i });
+    expect(dragHandle).toBeDefined();
+    expect(dragHandle.getAttribute("aria-valuenow")).toBe("480");
+
+    // ArrowLeft expands (+16)
+    fireEvent.keyDown(dragHandle, { key: "ArrowLeft" });
+    expect(onWidthChange).toHaveBeenCalledWith(496);
+
+    // ArrowRight contracts (-16)
+    fireEvent.keyDown(dragHandle, { key: "ArrowRight" });
+    expect(onWidthChange).toHaveBeenCalledWith(464);
+
+    // Home jumps to min (360)
+    fireEvent.keyDown(dragHandle, { key: "Home" });
+    expect(onWidthChange).toHaveBeenCalledWith(360);
+
+    // End jumps to max (700)
+    fireEvent.keyDown(dragHandle, { key: "End" });
+    expect(onWidthChange).toHaveBeenCalledWith(700);
+  });
+
+  it("applies fieldWidth to panel container style", () => {
+    const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
+    const { container } = render(
+      <ConceptPanel
+        concept={rustConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+        variant="anchored"
+        fieldWidth={520}
+      />
+    );
+
+    const aside = container.querySelector("aside");
+    expect(aside).toBeDefined();
+    expect(aside?.style.width).toBe("520px");
+  });
 });
 
 // Helper to find connection path class name in rendered container

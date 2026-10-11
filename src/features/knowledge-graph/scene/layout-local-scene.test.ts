@@ -261,4 +261,37 @@ describe("layoutLocalUniverseScene", () => {
     expect(mobileLaidOut.focus.x).toBe(0);
     expect(desktopLaidOut.focus.x).toBe(-100);
   });
+
+  it("adaptively positions focus node based on knowledgeFieldWidth to keep celestial sky clear", () => {
+    const scene = buildLocalUniverseScene({
+      dataset: SEED_DATASET,
+      focusSlug: "rust",
+      isMobile: false,
+    });
+
+    // Default width (480px) on 1440x900
+    const defaultLaidOut = layoutLocalUniverseScene(scene, {
+      viewportWidth: 1440,
+      viewportHeight: 900,
+      isMobile: false,
+      knowledgeFieldWidth: 480,
+    });
+
+    // Wide field (680px) on 1440x900
+    const wideLaidOut = layoutLocalUniverseScene(scene, {
+      viewportWidth: 1440,
+      viewportHeight: 900,
+      isMobile: false,
+      knowledgeFieldWidth: 680,
+    });
+
+    // As field width increases, focus node must shift left to preserve celestial breathing room
+    expect(wideLaidOut.focus.x).toBeLessThan(defaultLaidOut.focus.x);
+
+    // Verify rightmost node stays well to the left of the knowledge field contour (1440 - 480 = 960)
+    for (const node of defaultLaidOut.allNodes) {
+      const screenX = 1440 / 2 + node.x;
+      expect(screenX).toBeLessThan(1440 - 480 - 40); // at least 40px buffer
+    }
+  });
 });

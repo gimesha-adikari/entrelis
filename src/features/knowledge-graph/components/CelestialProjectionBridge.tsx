@@ -184,26 +184,27 @@ export default function CelestialProjectionBridge({
 
     const dx = Math.max(40, targetX - originX);
     const midX = originX + dx * 0.48;
+    const arcCurvature = Math.min(32, Math.max(16, dx * 0.12));
 
-    // Outer projection veil boundary
+    // Outer projection veil boundary (organically curved starlight funnel)
     const veilPath = `
-      M ${originX} ${originY - 8}
-      C ${originX + dx * 0.38} ${originY - 32}, ${targetX - dx * 0.3} ${targetTopY}, ${targetX} ${targetTopY}
-      L ${targetX} ${targetBottomY}
-      C ${targetX - dx * 0.3} ${targetBottomY}, ${originX + dx * 0.38} ${originY + 32}, ${originX} ${originY + 8}
+      M ${originX} ${originY - 6}
+      C ${originX + dx * 0.42} ${originY - 26}, ${targetX - dx * 0.28} ${targetTopY}, ${targetX} ${targetTopY}
+      Q ${targetX - arcCurvature} ${targetMidY}, ${targetX} ${targetBottomY}
+      C ${targetX - dx * 0.28} ${targetBottomY}, ${originX + dx * 0.42} ${originY + 26}, ${originX} ${originY + 6}
       Z
     `;
 
     // Upper boundary filament
     const upperRay = `
-      M ${originX} ${originY - 8}
-      C ${originX + dx * 0.38} ${originY - 32}, ${targetX - dx * 0.3} ${targetTopY}, ${targetX} ${targetTopY}
+      M ${originX} ${originY - 6}
+      C ${originX + dx * 0.42} ${originY - 26}, ${targetX - dx * 0.28} ${targetTopY}, ${targetX} ${targetTopY}
     `;
 
     // Lower boundary filament
     const lowerRay = `
-      M ${originX} ${originY + 8}
-      C ${originX + dx * 0.38} ${originY + 32}, ${targetX - dx * 0.3} ${targetBottomY}, ${targetX} ${targetBottomY}
+      M ${originX} ${originY + 6}
+      C ${originX + dx * 0.42} ${originY + 26}, ${targetX - dx * 0.28} ${targetBottomY}, ${targetX} ${targetBottomY}
     `;
 
     // Central ethereal carrier stream
@@ -215,7 +216,7 @@ export default function CelestialProjectionBridge({
     // Curved field contour arc
     const contourArc = `
       M ${targetX} ${targetTopY}
-      Q ${targetX - 20} ${targetMidY}, ${targetX} ${targetBottomY}
+      Q ${targetX - arcCurvature} ${targetMidY}, ${targetX} ${targetBottomY}
     `;
 
     return (
@@ -234,7 +235,7 @@ export default function CelestialProjectionBridge({
           </filter>
 
           <filter id="contourBloom" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="10" result="bloom" />
+            <feGaussianBlur stdDeviation="8" result="bloom" />
             <feMerge>
               <feMergeNode in="bloom" />
               <feMergeNode in="SourceGraphic" />
@@ -249,10 +250,10 @@ export default function CelestialProjectionBridge({
             y2={targetMidY}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={`rgba(${palette.rgb}, 0.28)`} />
-            <stop offset="28%" stopColor={`rgba(${palette.rgb}, 0.12)`} />
-            <stop offset="65%" stopColor={`rgba(${palette.rgb}, 0.04)`} />
-            <stop offset="100%" stopColor={`rgba(${palette.rgb}, 0.005)`} />
+            <stop offset="0%" stopColor={`rgba(${palette.rgb}, 0.15)`} />
+            <stop offset="25%" stopColor={`rgba(${palette.rgb}, 0.07)`} />
+            <stop offset="65%" stopColor={`rgba(${palette.rgb}, 0.02)`} />
+            <stop offset="100%" stopColor="transparent" />
           </linearGradient>
 
           <linearGradient
@@ -263,10 +264,10 @@ export default function CelestialProjectionBridge({
             y2={targetMidY}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.85" />
-            <stop offset="35%" stopColor={palette.primary} stopOpacity="0.45" />
-            <stop offset="80%" stopColor="rgba(255, 255, 255, 0.3)" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.7)" stopOpacity="0.75" />
+            <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.45" />
+            <stop offset="35%" stopColor={palette.primary} stopOpacity="0.25" />
+            <stop offset="80%" stopColor="rgba(255, 255, 255, 0.15)" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="rgba(255, 255, 255, 0.4)" stopOpacity="0.4" />
           </linearGradient>
 
           <linearGradient
@@ -277,11 +278,11 @@ export default function CelestialProjectionBridge({
             y2={targetBottomY}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={palette.primary} stopOpacity="0" />
-            <stop offset="15%" stopColor="rgba(255, 255, 255, 0.45)" />
-            <stop offset="48%" stopColor="#ffffff" stopOpacity="0.95" />
-            <stop offset="85%" stopColor="rgba(255, 255, 255, 0.45)" />
-            <stop offset="100%" stopColor={palette.primary} stopOpacity="0" />
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="18%" stopColor="rgba(255, 255, 255, 0.25)" />
+            <stop offset="50%" stopColor="rgba(255, 255, 255, 0.65)" />
+            <stop offset="82%" stopColor="rgba(255, 255, 255, 0.25)" />
+            <stop offset="100%" stopColor="transparent" />
           </linearGradient>
 
           <radialGradient
@@ -291,8 +292,8 @@ export default function CelestialProjectionBridge({
             r={focusPos.radius * 1.6}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.4" />
-            <stop offset="45%" stopColor={palette.primary} stopOpacity="0.18" />
+            <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.28" />
+            <stop offset="50%" stopColor={palette.primary} stopOpacity="0.10" />
             <stop offset="100%" stopColor="transparent" stopOpacity="0" />
           </radialGradient>
         </defs>
@@ -314,7 +315,7 @@ export default function CelestialProjectionBridge({
         <path
           d={carrierStream}
           fill="none"
-          stroke={`rgba(${palette.rgb}, 0.25)`}
+          stroke={`rgba(${palette.rgb}, 0.20)`}
           strokeWidth="1"
           strokeDasharray="3 6"
         />
@@ -324,14 +325,14 @@ export default function CelestialProjectionBridge({
           d={upperRay}
           fill="none"
           stroke="url(#rayGradient)"
-          strokeWidth="1.5"
+          strokeWidth="1.1"
           filter="url(#projectionGlow)"
         />
         <path
           d={lowerRay}
           fill="none"
           stroke="url(#rayGradient)"
-          strokeWidth="1.5"
+          strokeWidth="1.1"
           filter="url(#projectionGlow)"
         />
 
@@ -339,15 +340,15 @@ export default function CelestialProjectionBridge({
         <path
           d={contourArc}
           fill="none"
-          stroke={`rgba(${palette.rgb}, 0.4)`}
-          strokeWidth="6"
+          stroke={`rgba(${palette.rgb}, 0.25)`}
+          strokeWidth="4"
           filter="url(#contourBloom)"
         />
         <path
           d={contourArc}
           fill="none"
           stroke="url(#contourArcStroke)"
-          strokeWidth="1.8"
+          strokeWidth="1.2"
         />
       </svg>
     );

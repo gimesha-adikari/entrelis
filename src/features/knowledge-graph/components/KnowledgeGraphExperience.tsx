@@ -45,6 +45,46 @@ function subscribeToResize(callback: () => void) {
   return () => window.removeEventListener("resize", callback);
 }
 
+const FIELD_WIDTH_KEY = "entrelis:field-width";
+
+export function getResponsiveFieldWidthLimits(viewportWidth: number): {
+  min: number;
+  max: number;
+  defaultWidth: number;
+} {
+  if (viewportWidth <= 768) {
+    return { min: viewportWidth, max: viewportWidth, defaultWidth: viewportWidth };
+  }
+  // On wide screens (>= 1440): min 360, max 700, default 480
+  // On smaller desktops (e.g. 1024 or 1280): dynamically limit max width so celestial universe retains at least 46% exploration space
+  const max = Math.min(700, Math.max(380, Math.floor(viewportWidth * 0.54)));
+  const min = Math.min(360, Math.floor(viewportWidth * 0.35));
+  const defaultWidth = Math.min(max, Math.max(min, Math.round(viewportWidth * 0.38)));
+  return { min: Math.max(320, min), max, defaultWidth };
+}
+
+function subscribeToFieldWidth(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener("entrelis:field-width-change", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("entrelis:field-width-change", callback);
+  };
+}
+
+function getFieldWidthSnapshot(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = localStorage.getItem(FIELD_WIDTH_KEY);
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+  } catch {}
+  return null;
+}
+
 export default function KnowledgeGraphExperience({
   dataset = SEED_DATASET,
   initialSlug = "rust",
@@ -54,6 +94,7 @@ export default function KnowledgeGraphExperience({
   const [variantOverride, setVariantOverride] = useState<ProjectedVariant | null>(null);
   const [focusPos, setFocusPos] = useState<ProjectionAnchor | null>(null);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [userCustomWidth, setUserCustomWidth] = useState<number | null>(null);
   const panelRef = useRef<HTMLElement>(null);
 
   // Synchronize URL search params safely with external store (zero SSR hydration mismatch or cascading render)
@@ -70,11 +111,37 @@ export default function KnowledgeGraphExperience({
     () => false
   );
 
-  const isMobile = useSyncExternalStore(
+  const windowWidth = useSyncExternalStore(
     subscribeToResize,
-    () => (typeof window !== "undefined" ? window.innerWidth <= 768 : false),
-    () => false
+    () => (typeof window !== "undefined" ? window.innerWidth : 1440),
+    () => 1440
   );
+
+  const storedWidth = useSyncExternalStore(
+    subscribeToFieldWidth,
+    getFieldWidthSnapshot,
+    () => null
+  );
+
+  const isMobile = windowWidth <= 768;
+
+  const widthLimits = useMemo(() => getResponsiveFieldWidthLimits(windowWidth), [windowWidth]);
+
+  // Derive active field width reactively from userCustomWidth -> storedWidth -> defaultWidth
+  const rawWidth = userCustomWidth ?? storedWidth ?? widthLimits.defaultWidth;
+  const fieldWidth = Math.min(widthLimits.max, Math.max(widthLimits.min, rawWidth));
+
+  const handleFieldWidthChange = useCallback((newWidth: number) => {
+    const currentLimits = getResponsiveFieldWidthLimits(
+      typeof window !== "undefined" ? window.innerWidth : 1440
+    );
+    const clamped = Math.min(currentLimits.max, Math.max(currentLimits.min, Math.round(newWidth)));
+    setUserCustomWidth(clamped);
+    try {
+      localStorage.setItem(FIELD_WIDTH_KEY, String(clamped));
+      window.dispatchEvent(new Event("entrelis:field-width-change"));
+    } catch {}
+  }, []);
 
   const handleSelectVariant = useCallback((newVariant: ProjectedVariant) => {
     setVariantOverride(newVariant);
@@ -202,6 +269,7 @@ export default function KnowledgeGraphExperience({
           onSelectConcept={selectConcept}
           onResetCamera={handleResetCamera}
           onFocusPositionChange={setFocusPos}
+          knowledgeFieldWidth={!isMobile ? fieldWidth : undefined}
         />
 
         {/* Dynamic Celestial Projection Field Bridge */}
@@ -225,6 +293,10 @@ export default function KnowledgeGraphExperience({
           variant={variant}
           isMobileExpanded={isMobileExpanded}
           onToggleMobileExpanded={() => setIsMobileExpanded((prev) => !prev)}
+          fieldWidth={fieldWidth}
+          minFieldWidth={widthLimits.min}
+          maxFieldWidth={widthLimits.max}
+          onFieldWidthChange={handleFieldWidthChange}
         />
       </main>
     </div>

@@ -6,6 +6,59 @@ export interface SceneLayoutConfig {
   readonly isMobile?: boolean;
   readonly focalOffsetX?: number;
   readonly focalOffsetY?: number;
+  readonly knowledgeFieldWidth?: number;
+}
+
+/**
+ * Computes an adaptive, art-directed screen-space focal offset for desktop views.
+ * Takes into account available celestial sky, connected celestial bodies, safety buffers,
+ * and knowledge field contour position so the celestial universe stays gracefully framed.
+ */
+export function computeAdaptiveFocalOffset({
+  viewportWidth,
+  viewportHeight,
+  fieldWidth,
+  primaryCount,
+  hasContextNodes,
+}: {
+  viewportWidth: number;
+  viewportHeight: number;
+  fieldWidth: number;
+  primaryCount: number;
+  hasContextNodes: boolean;
+}): { offsetX: number; offsetY: number } {
+  const minDim = Math.min(viewportWidth, viewportHeight);
+  const scaleFactor = Math.max(0.8, Math.min(1.35, minDim / 800));
+
+  // Determine radial footprint of celestial cluster
+  const primaryRadiusX = Math.round(220 * scaleFactor);
+  const contextRadiusX = Math.round(345 * scaleFactor);
+  const clusterRadiusX = hasContextNodes
+    ? contextRadiusX + 32
+    : primaryCount > 0
+    ? primaryRadiusX + 28
+    : 45;
+
+  // Available open sky width to the left of the knowledge field
+  const availableSkyWidth = Math.max(300, viewportWidth - fieldWidth);
+  const skyCenterScreenX = availableSkyWidth / 2;
+  const nominalOffsetX = Math.round(skyCenterScreenX - viewportWidth / 2);
+
+  // Clearance limits to ensure celestial bodies do not clip into left window border or right knowledge contour
+  const rightSafetyBuffer = 52;
+  const leftSafetyBuffer = 60;
+
+  const maxAllowedOffset = Math.round(viewportWidth / 2 - fieldWidth - clusterRadiusX - rightSafetyBuffer);
+  const minAllowedOffset = Math.round(leftSafetyBuffer + clusterRadiusX - viewportWidth / 2);
+
+  let adaptiveOffsetX: number;
+  if (maxAllowedOffset < minAllowedOffset) {
+    adaptiveOffsetX = Math.round((maxAllowedOffset + minAllowedOffset) / 2);
+  } else {
+    adaptiveOffsetX = Math.max(minAllowedOffset, Math.min(maxAllowedOffset, nominalOffsetX));
+  }
+
+  return { offsetX: adaptiveOffsetX, offsetY: 0 };
 }
 
 /**
@@ -52,10 +105,26 @@ export function layoutLocalUniverseScene(
     : Math.max(0.8, Math.min(1.35, minDim / 800));
 
   // 2. Focal Origin
-  const defaultOffsetX = isMobile ? 0 : -100;
-  const defaultOffsetY = isMobile ? -130 : 0;
-  const originX = config.focalOffsetX ?? defaultOffsetX;
-  const originY = config.focalOffsetY ?? defaultOffsetY;
+  let originX: number;
+  let originY: number;
+
+  if (config.focalOffsetX !== undefined) {
+    originX = config.focalOffsetX;
+    originY = config.focalOffsetY ?? (isMobile ? -130 : 0);
+  } else if (!isMobile && config.knowledgeFieldWidth !== undefined) {
+    const adaptive = computeAdaptiveFocalOffset({
+      viewportWidth,
+      viewportHeight,
+      fieldWidth: config.knowledgeFieldWidth,
+      primaryCount: scene.primaryNodes.length,
+      hasContextNodes: scene.contextNodes.length > 0,
+    });
+    originX = adaptive.offsetX;
+    originY = config.focalOffsetY ?? adaptive.offsetY;
+  } else {
+    originX = isMobile ? 0 : -100;
+    originY = config.focalOffsetY ?? (isMobile ? -130 : 0);
+  }
 
   // 3. Orbital Radii responsive to dimensions
   const basePrimaryX = isMobile ? 135 : 220;

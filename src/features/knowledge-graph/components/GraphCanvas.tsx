@@ -40,6 +40,7 @@ interface Props {
   onSelectConcept: (slug: string) => void;
   onResetCamera?: () => void;
   onFocusPositionChange?: (pos: { x: number; y: number; radius: number } | null) => void;
+  knowledgeFieldWidth?: number;
 }
 
 export default function GraphCanvas({
@@ -49,6 +50,7 @@ export default function GraphCanvas({
   onSelectConcept,
   onResetCamera,
   onFocusPositionChange,
+  knowledgeFieldWidth,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -115,8 +117,17 @@ export default function GraphCanvas({
       viewportWidth: dimensions.width,
       viewportHeight: dimensions.height,
       isMobile,
+      knowledgeFieldWidth,
     });
-  }, [dataset, index, selectedConceptSlug, isMobile, dimensions.width, dimensions.height]);
+  }, [
+    dataset,
+    index,
+    selectedConceptSlug,
+    isMobile,
+    dimensions.width,
+    dimensions.height,
+    knowledgeFieldWidth,
+  ]);
 
   // Single-pass canvas drawing function
   const draw = useCallback(

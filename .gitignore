@@ -25,6 +25,7 @@ AGENTS.md
 CLAUDE.md
 .idea/
 *.zip
+/screenshots/
 
 # debug
 npm-debug.log*

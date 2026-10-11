@@ -29,6 +29,10 @@ export interface ConceptPanelProps {
   variant?: ProjectedVariant;
   isMobileExpanded?: boolean;
   onToggleMobileExpanded?: () => void;
+  fieldWidth?: number;
+  minFieldWidth?: number;
+  maxFieldWidth?: number;
+  onFieldWidthChange?: (width: number) => void;
 }
 
 const STRENGTH_WEIGHT: Record<RelationshipStrength, number> = {
@@ -53,16 +57,79 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
     variant = "anchored",
     isMobileExpanded: controlledMobileExpanded,
     onToggleMobileExpanded,
+    fieldWidth,
+    minFieldWidth = 360,
+    maxFieldWidth = 700,
+    onFieldWidthChange,
   },
   ref
 ) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [internalMobileExpanded, setInternalMobileExpanded] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartXRef = useRef<number>(0);
+  const dragStartWidthRef = useRef<number>(0);
 
   const isExpanded =
     controlledMobileExpanded !== undefined
       ? controlledMobileExpanded
       : internalMobileExpanded;
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || !onFieldWidthChange) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDragging(true);
+    dragStartXRef.current = e.clientX;
+    dragStartWidthRef.current = fieldWidth ?? 480;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || !onFieldWidthChange) return;
+    // Leftward drag expands the right-docked panel
+    const deltaX = dragStartXRef.current - e.clientX;
+    const nextWidth = Math.min(
+      maxFieldWidth,
+      Math.max(minFieldWidth, Math.round(dragStartWidthRef.current + deltaX))
+    );
+    onFieldWidthChange(nextWidth);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+  };
+
+  const handleContourKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!onFieldWidthChange || fieldWidth === undefined) return;
+    let nextWidth = fieldWidth;
+
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      nextWidth = Math.min(maxFieldWidth, fieldWidth + 16);
+    } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      nextWidth = Math.max(minFieldWidth, fieldWidth - 16);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      nextWidth = minFieldWidth;
+    } else if (e.key === "End") {
+      e.preventDefault();
+      nextWidth = maxFieldWidth;
+    } else if (e.key === "PageUp") {
+      e.preventDefault();
+      nextWidth = Math.min(maxFieldWidth, fieldWidth + 48);
+    } else if (e.key === "PageDown") {
+      e.preventDefault();
+      nextWidth = Math.max(minFieldWidth, fieldWidth - 48);
+    }
+
+    if (nextWidth !== fieldWidth) {
+      onFieldWidthChange(nextWidth);
+    }
+  };
 
   const toggleExpanded = () => {
     if (onToggleMobileExpanded) {
@@ -171,9 +238,10 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
   return (
     <aside
       ref={ref}
+      style={fieldWidth !== undefined ? { width: `${fieldWidth}px` } : undefined}
       className={`${styles.detailPanel} ${variantClass} ${
         isExpanded ? styles.mobileExpanded : styles.mobileCompact
-      }`}
+      } ${isDragging ? styles.fieldDragging : ""}`}
       aria-label="Selected Concept Details"
       data-archetype={archetypeKey}
     >
@@ -197,13 +265,35 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
         </button>
       </div>
 
-      {/* Direction A: Planet-Anchored Knowledge Projection atmospheric boundary */}
+      {/* Direction A: Planet-Anchored Knowledge Projection atmospheric boundary & interactive contour drag handle */}
       {variant === "anchored" && (
-        <div className={styles.anchoredBoundary} aria-hidden="true">
-          <div className={styles.anchoredAura} />
-          <div className={styles.anchoredContourArc} />
-          <div className={styles.anchoredGlow} />
-        </div>
+        <>
+          <div className={styles.anchoredBoundary} aria-hidden="true">
+            <div className={styles.anchoredAura} />
+            <div className={styles.anchoredGlow} />
+          </div>
+          {onFieldWidthChange && fieldWidth !== undefined && (
+            <div
+              className={`${styles.contourDragHandle} ${isDragging ? styles.contourDragging : ""}`}
+              role="slider"
+              tabIndex={0}
+              aria-label="Knowledge field contour width"
+              aria-orientation="horizontal"
+              aria-valuemin={minFieldWidth}
+              aria-valuemax={maxFieldWidth}
+              aria-valuenow={fieldWidth}
+              aria-valuetext={`${fieldWidth} pixels`}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onKeyDown={handleContourKeyDown}
+              title="Drag contour or use arrow keys to adjust knowledge field width"
+            >
+              <div className={styles.contourDragPip} aria-hidden="true" />
+            </div>
+          )}
+        </>
       )}
 
       {/* Direction B: Continuous Cosmic Reading Field */}
@@ -278,6 +368,34 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
               <span className={styles.reviewDot} aria-hidden="true" />
               {reviewStatusLabel}
             </span>
+
+            {/* Desktop Knowledge Field Extent Slider Control */}
+            {variant === "anchored" && onFieldWidthChange && fieldWidth !== undefined && (
+              <div className={styles.fieldWidthControl}>
+                <label htmlFor="fieldWidthSlider" className={styles.fieldWidthLabel}>
+                  Field
+                </label>
+                <input
+                  type="range"
+                  id="fieldWidthSlider"
+                  className={styles.fieldWidthSlider}
+                  min={minFieldWidth}
+                  max={maxFieldWidth}
+                  step={10}
+                  value={fieldWidth}
+                  onChange={(e) => onFieldWidthChange(Number(e.target.value))}
+                  aria-label="Knowledge field extent"
+                  aria-valuemin={minFieldWidth}
+                  aria-valuemax={maxFieldWidth}
+                  aria-valuenow={fieldWidth}
+                  aria-valuetext={`${fieldWidth} pixels`}
+                  title={`Adjust knowledge field width (${fieldWidth}px)`}
+                />
+                <span className={styles.fieldWidthValue} aria-hidden="true">
+                  {fieldWidth}px
+                </span>
+              </div>
+            )}
           </div>
 
           <h2 className={styles.conceptTitle}>{concept.name}</h2>
