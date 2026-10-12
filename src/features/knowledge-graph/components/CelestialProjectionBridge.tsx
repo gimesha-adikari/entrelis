@@ -174,49 +174,79 @@ export default function CelestialProjectionBridge({
 
   // Desktop Spatial Projection Path
   if (!isMobile) {
-    const originX = focusPos.x + focusPos.radius * 0.8;
-    const originY = focusPos.y;
+    const radius = focusPos.radius;
+    const originCenterX = focusPos.x;
+    const originCenterY = focusPos.y;
 
     const targetX = panelRect.left + 2;
     const targetTopY = panelRect.top + 36;
     const targetBottomY = panelRect.bottom - 36;
     const targetMidY = (targetTopY + targetBottomY) / 2;
 
-    const dx = Math.max(40, targetX - originX);
-    const midX = originX + dx * 0.48;
+    // Physical limb departure points (tangent to planet perimeter)
+    // Angles: upper ray emerges at -28 degrees, lower ray at +28 degrees
+    const limbCos = 0.8829; // cos(28 deg)
+    const limbSin = 0.4695; // sin(28 deg)
+    const departureRadius = radius + 1.5;
+
+    const upperOriginX = originCenterX + departureRadius * limbCos;
+    const upperOriginY = originCenterY - departureRadius * limbSin;
+
+    const lowerOriginX = originCenterX + departureRadius * limbCos;
+    const lowerOriginY = originCenterY + departureRadius * limbSin;
+
+    const equatorialOriginX = originCenterX + departureRadius;
+    const equatorialOriginY = originCenterY;
+
+    const dx = Math.max(40, targetX - equatorialOriginX);
+    const midX = equatorialOriginX + dx * 0.48;
     const arcCurvature = Math.min(26, Math.max(14, dx * 0.08));
 
     // Outer projection veil boundary (organically curved starlight funnel)
+    // Originates at exterior limb perimeter and sweeps outward to the knowledge field
     const veilPath = `
-      M ${originX} ${originY - 6}
-      C ${originX + dx * 0.42} ${originY - 26}, ${targetX - dx * 0.28} ${targetTopY}, ${targetX} ${targetTopY}
+      M ${upperOriginX} ${upperOriginY}
+      C ${upperOriginX + dx * 0.38} ${upperOriginY - 20}, ${targetX - dx * 0.28} ${targetTopY}, ${targetX} ${targetTopY}
       Q ${targetX - arcCurvature} ${targetMidY}, ${targetX} ${targetBottomY}
-      C ${targetX - dx * 0.28} ${targetBottomY}, ${originX + dx * 0.42} ${originY + 26}, ${originX} ${originY + 6}
+      C ${targetX - dx * 0.28} ${targetBottomY}, ${lowerOriginX + dx * 0.38} ${lowerOriginY + 20}, ${lowerOriginX} ${lowerOriginY}
+      A ${departureRadius} ${departureRadius} 0 0 0 ${upperOriginX} ${upperOriginY}
       Z
     `;
 
     // Upper boundary filament
     const upperRay = `
-      M ${originX} ${originY - 6}
-      C ${originX + dx * 0.42} ${originY - 26}, ${targetX - dx * 0.28} ${targetTopY}, ${targetX} ${targetTopY}
+      M ${upperOriginX} ${upperOriginY}
+      C ${upperOriginX + dx * 0.38} ${upperOriginY - 20}, ${targetX - dx * 0.28} ${targetTopY}, ${targetX} ${targetTopY}
     `;
 
     // Lower boundary filament
     const lowerRay = `
-      M ${originX} ${originY + 6}
-      C ${originX + dx * 0.42} ${originY + 26}, ${targetX - dx * 0.28} ${targetBottomY}, ${targetX} ${targetBottomY}
+      M ${lowerOriginX} ${lowerOriginY}
+      C ${lowerOriginX + dx * 0.38} ${lowerOriginY + 20}, ${targetX - dx * 0.28} ${targetBottomY}, ${targetX} ${targetBottomY}
     `;
 
     // Central ethereal carrier stream
     const carrierStream = `
-      M ${originX + 10} ${originY}
-      Q ${midX} ${originY * 0.8 + targetMidY * 0.2}, ${targetX} ${targetMidY}
+      M ${equatorialOriginX + 4} ${equatorialOriginY}
+      Q ${midX} ${equatorialOriginY * 0.8 + targetMidY * 0.2}, ${targetX} ${targetMidY}
     `;
 
     // Curved field contour arc
     const contourArc = `
       M ${targetX} ${targetTopY}
       Q ${targetX - arcCurvature} ${targetMidY}, ${targetX} ${targetBottomY}
+    `;
+
+    // Exterior atmospheric crescent rim path (subtle crescent hugging outer perimeter)
+    const rimRadius = radius + 1.2;
+    const rimAngle = Math.PI / 3; // 60 degrees
+    const rimTopX = originCenterX + rimRadius * Math.cos(rimAngle);
+    const rimTopY = originCenterY - rimRadius * Math.sin(rimAngle);
+    const rimBottomX = originCenterX + rimRadius * Math.cos(rimAngle);
+    const rimBottomY = originCenterY + rimRadius * Math.sin(rimAngle);
+    const rimArc = `
+      M ${rimTopX} ${rimTopY}
+      A ${rimRadius} ${rimRadius} 0 0 1 ${rimBottomX} ${rimBottomY}
     `;
 
     return (
@@ -244,8 +274,8 @@ export default function CelestialProjectionBridge({
 
           <linearGradient
             id="projectionVeilGradient"
-            x1={originX}
-            y1={originY}
+            x1={equatorialOriginX}
+            y1={equatorialOriginY}
             x2={targetX}
             y2={targetMidY}
             gradientUnits="userSpaceOnUse"
@@ -258,8 +288,8 @@ export default function CelestialProjectionBridge({
 
           <linearGradient
             id="rayGradient"
-            x1={originX}
-            y1={originY}
+            x1={equatorialOriginX}
+            y1={equatorialOriginY}
             x2={targetX}
             y2={targetMidY}
             gradientUnits="userSpaceOnUse"
@@ -287,56 +317,80 @@ export default function CelestialProjectionBridge({
 
           <radialGradient
             id="limbEmission"
-            cx={originX}
-            cy={originY}
-            r={focusPos.radius * 1.6}
+            cx={equatorialOriginX + 2}
+            cy={originCenterY}
+            r={radius * 1.2}
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.28" />
-            <stop offset="50%" stopColor={palette.primary} stopOpacity="0.10" />
+            <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.22" />
+            <stop offset="50%" stopColor={palette.primary} stopOpacity="0.08" />
             <stop offset="100%" stopColor="transparent" stopOpacity="0" />
           </radialGradient>
+
+          {/* SVG Mask to ensure zero projection glow ever overlaps the celestial body */}
+          <mask id="planetSilhouetteMask">
+            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+            <circle
+              cx={originCenterX}
+              cy={originCenterY}
+              r={radius + 0.5}
+              fill="black"
+            />
+          </mask>
         </defs>
 
-        {/* 1. Luminous Planetary Limb Emission Glow */}
-        <ellipse
-          cx={originX}
-          cy={originY}
-          rx={focusPos.radius * 0.9}
-          ry={focusPos.radius * 1.3}
-          fill="url(#limbEmission)"
-          filter="url(#projectionGlow)"
-        />
+        {/* Projection Geometry strictly masked outside planet silhouette */}
+        <g mask="url(#planetSilhouetteMask)">
+          {/* 1. Subtle exterior atmospheric emission glow */}
+          <ellipse
+            cx={equatorialOriginX + 2}
+            cy={originCenterY}
+            rx={radius * 0.45}
+            ry={radius * 1.1}
+            fill="url(#limbEmission)"
+            filter="url(#projectionGlow)"
+          />
 
-        {/* 2. Ethereal Projection Veil (Curved Cosmic Funnel) */}
-        <path d={veilPath} fill="url(#projectionVeilGradient)" />
+          {/* 2. Delicate exterior atmospheric crescent rim */}
+          <path
+            d={rimArc}
+            fill="none"
+            stroke={palette.primary}
+            strokeWidth="1.6"
+            strokeOpacity="0.45"
+            filter="url(#projectionGlow)"
+          />
 
-        {/* 3. Central Carrier Stream Wave */}
-        <path
-          d={carrierStream}
-          fill="none"
-          stroke={`rgba(${palette.rgb}, 0.20)`}
-          strokeWidth="1"
-          strokeDasharray="3 6"
-        />
+          {/* 3. Ethereal Projection Veil (Curved Cosmic Funnel) */}
+          <path d={veilPath} fill="url(#projectionVeilGradient)" />
 
-        {/* 4. Upper & Lower Boundary Filaments */}
-        <path
-          d={upperRay}
-          fill="none"
-          stroke="url(#rayGradient)"
-          strokeWidth="1.0"
-          filter="url(#projectionGlow)"
-        />
-        <path
-          d={lowerRay}
-          fill="none"
-          stroke="url(#rayGradient)"
-          strokeWidth="1.0"
-          filter="url(#projectionGlow)"
-        />
+          {/* 4. Central Carrier Stream Wave */}
+          <path
+            d={carrierStream}
+            fill="none"
+            stroke={`rgba(${palette.rgb}, 0.20)`}
+            strokeWidth="1"
+            strokeDasharray="3 6"
+          />
 
-        {/* 5. Curved Starlight Field Contour Arc with Outer Aura Bloom */}
+          {/* 5. Upper & Lower Boundary Filaments */}
+          <path
+            d={upperRay}
+            fill="none"
+            stroke="url(#rayGradient)"
+            strokeWidth="1.0"
+            filter="url(#projectionGlow)"
+          />
+          <path
+            d={lowerRay}
+            fill="none"
+            stroke="url(#rayGradient)"
+            strokeWidth="1.0"
+            filter="url(#projectionGlow)"
+          />
+        </g>
+
+        {/* 6. Curved Starlight Field Contour Arc with Outer Aura Bloom at Reading Panel */}
         <path
           d={contourArc}
           fill="none"
@@ -355,8 +409,13 @@ export default function CelestialProjectionBridge({
   }
 
   // Mobile Spatial Projection Path (Vertical Celestial Stream)
-  const planetBottomX = focusPos.x;
-  const planetBottomY = focusPos.y + focusPos.radius * 0.85;
+  const radius = focusPos.radius;
+  const originCenterX = focusPos.x;
+  const originCenterY = focusPos.y;
+
+  const departureRadius = radius + 1.5;
+  const planetBottomX = originCenterX;
+  const planetBottomY = originCenterY + departureRadius;
 
   const lensTopX = panelRect.left + panelRect.width / 2;
   const lensTopY = panelRect.top;
@@ -405,10 +464,23 @@ export default function CelestialProjectionBridge({
           <stop offset="75%" stopColor={palette.primary} stopOpacity="0.4" />
           <stop offset="100%" stopColor="transparent" />
         </linearGradient>
+
+        {/* Mobile SVG Mask to ensure zero projection stream overlaps the celestial body */}
+        <mask id="mobilePlanetSilhouetteMask">
+          <rect x="0" y="0" width="100%" height="100%" fill="white" />
+          <circle
+            cx={originCenterX}
+            cy={originCenterY}
+            r={radius + 0.5}
+            fill="black"
+          />
+        </mask>
       </defs>
 
-      {/* Downward ethereal cone to mobile lens */}
-      <path d={mobileStreamPath} fill="url(#mobileVeilGradient)" />
+      {/* Downward ethereal cone to mobile lens, masked outside planet disc */}
+      <g mask="url(#mobilePlanetSilhouetteMask)">
+        <path d={mobileStreamPath} fill="url(#mobileVeilGradient)" />
+      </g>
 
       {/* Luminous crest on the top rim of the Cosmic Lens */}
       <line

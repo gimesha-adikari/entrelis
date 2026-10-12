@@ -68,12 +68,25 @@ describe("CelestialProjectionBridge", () => {
     expect(container.querySelector("#contourArcStroke")).toBeDefined();
     expect(container.querySelector("#limbEmission")).toBeDefined();
 
+    // Verify SVG planet silhouette mask to guarantee zero glow over the world
+    const mask = container.querySelector("#planetSilhouetteMask");
+    expect(mask).toBeDefined();
+    const maskCircle = mask?.querySelector("circle");
+    expect(maskCircle?.getAttribute("cx")).toBe("450");
+    expect(maskCircle?.getAttribute("cy")).toBe("350");
+    expect(maskCircle?.getAttribute("r")).toBe("50.5");
+    expect(maskCircle?.getAttribute("fill")).toBe("black");
+
+    // Verify masked group wraps projection elements
+    const maskedGroup = container.querySelector("g[mask='url(#planetSilhouetteMask)']");
+    expect(maskedGroup).toBeDefined();
+
     // Check for limb emission ellipse and path elements
-    const ellipse = container.querySelector("ellipse");
+    const ellipse = maskedGroup?.querySelector("ellipse");
     expect(ellipse).toBeDefined();
 
     const paths = container.querySelectorAll("path");
-    expect(paths.length).toBeGreaterThanOrEqual(4);
+    expect(paths.length).toBeGreaterThanOrEqual(5);
   });
 
   it("renders mobile vertical stream and crest rim when isMobile is true", () => {
@@ -94,7 +107,19 @@ describe("CelestialProjectionBridge", () => {
     expect(container.querySelector("#mobileVeilGradient")).toBeDefined();
     expect(container.querySelector("#mobileRimGradient")).toBeDefined();
 
-    const path = container.querySelector("path");
+    // Verify mobile planet silhouette mask
+    const mobileMask = container.querySelector("#mobilePlanetSilhouetteMask");
+    expect(mobileMask).toBeDefined();
+    const mobileCircle = mobileMask?.querySelector("circle");
+    expect(mobileCircle?.getAttribute("cx")).toBe("200");
+    expect(mobileCircle?.getAttribute("cy")).toBe("150");
+    expect(mobileCircle?.getAttribute("r")).toBe("40.5");
+    expect(mobileCircle?.getAttribute("fill")).toBe("black");
+
+    const maskedGroup = container.querySelector("g[mask='url(#mobilePlanetSilhouetteMask)']");
+    expect(maskedGroup).toBeDefined();
+
+    const path = maskedGroup?.querySelector("path");
     expect(path).toBeDefined();
 
     const line = container.querySelector("line");
