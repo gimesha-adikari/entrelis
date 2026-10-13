@@ -11,6 +11,7 @@ import type {
 } from "@/domain/knowledge/types";
 import { getOrCreateKnowledgeGraphIndex, type KnowledgeGraphIndex } from "../knowledge-index";
 import { getConceptCelestialIdentity } from "../celestial-3d/identity";
+import { isSafeUrl } from "@/domain/knowledge/validation";
 import styles from "./KnowledgeGraph.module.css";
 
 export type ProjectedVariant =
@@ -534,18 +535,24 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
                         <span className={styles.licenseLabel}>License:</span> {source.license}
                       </p>
                     )}
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className={styles.sourceLink}
-                      aria-label={`Open source in new window: ${source.title}`}
-                    >
-                      <span>View Source</span>
-                      <span className={styles.externalIcon} aria-hidden="true">
-                        ↗
+                    {isSafeUrl(source.url) ? (
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className={styles.sourceLink}
+                        aria-label={`Open source in new window: ${source.title}`}
+                      >
+                        <span>View Source</span>
+                        <span className={styles.externalIcon} aria-hidden="true">
+                          ↗
+                        </span>
+                      </a>
+                    ) : (
+                      <span className={styles.sourceLinkDisabled}>
+                        <span>Source Link Unavailable</span>
                       </span>
-                    </a>
+                    )}
                   </li>
                 ))}
               </ul>

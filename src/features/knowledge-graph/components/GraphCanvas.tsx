@@ -236,6 +236,28 @@ export default function GraphCanvas({
     drawRef.current(false);
   }, []);
 
+  const settleTransition = useCallback(() => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    if (travelStateRef.current?.active) {
+      const finalOffset =
+        travelStateRef.current.targetOffset ?? persistentCameraOffsetRef.current;
+      persistentCameraOffsetRef.current = finalOffset;
+      travelStateRef.current = {
+        active: false,
+        progress: 1,
+        currentOffset: finalOffset,
+        startOffset: finalOffset,
+        targetOffset: finalOffset,
+        fromSlug: travelStateRef.current.toSlug,
+        toSlug: travelStateRef.current.toSlug,
+      };
+      currentSceneRef.current = targetScene;
+    }
+  }, [targetScene]);
+
   useEffect(() => {
     const query = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     const changed = () => {
@@ -526,10 +548,7 @@ export default function GraphCanvas({
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     pulseRef.current = null;
     pendingPulseRef.current = null;
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
+    settleTransition();
     drawRef.current();
     isDraggingRef.current = true;
     pointerDownPosRef.current = { x: e.clientX, y: e.clientY };
@@ -575,10 +594,7 @@ export default function GraphCanvas({
     e.preventDefault();
     pulseRef.current = null;
     pendingPulseRef.current = null;
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
+    settleTransition();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
@@ -600,10 +616,7 @@ export default function GraphCanvas({
   const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
     pulseRef.current = null;
     pendingPulseRef.current = null;
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
+    settleTransition();
 
     drawRef.current();
     if (e.touches.length === 1) {
@@ -721,10 +734,7 @@ export default function GraphCanvas({
   const handleZoom = (direction: "in" | "out") => {
     pulseRef.current = null;
     pendingPulseRef.current = null;
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
+    settleTransition();
     const zoomFactor = direction === "in" ? 1.25 : 0.8;
     const oldK = transformRef.current.k;
     const newK = Math.max(0.3, Math.min(3, oldK * zoomFactor));
@@ -743,10 +753,7 @@ export default function GraphCanvas({
   const handleReturnHome = () => {
     pulseRef.current = null;
     pendingPulseRef.current = null;
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
+    settleTransition();
     // Reset camera transform
     transformRef.current = { x: 0, y: 0, k: 1 };
     setZoomK(1);

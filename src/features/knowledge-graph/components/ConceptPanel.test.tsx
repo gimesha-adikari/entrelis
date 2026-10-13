@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ConceptPanel from "./ConceptPanel";
 import { SEED_DATASET } from "@/data/seed";
-import type { Concept, KnowledgeDataset, Relationship } from "@/domain/knowledge/types";
+import type { Concept, KnowledgeDataset, Relationship, Source } from "@/domain/knowledge/types";
 
 describe("ConceptPanel Knowledge Observatory", () => {
   it("renders selected concept title, domain classification, and short description", () => {
@@ -306,6 +306,32 @@ describe("ConceptPanel Knowledge Observatory", () => {
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toContain("noreferrer");
     expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("does not render active link for unsafe URL schemes (SEC-02)", () => {
+    const maliciousSource: Source = {
+      id: "source-evil",
+      title: "Evil Script",
+      url: "javascript:alert('xss')",
+      publisher: "Attacker",
+      type: "official-doc",
+    };
+    const testConcept: Concept = {
+      ...SEED_DATASET.concepts[0]!,
+      id: "concept-test",
+      slug: "test-sec",
+      name: "Test Sec",
+      sourceIds: ["source-evil"],
+    };
+    const dataset: KnowledgeDataset = {
+      ...SEED_DATASET,
+      concepts: [testConcept],
+      sources: [maliciousSource],
+    };
+    render(<ConceptPanel concept={testConcept} dataset={dataset} onSelectConcept={vi.fn()} />);
+
+    // Unsafe link should not be rendered with javascript: href
+    expect(screen.queryByRole("link", { name: /Open source in new window: Evil Script/i })).toBeNull();
   });
 
   it("maintains assistive technologies live announcement region", () => {

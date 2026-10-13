@@ -1556,6 +1556,14 @@
   text-decoration: underline;
 }
 
+.sourceLinkDisabled {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  color: #64748b;
+  min-height: 28px;
+}
+
 .externalIcon {
   font-size: 0.7rem;
   line-height: 1;

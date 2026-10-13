@@ -22,6 +22,7 @@ export type ValidationErrorCode =
   | "INVALID_RELATIONSHIP_TYPE"
   | "INVALID_REVIEW_STATUS"
   | "INVALID_SOURCE_TYPE"
+  | "INVALID_SOURCE_URL_SCHEME"
   | "EMPTY_REQUIRED_FIELD";
 
 export interface ValidationError {
@@ -83,6 +84,11 @@ const VALID_SOURCE_TYPES: ReadonlySet<SourceType> = new Set([
   "reference",
 ]);
 
+export function isSafeUrl(value: unknown): boolean {
+  if (typeof value !== "string" || value.trim().length === 0) return false;
+  return /^https?:\/\//i.test(value.trim());
+}
+
 function isBlank(value: unknown): boolean {
   return typeof value !== "string" || value.trim().length === 0;
 }
@@ -128,6 +134,12 @@ export function validateDataset(dataset: KnowledgeDataset): ValidationResult {
       errors.push({
         code: "EMPTY_REQUIRED_FIELD",
         message: `Source '${source.id}' has a blank URL.`,
+        entityId: source.id,
+      });
+    } else if (!isSafeUrl(source.url)) {
+      errors.push({
+        code: "INVALID_SOURCE_URL_SCHEME",
+        message: `Source '${source.id}' has an invalid URL scheme '${source.url}'. Only http:// and https:// URLs are allowed.`,
         entityId: source.id,
       });
     }

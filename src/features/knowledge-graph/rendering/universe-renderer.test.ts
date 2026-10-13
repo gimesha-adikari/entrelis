@@ -788,6 +788,23 @@ describe("foreground ring relationship compositing", () => {
     expect(ctx.scale).toHaveBeenCalledWith(0.5, 0.5);
   });
 
+  it("transforms geometry-only fallback mask into world coordinates under pan and zoom (RN-02)", () => {
+    const ctx = createMockContext();
+    const path = {} as Path2D;
+
+    renderUniverseScene(ctx, 800, 600, { x: 12, y: 8, k: 2 }, createMockUniverseScene(), {
+      skipBodyRendering: true,
+      skipBackgroundStars: true,
+      skipNodeRendering: true,
+      foregroundRingOcclusions: [{ path, x: 50, y: 30, size: 0.5, opacity: 1 }],
+    });
+
+    expect(ctx.fill).toHaveBeenCalledWith(path);
+    // (50 - 12) / 2 = 19, (30 - 8) / 2 = 11, size: 0.5 / 2 = 0.25
+    expect(ctx.translate).toHaveBeenCalledWith(19, 11);
+    expect(ctx.scale).toHaveBeenCalledWith(0.25, 0.25);
+  });
+
   it("keeps a safe relationship visible without punching out a shader-pending body", () => {
     const ctx = createMockContext();
     const pendingScene = createMockUniverseScene();

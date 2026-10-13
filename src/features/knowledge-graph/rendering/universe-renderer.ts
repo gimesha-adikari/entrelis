@@ -591,8 +591,11 @@ export function renderUniverseScene(
         );
       } else if (mask.path) {
         ctx.save();
-        ctx.translate(mask.x, mask.y);
-        ctx.scale(mask.size, mask.size);
+        ctx.translate(
+          (mask.x - transform.x) / transform.k,
+          (mask.y - transform.y) / transform.k
+        );
+        ctx.scale(mask.size / transform.k, mask.size / transform.k);
         ctx.fillStyle = "#ffffff";
         ctx.fill(mask.path);
         ctx.restore();
