@@ -76,6 +76,9 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
       ? controlledMobileExpanded
       : internalMobileExpanded;
 
+  const rootConcept = dataset.concepts[0];
+  const rootSlug = rootConcept?.slug ?? "rust";
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 || !onFieldWidthChange) return;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -341,12 +344,12 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
 
       <div ref={scrollContainerRef} className={styles.panelScroll}>
         {/* Subtle return action matching Option C reference */}
-        {concept.slug !== "rust" && (
+        {concept.slug !== rootSlug && (
           <button
             type="button"
             className={styles.projectedBackBtn}
-            onClick={() => onSelectConcept("rust")}
-            aria-label="Back to Universe Root"
+            onClick={() => onSelectConcept(rootSlug)}
+            aria-label="Return to Universe Root"
           >
             <span className={styles.projectedBackArrow} aria-hidden="true">
               ←
@@ -541,7 +544,7 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
                         target="_blank"
                         rel="noreferrer noopener"
                         className={styles.sourceLink}
-                        aria-label={`Open source in new window: ${source.title}`}
+                        aria-label={`View Source: Open source in new window: ${source.title}`}
                       >
                         <span>View Source</span>
                         <span className={styles.externalIcon} aria-hidden="true">

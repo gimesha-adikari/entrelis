@@ -105,6 +105,10 @@ export default function GraphCanvas({
   const conceptAnchorsRef = useRef<ConceptAnchorMap>(new Map());
   const lastReportedPosRef = useRef<{ x: number; y: number; radius: number } | null>(null);
 
+  const rootConcept = dataset.concepts[0];
+  const rootName = rootConcept?.name ?? "universe root";
+  const rootSlug = rootConcept?.slug ?? "rust";
+
   // Build and lay out target scene using prebuilt index and exact available CSS dimensions
   const targetScene = useMemo<UniverseScene>(() => {
     const rawScene = buildLocalUniverseScene({
@@ -767,7 +771,7 @@ export default function GraphCanvas({
     if (onResetCamera) {
       onResetCamera();
     } else {
-      onSelectConcept("rust");
+      onSelectConcept(rootSlug);
     }
   };
 
@@ -830,8 +834,8 @@ export default function GraphCanvas({
           onClick={handleReturnHome}
           className={`${styles.controlButton} ${styles.homeButton}`}
           type="button"
-          aria-label="Return to Rust"
-          title="Return to Rust"
+          aria-label={`Home, return to ${rootName}`}
+          title={`Home, return to ${rootName}`}
         >
           <svg
             className={styles.homeIcon}

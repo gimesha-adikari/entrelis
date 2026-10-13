@@ -28,14 +28,31 @@ describe("Spatial Controls & Accessible Navigation", () => {
     const nav = screen.getByRole("navigation", { name: /Spatial navigation controls/i });
     expect(nav).toBeDefined();
 
-    const homeButton = screen.getByRole("button", { name: /Return to Rust/i });
+    const homeButton = screen.getByRole("button", { name: /^Home/i });
     expect(homeButton).toBeDefined();
+    // Verify WCAG 2.5.3 (Label in Name): visible label text is included in accessible name
+    expect(homeButton.textContent).toContain("Home");
+    expect(homeButton.getAttribute("aria-label")).toMatch(/^Home, return to /i);
+    expect(homeButton.getAttribute("aria-label")).toContain("Rust");
 
     const zoomOutButton = screen.getByRole("button", { name: /Zoom out/i });
     expect(zoomOutButton).toBeDefined();
 
     const zoomInButton = screen.getByRole("button", { name: /Zoom in/i });
     expect(zoomInButton).toBeDefined();
+  });
+
+  it("dynamically adapts Home button accessible name to dataset root concept (WCAG 2.5.3)", () => {
+    const memoryConcept = SEED_DATASET.concepts.find((c) => c.slug === "memory")!;
+    const otherConcepts = SEED_DATASET.concepts.filter((c) => c.slug !== "memory");
+    const customDataset = {
+      ...SEED_DATASET,
+      concepts: [memoryConcept, ...otherConcepts],
+    };
+    render(<KnowledgeGraphExperience dataset={customDataset} initialSlug="memory" />);
+    const homeButton = screen.getByRole("button", { name: /^Home, return to Memory/i });
+    expect(homeButton).toBeDefined();
+    expect(homeButton.textContent).toContain("Home");
   });
 
   it("zooms in until reaching maximum zoom bound (3.0x) and disables zoom in button", () => {

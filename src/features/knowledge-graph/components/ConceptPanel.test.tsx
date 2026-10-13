@@ -520,6 +520,22 @@ describe("ConceptPanel Knowledge Observatory", () => {
     expect(aside).toBeDefined();
     expect(aside?.style.width).toBe("520px");
   });
+
+  it("renders return to root button with matching visible label and accessible name (WCAG 2.5.3)", () => {
+    const nonRootConcept = SEED_DATASET.concepts.find((c) => c.slug !== "rust")!;
+    render(
+      <ConceptPanel
+        concept={nonRootConcept}
+        dataset={SEED_DATASET}
+        onSelectConcept={vi.fn()}
+      />
+    );
+
+    const returnBtn = screen.getByRole("button", { name: "Return to Universe Root" });
+    expect(returnBtn).toBeDefined();
+    expect(returnBtn.textContent).toContain("Return to Universe Root");
+    expect(returnBtn.getAttribute("aria-label")).toBe("Return to Universe Root");
+  });
 });
 
 // Helper to find connection path class name in rendered container
