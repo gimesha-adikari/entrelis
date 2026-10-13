@@ -3,14 +3,13 @@ import React from "react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import KnowledgeGraphExperience from "../components/KnowledgeGraphExperience";
 import GraphCanvas from "../components/GraphCanvas";
-import ConceptPanel from "../components/ConceptPanel";
 import CelestialProjectionBridge from "../components/CelestialProjectionBridge";
 import { createKnowledgeGraphIndex } from "../knowledge-index";
 import { SEED_DATASET } from "@/data/seed";
 import { isSafeUrl } from "@/domain/knowledge/validation";
 import { renderUniverseScene } from "../rendering/universe-renderer";
-import type { UniverseTravelState, UniverseScene } from "../celestial-3d/universe";
-import type { Concept, KnowledgeDataset, Source } from "@/domain/knowledge/types";
+import type { UniverseTravelState } from "../celestial-3d/universe";
+import type { UniverseScene } from "../scene/types";
 
 function createMockCanvasContext() {
   return {
@@ -325,11 +324,23 @@ describe("Cross-Subsystem Adversarial Compatibility Suite (GIM-48 Stage 3)", () 
       } as unknown as CanvasRenderingContext2D;
 
       const dummyPath = {} as Path2D;
+      const dummyNode = {
+        id: "c1",
+        slug: "os",
+        name: "OS",
+        concept: SEED_DATASET.concepts[0]!,
+        visualMass: 1,
+        radius: 38,
+        x: 0,
+        y: 0,
+        opacity: 1,
+        role: "focus" as const,
+      };
       const scene: UniverseScene = {
-        focus: { id: "c1", slug: "os", name: "OS", visualMass: 1, radius: 38, x: 0, y: 0, opacity: 1, role: "focus" },
+        focus: dummyNode,
         primaryNodes: [],
         contextNodes: [],
-        allNodes: [{ id: "c1", slug: "os", name: "OS", visualMass: 1, radius: 38, x: 0, y: 0, opacity: 1, role: "focus" }],
+        allNodes: [dummyNode],
         relationships: [],
         isMobile: false,
       };
@@ -370,6 +381,7 @@ describe("Cross-Subsystem Adversarial Compatibility Suite (GIM-48 Stage 3)", () 
         tilt: 0.42,
         opacity: 0.88,
         style: "ice" as const,
+        seed: 1024,
       };
 
       const { container } = render(

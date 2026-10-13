@@ -3,7 +3,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import GraphCanvas from "./GraphCanvas";
 import { createKnowledgeGraphIndex } from "../knowledge-index";
 import { SEED_DATASET } from "@/data/seed";
-import type { UniverseTravelState, UniverseScene } from "../celestial-3d/universe";
+import type { UniverseTravelState } from "../celestial-3d/universe";
+import type { UniverseScene } from "../scene/types";
 
 describe("GraphCanvas - Transition Cancellation & Settling (RN-01)", () => {
   const index = createKnowledgeGraphIndex(SEED_DATASET);

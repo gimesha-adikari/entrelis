@@ -314,7 +314,7 @@ describe("ConceptPanel Knowledge Observatory", () => {
       title: "Evil Script",
       url: "javascript:alert('xss')",
       publisher: "Attacker",
-      type: "official-doc",
+      type: "official-documentation",
     };
     const testConcept: Concept = {
       ...SEED_DATASET.concepts[0]!,

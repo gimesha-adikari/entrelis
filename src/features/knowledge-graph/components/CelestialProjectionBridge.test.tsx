@@ -189,6 +189,7 @@ describe("CelestialProjectionBridge", () => {
       tilt: 0.42,
       opacity: 0.88,
       style: "ice" as const,
+      seed: 1024,
     };
 
     const { container } = render(
