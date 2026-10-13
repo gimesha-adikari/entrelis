@@ -187,7 +187,7 @@ export default function GraphCanvas({
       if (onFocusPositionChange && scene?.focus) {
         const fx = dimensions.width / 2 + transformRef.current.x + scene.focus.x * transformRef.current.k;
         const fy = dimensions.height / 2 + transformRef.current.y + scene.focus.y * transformRef.current.k;
-        const fr = Math.max(22, Math.min(64, (scene.focus.radius ?? 38) * transformRef.current.k));
+        const fr = scene.focus.radius ?? 38;
 
         if (
           !lastReportedPosRef.current ||

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import type { CelestialArchetype } from "../celestial-3d/identity";
+import type { CelestialArchetype, RingConfig } from "../celestial-3d/identity";
 import styles from "./KnowledgeGraph.module.css";
 
 export interface ProjectionAnchor {
@@ -22,6 +22,7 @@ export interface PanelGeometry {
 export interface CelestialProjectionBridgeProps {
   readonly focusPos: ProjectionAnchor | null;
   readonly archetype?: CelestialArchetype | null;
+  readonly rings?: RingConfig | null;
   readonly panelRef: React.RefObject<HTMLElement | null>;
   readonly isMobile?: boolean;
   readonly isMobileExpanded?: boolean;
@@ -112,6 +113,7 @@ const DEFAULT_PALETTE: ArchetypePalette = {
 export default function CelestialProjectionBridge({
   focusPos,
   archetype,
+  rings,
   panelRef,
   isMobile = false,
   isMobileExpanded = false,
@@ -178,6 +180,11 @@ export default function CelestialProjectionBridge({
     const originCenterX = focusPos.x;
     const originCenterY = focusPos.y;
 
+    const ringVisualRadius = rings ? (rings.outerRadius / 50) * radius : 0;
+    const hasRings = ringVisualRadius > radius;
+    const departureRadius = hasRings ? ringVisualRadius + 2 : radius + 1.5;
+    const maskRadius = hasRings ? ringVisualRadius + 1 : radius + 0.5;
+
     const targetX = panelRect.left + 2;
     const targetTopY = panelRect.top + 36;
     const targetBottomY = panelRect.bottom - 36;
@@ -187,7 +194,6 @@ export default function CelestialProjectionBridge({
     // Angles: upper ray emerges at -28 degrees, lower ray at +28 degrees
     const limbCos = 0.8829; // cos(28 deg)
     const limbSin = 0.4695; // sin(28 deg)
-    const departureRadius = radius + 1.5;
 
     const upperOriginX = originCenterX + departureRadius * limbCos;
     const upperOriginY = originCenterY - departureRadius * limbSin;
@@ -333,7 +339,7 @@ export default function CelestialProjectionBridge({
             <circle
               cx={originCenterX}
               cy={originCenterY}
-              r={radius + 0.5}
+              r={maskRadius}
               fill="black"
             />
           </mask>
@@ -409,6 +415,10 @@ export default function CelestialProjectionBridge({
   }
 
   // Mobile Spatial Projection Path (Vertical Celestial Stream)
+  if (isMobileExpanded) {
+    return null;
+  }
+
   const radius = focusPos.radius;
   const originCenterX = focusPos.x;
   const originCenterY = focusPos.y;
@@ -419,6 +429,10 @@ export default function CelestialProjectionBridge({
 
   const lensTopX = panelRect.left + panelRect.width / 2;
   const lensTopY = panelRect.top;
+
+  if (lensTopY <= planetBottomY) {
+    return null;
+  }
 
   const dy = Math.max(30, lensTopY - planetBottomY);
 

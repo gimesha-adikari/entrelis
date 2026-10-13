@@ -277,6 +277,7 @@ export default function KnowledgeGraphExperience({
           <CelestialProjectionBridge
             focusPos={focusPos}
             archetype={celestialIdentity?.archetype}
+            rings={celestialIdentity?.rings}
             panelRef={panelRef}
             isMobile={isMobile}
             isMobileExpanded={isMobileExpanded}

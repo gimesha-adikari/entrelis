@@ -90,6 +90,18 @@ describe("CelestialProjectionBridge", () => {
   });
 
   it("renders mobile vertical stream and crest rim when isMobile is true", () => {
+    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+      left: 0,
+      top: 400,
+      right: 375,
+      bottom: 667,
+      width: 375,
+      height: 267,
+      x: 0,
+      y: 400,
+      toJSON: () => {},
+    }));
+
     const panelRef = createMockRef();
     const { container } = render(
       <CelestialProjectionBridge
@@ -124,6 +136,82 @@ describe("CelestialProjectionBridge", () => {
 
     const line = container.querySelector("line");
     expect(line).toBeDefined();
+  });
+
+  it("suppresses mobile projection stream when isMobileExpanded is true (G53-03)", () => {
+    const panelRef = createMockRef();
+    const { container } = render(
+      <CelestialProjectionBridge
+        focusPos={{ x: 200, y: 150, radius: 40 }}
+        archetype="storm-giant"
+        panelRef={panelRef}
+        isMobile={true}
+        isMobileExpanded={true}
+      />
+    );
+
+    // When expanded, the bridge must not render over the reading panel
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("suppresses mobile projection stream when lens top is above planet bottom (G53-03)", () => {
+    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+      left: 0,
+      top: 100, // Above planetBottomY (150 + 41.5 = 191.5)
+      right: 375,
+      bottom: 700,
+      width: 375,
+      height: 600,
+      x: 0,
+      y: 100,
+      toJSON: () => {},
+    }));
+
+    const panelRef = createMockRef();
+    const { container } = render(
+      <CelestialProjectionBridge
+        focusPos={{ x: 200, y: 150, radius: 40 }}
+        archetype="storm-giant"
+        panelRef={panelRef}
+        isMobile={true}
+        isMobileExpanded={false}
+      />
+    );
+
+    expect(container.firstChild).toBeNull();
+  });
+
+  it("adjusts departure radius and silhouette mask beyond outer ring radius when rings are present (G53-02)", () => {
+    const panelRef = createMockRef();
+    const ringConfig = {
+      innerRadius: 66,
+      outerRadius: 96,
+      tilt: 0.42,
+      opacity: 0.88,
+      style: "ice" as const,
+    };
+
+    const { container } = render(
+      <CelestialProjectionBridge
+        focusPos={{ x: 450, y: 350, radius: 50 }}
+        archetype="storm-giant"
+        rings={ringConfig}
+        panelRef={panelRef}
+        isMobile={false}
+      />
+    );
+
+    // ringVisualRadius = (96 / 50) * 50 = 96
+    // Mask circle radius must be greater than 96 to shield entire ring system
+    const mask = container.querySelector("#planetSilhouetteMask");
+    expect(mask).toBeDefined();
+    const maskCircle = mask?.querySelector("circle");
+    const maskRadius = Number(maskCircle?.getAttribute("r"));
+    expect(maskRadius).toBeGreaterThan(96);
+
+    // Silhouette masked group should exist
+    const maskedGroup = container.querySelector("g[mask='url(#planetSilhouetteMask)']");
+    expect(maskedGroup).toBeDefined();
   });
 
   it("cleans up event listeners and ResizeObserver on unmount", () => {
