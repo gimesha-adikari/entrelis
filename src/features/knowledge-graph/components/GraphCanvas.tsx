@@ -331,13 +331,19 @@ export default function GraphCanvas({
     const fromScene = currentSceneRef.current ?? targetScene;
     const toScene = targetScene;
 
-    // If already displaying this exact focus concept, just update scene and redraw
-    if (fromScene.focus.slug === toScene.focus.slug) {
+    // If already displaying or travelling to this exact focus concept, update/settle scene and redraw
+    if (fromScene.focus.slug === toScene.focus.slug || travelStateRef.current?.toSlug === toScene.focus.slug) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
       pulseRef.current = null;
       const settledAnchor =
         getRememberedAnchor(conceptAnchorsRef.current, toScene.focus.id, toScene.focus.slug) ??
+        travelStateRef.current?.targetOffset ??
         persistentCameraOffsetRef.current;
 
+      persistentCameraOffsetRef.current = settledAnchor;
       travelStateRef.current = {
         active: false,
         progress: 1,
