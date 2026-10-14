@@ -51,7 +51,9 @@ All research artifacts are located in `research/m2-knowledge-universe-01/`:
 8. `08-research-progress.md`: This sprint checkpoint and progress report.
 9. `09-wave-1-editorial-package.md`: Standalone comprehensive human editorial review dossier covering all 26 Wave 1 nodes with exact chapter/section citations, specific claims, access constraints, edge explanations, and recommendations.
 10. `10-wave-1-evidence-ledger.json`: Machine-readable granular evidence ledger auditing 97 distinct factual assertions and relationship justifications across the 26 Wave 1 nodes and 61 active relationships, recording verification status, evidence types, locations, and access restrictions.
-11. `batches/`: Modular durable working batch files (`batch-01` through `batch-06` and `relationships-cross-domain.json`).
+11. `11-editorial-review-batch-01.md`: Focused human editorial review dossier packaging the first six high-confidence Wave 1 concepts with 100% open-access/archival grounding and decision sign-off fields.
+12. `validate-research.mjs`: Automated consistency validation script verifying ledger-registry alignment, uniqueness, referential integrity, status taxonomies, Unicode encoding, and Wave 1 graph connectivity.
+13. `batches/`: Modular durable working batch files (`batch-01` through `batch-06` and `relationships-cross-domain.json`).
 
 ---
 

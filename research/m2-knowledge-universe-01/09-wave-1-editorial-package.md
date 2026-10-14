@@ -411,8 +411,8 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
      - *Exact Location:* Section "Series and Parallel Combinations of Relays", pp. 713–715; Section "Analogy with the Calculus of Propositions", pp. 715–718.
      - *Claim Supported:* Seminal mathematical proof that two-state electrical switching networks (originally electromechanical relays in series and parallel) physically compute the axioms of Boolean propositional calculus.
      - *Verification Method:* IEEE Xplore archival DOI verified. Digitized primary document.
-  2. `src-patterson-hennessy-cod`: Patterson & Hennessy. *Computer Organization and Design: The Hardware/Software Interface* (6th Edition).
-     - *Exact Location:* Appendix A / Appendix C "The Basics of Logic Design", Sections "Gates, Truth Tables, and Logic Equations".
+  2. `src-patterson-hennessy-cod`: Patterson & Hennessy. *Computer Organization and Design: The Hardware/Software Interface* (MIPS 6th Edition). Morgan Kaufmann / Elsevier, 2020. ISBN 978-0-12-820109-1. URL: `https://www.elsevier.com/books/computer-organization-and-design-mips-edition/patterson/978-0-12-820109-1`.
+     - *Exact Location:* Appendix B "The Basics of Logic Design", Section "Gates, Truth Tables, and Logic Equations".
      - *Claim Supported:* Transistor circuit implementations of AND, OR, inverter gates; truth tables, CMOS complementary pull-up/pull-down networks, and gate propagation delay.
      - *Verification Method:* Bibliographic verification via Elsevier catalog and official appendix contents.
 - **Proposed Relationships:**

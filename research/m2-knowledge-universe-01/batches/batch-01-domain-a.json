@@ -615,7 +615,7 @@
       "slug": "algorithms",
       "name": "Algorithms",
       "shortDescription": "Well-defined computational procedures that take inputs, perform unambiguous deterministic or randomized operations, and terminate to produce desired outputs.",
-      "description": "An algorithm is a well-defined computational procedure that takes some value (or set of values) as input and produces some value (or set of values) as output to solve a specified computational problem. Analyzed via asymptotic notation (Big-O, Big-\\u03A9, Big-\\u0398) to characterize scaling behavior in time and space, algorithms encompass both deterministic procedures and randomized algorithms—which utilize random choices to optimize expected running time or circumvent worst-case inputs—employing foundational paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals.",
+      "description": "An algorithm is a well-defined computational procedure that takes some value (or set of values) as input and produces some value (or set of values) as output to solve a specified computational problem. Analyzed via asymptotic notation (Big-O, Big-Ω, Big-Θ) to characterize scaling behavior in time and space, algorithms encompass both deterministic procedures and randomized algorithms—which utilize random choices to optimize expected running time or circumvent worst-case inputs—employing foundational paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals.",
       "domains": [
         "computer-science",
         "mathematics"
