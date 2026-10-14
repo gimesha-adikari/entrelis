@@ -17,7 +17,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     : undefined;
 
   const title = concept
-    ? `${concept.name} — M2 Wave 1 Universe Preview (33 Nodes) | Entrelis Lab`
+    ? `${concept.name} — M2 Wave 1 Universe Preview | Entrelis Lab`
     : "M2 Wave 1 Universe Preview (33 Nodes) — Entrelis Lab";
 
   return {

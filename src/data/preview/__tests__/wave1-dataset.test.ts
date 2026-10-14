@@ -179,12 +179,26 @@ describe("Wave 1 Preview Dataset Integrity (33 Nodes, 61 Edges)", () => {
     }
   });
 
-  it("provides deterministic celestial identities for all 33 concepts", () => {
+  it("provides deterministic celestial identities with nonzero, collision-free effective 32-bit seeds for all 33 concepts", () => {
+    const effectiveSeeds = new Set<number>();
+
     for (const concept of WAVE1_PREVIEW_DATASET.concepts) {
       const identity = getConceptCelestialIdentity(concept.slug);
       expect(identity).toBeDefined();
       expect(identity.archetype).toBeDefined();
       expect(typeof identity.seed).toBe("number");
+
+      const effectiveSeed = identity.seed >>> 0;
+      expect(effectiveSeed, `Effective seed for ${concept.slug} must be nonzero`).toBeGreaterThan(0);
+      expect(effectiveSeed, `Declared seed must match unsigned 32-bit representation`).toBe(identity.seed);
+
+      expect(
+        effectiveSeeds.has(effectiveSeed),
+        `Duplicate effective seed detected: ${effectiveSeed} on concept ${concept.slug}`
+      ).toBe(false);
+      effectiveSeeds.add(effectiveSeed);
     }
+
+    expect(effectiveSeeds.size).toBe(33);
   });
 });

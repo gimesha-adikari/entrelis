@@ -4,6 +4,7 @@ import {
   CATALOG_ARCHETYPES,
   type CelestialArchetype,
 } from "./identity";
+import { createNoise3D } from "./procedural/noise3d";
 import { SEED_DATASET } from "@/data/seed";
 
 const EXPECTED_SEED_IDENTITIES: Record<
@@ -140,5 +141,102 @@ describe("Celestial 3D Identity Mapping", () => {
     // Verify lookup works seamlessly with conceptId prefix
     expect(getConceptCelestialIdentity("concept-virtual-memory")).toEqual(vm);
     expect(getConceptCelestialIdentity("concept-machine-code")).toEqual(mc);
+  });
+
+  it("ensures all 20 Wave 1 concepts have nonzero, collision-free effective 32-bit seeds", () => {
+    const wave1Slugs = [
+      "compilers",
+      "type-systems",
+      "garbage-collection",
+      "data-structures",
+      "database-systems",
+      "logic-gates",
+      "integrated-circuit",
+      "microprocessor-revolution",
+      "von-neumann-architecture",
+      "history-of-computing",
+      "semiconductors",
+      "transistor-invention",
+      "solid-state-physics",
+      "atoms",
+      "electrons",
+      "boolean-logic",
+      "formal-logic",
+      "algorithms",
+      "computability-theory",
+      "alan-turing",
+    ];
+
+    const effectiveSeeds = new Set<number>();
+
+    for (const slug of wave1Slugs) {
+      const identity = getConceptCelestialIdentity(slug);
+      const effectiveSeed = identity.seed >>> 0;
+
+      // Effective seed used by createLcg must be nonzero
+      expect(effectiveSeed, `Effective seed for ${slug} must be nonzero`).toBeGreaterThan(0);
+      expect(effectiveSeed, `Declared seed must match unsigned 32-bit representation`).toBe(identity.seed);
+
+      // Must be pairwise unique
+      expect(
+        effectiveSeeds.has(effectiveSeed),
+        `Duplicate effective seed detected: ${effectiveSeed} on ${slug}`
+      ).toBe(false);
+      effectiveSeeds.add(effectiveSeed);
+
+      // Verify moons have valid nonzero, non-colliding seeds if present
+      if (identity.moons) {
+        for (const moon of identity.moons) {
+          const moonEffectiveSeed = moon.seed >>> 0;
+          expect(moonEffectiveSeed).toBeGreaterThan(0);
+          expect(moonEffectiveSeed).toBe(moon.seed);
+          expect(
+            effectiveSeeds.has(moonEffectiveSeed),
+            `Duplicate effective seed on moon: ${moonEffectiveSeed}`
+          ).toBe(false);
+          effectiveSeeds.add(moonEffectiveSeed);
+        }
+      }
+    }
+  });
+
+  it("verifies the 7 corrected concepts produce independently seeded procedural noise without degenerate states", () => {
+    const sevenSlugs = [
+      "atoms",
+      "electrons",
+      "boolean-logic",
+      "formal-logic",
+      "algorithms",
+      "computability-theory",
+      "alan-turing",
+    ];
+
+    const degenerateNoise = createNoise3D(0);
+    const degenerateSample = degenerateNoise(1.23, 4.56, 7.89);
+
+    const noiseSamples = new Set<number>();
+
+    for (const slug of sevenSlugs) {
+      const identity = getConceptCelestialIdentity(slug);
+      const effectiveSeed = identity.seed >>> 0;
+
+      // Must not equal 0 (the degenerate state)
+      expect(effectiveSeed).not.toBe(0);
+
+      const noise = createNoise3D(effectiveSeed);
+      const sample = noise(1.23, 4.56, 7.89);
+
+      // Must not produce degenerate noise output
+      expect(sample).not.toBe(degenerateSample);
+
+      // Must be independent and distinct from each other
+      expect(
+        noiseSamples.has(sample),
+        `Identical procedural noise produced for ${slug}`
+      ).toBe(false);
+      noiseSamples.add(sample);
+    }
+
+    expect(noiseSamples.size).toBe(sevenSlugs.length);
   });
 });

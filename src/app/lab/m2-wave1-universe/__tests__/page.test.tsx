@@ -16,7 +16,7 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
       searchParams: Promise.resolve({ concept: "compilers" }),
     });
     expect(compilersMeta.title).toBe(
-      "Compilers — M2 Wave 1 Universe Preview (33 Nodes) | Entrelis Lab"
+      "Compilers — M2 Wave 1 Universe Preview | Entrelis Lab"
     );
     expect(compilersMeta.robots).toEqual({ index: false, follow: false });
   });
@@ -32,11 +32,14 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
     expect(screen.getByText(/33 Nodes · 61 Connections/)).toBeDefined();
   });
 
-  it("initializes selected concept from searchParams (?concept=compilers)", async () => {
+  it("initializes selected concept from searchParams (?concept=compilers) and sets Wave 1 document title", async () => {
     const pageComponent = await M2Wave1UniversePage({
       searchParams: Promise.resolve({ concept: "compilers" }),
     });
     render(pageComponent);
+
+    // Document title must follow the Wave 1 specification
+    expect(document.title).toBe("Compilers — M2 Wave 1 Universe Preview | Entrelis Lab");
 
     // ConceptPanel should display Compilers details
     const heading = screen.getByRole("heading", { level: 2, name: "Compilers" });
@@ -52,6 +55,8 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
       searchParams: Promise.resolve({ concept: "virtual-memory" }),
     });
     render(pageComponent);
+
+    expect(document.title).toBe("Virtual Memory — M2 Wave 1 Universe Preview | Entrelis Lab");
 
     const overviewP1 = screen.getByText(/Virtual memory is an architectural technique/i);
     expect(overviewP1).toBeDefined();
@@ -69,6 +74,8 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
     });
     render(pageComponent);
 
+    expect(document.title).toBe("Alan Turing — M2 Wave 1 Universe Preview | Entrelis Lab");
+
     const heading = screen.getByRole("heading", { level: 2, name: "Alan Turing" });
     expect(heading).toBeDefined();
 
@@ -79,12 +86,14 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
     expect(screen.queryByTestId("learn-more-link")).toBeNull();
   });
 
-  it("maintains wave1 navigation mode: selecting a connected concept updates URL with ?concept=<slug>", async () => {
+  it("maintains wave1 navigation mode: selecting a connected concept updates URL and document.title", async () => {
     const pushStateSpy = vi.spyOn(window.history, "pushState");
     const pageComponent = await M2Wave1UniversePage({
       searchParams: Promise.resolve({ concept: "rust" }),
     });
     render(pageComponent);
+
+    expect(document.title).toBe("Rust — M2 Wave 1 Universe Preview | Entrelis Lab");
 
     // Find a connection button in the panel (e.g. Compilers, which is connected to Rust in Wave 1)
     const compilersBtn = screen.getByRole("button", {
@@ -98,14 +107,18 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
     expect(lastCall?.[2]).toContain("concept=compilers");
     expect(lastCall?.[2]).not.toBe("/concept/compilers");
 
+    // Document title should update to Compilers
+    expect(document.title).toBe("Compilers — M2 Wave 1 Universe Preview | Entrelis Lab");
+
     pushStateSpy.mockRestore();
   });
 
-  it("restores selected concept on browser popstate navigation", async () => {
+  it("restores selected concept and document.title on browser popstate navigation", async () => {
     const pageComponent = await M2Wave1UniversePage({});
     render(pageComponent);
 
     expect(screen.getByRole("heading", { level: 2, name: "Rust" })).toBeDefined();
+    expect(document.title).toBe("Rust — M2 Wave 1 Universe Preview | Entrelis Lab");
 
     // Simulate browser Back/Forward to ?concept=alan-turing
     window.history.pushState(null, "", "/lab/m2-wave1-universe?concept=alan-turing");
@@ -113,6 +126,7 @@ describe("/lab/m2-wave1-universe Page Route (33 Nodes)", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { level: 2, name: "Alan Turing" })).toBeDefined();
+      expect(document.title).toBe("Alan Turing — M2 Wave 1 Universe Preview | Entrelis Lab");
     });
   });
 });

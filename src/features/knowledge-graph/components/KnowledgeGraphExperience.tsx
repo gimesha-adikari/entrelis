@@ -242,6 +242,8 @@ export default function KnowledgeGraphExperience({
 
     if (navigationMode === "lab") {
       document.title = `${selectedConcept.name} — M2 Connected Universe Preview | Entrelis Lab`;
+    } else if (navigationMode === "wave1") {
+      document.title = `${selectedConcept.name} — M2 Wave 1 Universe Preview | Entrelis Lab`;
     } else {
       if (
         selectedSlug === "rust" &&

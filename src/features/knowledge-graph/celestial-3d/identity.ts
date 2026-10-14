@@ -309,7 +309,7 @@ export const WAVE1_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdentity
   },
   atoms: {
     archetype: "blue-star",
-    seed: 4294967296,
+    seed: 2415919104,
     paletteVariant: 0,
     moons: [
       {
@@ -317,39 +317,39 @@ export const WAVE1_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdentity
         relativeRadius: 0.15,
         distance: 120,
         phase: 0.4,
-        seed: 4294967297,
+        seed: 2415919105,
         orbitalSpeed: 0.2,
       },
     ],
   },
   electrons: {
     archetype: "asteroid",
-    seed: 8589934592,
+    seed: 2684354560,
     asteroidVariant: "mineral",
   },
   "boolean-logic": {
     archetype: "crystal-world",
-    seed: 17179869184,
+    seed: 2952790016,
     paletteVariant: 0,
   },
   "formal-logic": {
     archetype: "life-world",
-    seed: 34359738368,
+    seed: 3221225472,
     paletteVariant: 0,
   },
   algorithms: {
     archetype: "blue-atmospheric",
-    seed: 68719476736,
+    seed: 3489660928,
     paletteVariant: 0,
   },
   "computability-theory": {
     archetype: "storm-giant",
-    seed: 137438953472,
+    seed: 3758096384,
     paletteVariant: 0,
   },
   "alan-turing": {
     archetype: "golden-star",
-    seed: 274877906944,
+    seed: 4026531840,
     paletteVariant: 0,
   },
 };
