@@ -1921,15 +1921,17 @@
   }
 
   .controls {
-    top: calc(var(--space-12) + 12px);
+    top: calc(max(12px, env(safe-area-inset-top, 12px)) + 44px);
     bottom: auto;
-    left: var(--space-3);
+    left: max(12px, env(safe-area-inset-left, 12px));
     gap: 6px;
+    height: auto;
+    z-index: 30;
   }
 
   .brandOverlay {
-    top: var(--space-3);
-    left: var(--space-3);
+    top: max(12px, env(safe-area-inset-top, 12px));
+    left: max(12px, env(safe-area-inset-left, 12px));
   }
 
   .homeButton {
@@ -1957,17 +1959,20 @@
   }
 }
 
-/* Ultra-small viewports (<= 360px width, e.g. 320x700) */
+/* Ultra-small viewports (<= 360px width, e.g. 320x700 or 360x640) */
 @media (max-width: 360px) {
   .controls {
-    bottom: calc(50vh + 8px);
-    left: var(--space-2);
+    top: calc(max(8px, env(safe-area-inset-top, 8px)) + 42px);
+    bottom: auto;
+    left: max(8px, env(safe-area-inset-left, 8px));
     gap: 4px;
+    height: auto;
+    z-index: 30;
   }
 
   .brandOverlay {
-    top: var(--space-2);
-    left: var(--space-2);
+    top: max(8px, env(safe-area-inset-top, 8px));
+    left: max(8px, env(safe-area-inset-left, 8px));
   }
 
   .brandTitle {
@@ -1980,7 +1985,7 @@
   }
 
   .homeButton {
-    min-height: 38px;
+    min-height: 36px;
     padding: 0 10px;
     font-size: 0.72rem;
   }

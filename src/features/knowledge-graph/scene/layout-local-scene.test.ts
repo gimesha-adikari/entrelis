@@ -387,4 +387,93 @@ describe("layoutLocalUniverseScene", () => {
       }
     }
   });
+
+  it("maintains safe clearance between Home/zoom navigation controls and celestial bodies & labels across 360x640 and 390x844 viewports", () => {
+    const viewports = [
+      [360, 640],
+      [390, 844],
+    ] as const;
+
+    for (const [width, height] of viewports) {
+      // Top-left masthead/controls reserved box in screen coordinates
+      const controlsBox = {
+        left: 0,
+        right: 165,
+        top: 0,
+        bottom: 86,
+      };
+
+      for (const concept of SEED_DATASET.concepts) {
+        const rawScene = buildLocalUniverseScene({
+          dataset: SEED_DATASET,
+          focusSlug: concept.slug,
+          isMobile: true,
+        });
+
+        const laidOut = layoutLocalUniverseScene(rawScene, {
+          viewportWidth: width,
+          viewportHeight: height,
+          isMobile: true,
+        });
+
+        // Check focus planet in screen coordinates
+        const fx = width / 2 + laidOut.focus.x;
+        const fy = height / 2 + laidOut.focus.y;
+        const fr = laidOut.focus.radius;
+
+        // Focus planet bounding box
+        const focusScreenBox = {
+          left: fx - fr,
+          right: fx + fr,
+          top: fy - fr,
+          bottom: fy + fr,
+        };
+
+        const xOver = Math.max(0, Math.min(controlsBox.right, focusScreenBox.right) - Math.max(controlsBox.left, focusScreenBox.left));
+        const yOver = Math.max(0, Math.min(controlsBox.bottom, focusScreenBox.bottom) - Math.max(controlsBox.top, focusScreenBox.top));
+        expect(
+          xOver > 0 && yOver > 0,
+          `Focus planet "${concept.name}" on ${width}x${height} collides with top-left controls!`
+        ).toBe(false);
+
+        // Distance from controls bottom to focus planet top must be at least 30px
+        expect(
+          focusScreenBox.top - controlsBox.bottom,
+          `Clearance between controls and "${concept.name}" on ${width}x${height} is insufficient`
+        ).toBeGreaterThanOrEqual(30);
+
+        // Also check that no label box intersects controlsBox
+        for (const node of laidOut.allNodes) {
+          const fontSize = node.labelFontSize ?? 11;
+          const textWidth = Math.max(1, node.name.length * fontSize * 0.58);
+          const textHeight = fontSize * 1.15;
+
+          const lx = width / 2 + node.x + (node.labelOffsetX ?? 0);
+          const ly = height / 2 + node.y + (node.labelOffsetY ?? 0);
+
+          let boxLeft = lx;
+          if (node.labelAlignment === "center") boxLeft = lx - textWidth / 2;
+          else if (node.labelAlignment === "right") boxLeft = lx - textWidth;
+
+          let boxTop = ly;
+          if (node.labelBaseline === "middle") boxTop = ly - textHeight / 2;
+          else if (node.labelBaseline === "bottom") boxTop = ly - textHeight;
+
+          const labelBox = {
+            left: boxLeft,
+            right: boxLeft + textWidth,
+            top: boxTop,
+            bottom: boxTop + textHeight,
+          };
+
+          const lXOver = Math.max(0, Math.min(controlsBox.right, labelBox.right) - Math.max(controlsBox.left, labelBox.left));
+          const lYOver = Math.max(0, Math.min(controlsBox.bottom, labelBox.bottom) - Math.max(controlsBox.top, labelBox.top));
+          expect(
+            lXOver > 0 && lYOver > 0,
+            `Label "${node.name}" on ${width}x${height} collides with top-left controls!`
+          ).toBe(false);
+        }
+      }
+    }
+  });
 });

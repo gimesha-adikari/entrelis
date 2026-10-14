@@ -108,9 +108,13 @@ export function layoutLocalUniverseScene(
   let originX: number;
   let originY: number;
 
+  const defaultMobileOffsetY = Math.round(
+    -130 * Math.max(0.65, Math.min(1.0, viewportHeight / 844))
+  );
+
   if (config.focalOffsetX !== undefined) {
     originX = config.focalOffsetX;
-    originY = config.focalOffsetY ?? (isMobile ? -130 : 0);
+    originY = config.focalOffsetY ?? (isMobile ? defaultMobileOffsetY : 0);
   } else if (!isMobile && config.knowledgeFieldWidth !== undefined) {
     const adaptive = computeAdaptiveFocalOffset({
       viewportWidth,
@@ -123,7 +127,7 @@ export function layoutLocalUniverseScene(
     originY = config.focalOffsetY ?? adaptive.offsetY;
   } else {
     originX = isMobile ? 0 : -100;
-    originY = config.focalOffsetY ?? (isMobile ? -130 : 0);
+    originY = config.focalOffsetY ?? (isMobile ? defaultMobileOffsetY : 0);
   }
 
   // 3. Orbital Radii responsive to dimensions
@@ -302,7 +306,7 @@ export function resolveCollisionFreeLabels(
     isMobile: boolean;
   }
 ): UniverseNode[] {
-  const { viewportWidth, isMobile } = options;
+  const { viewportWidth, viewportHeight, isMobile } = options;
   const margin = 8;
   const leftBound = -viewportWidth / 2 + margin;
   const rightBound = viewportWidth / 2 - margin;
@@ -316,6 +320,19 @@ export function resolveCollisionFreeLabels(
   }
 
   const placedBoxes: PlacedBox[] = [];
+
+  // On mobile, reserve top-left zone for brand masthead & controls so no label obstructs navigation
+  if (isMobile) {
+    const controlsWidth = 165;
+    const controlsHeight = 90;
+    placedBoxes.push({
+      id: "ui-masthead-controls",
+      left: -viewportWidth / 2,
+      right: -viewportWidth / 2 + controlsWidth,
+      top: -viewportHeight / 2,
+      bottom: -viewportHeight / 2 + controlsHeight,
+    });
+  }
 
   // Order nodes by priority: focus first, then primary, then context
   const priorityOrder = [...nodes].sort((a, b) => {
