@@ -251,4 +251,62 @@ describe("KnowledgeReader Component", () => {
 
     pushStateSpy.mockRestore();
   });
+
+  it("returns to /lab/m2-universe?concept=<slug> for both seed and pilot when from=m2-universe", () => {
+    // 1. Seed concept with returnFrom="m2-universe"
+    const rustArticle = articles.find((a) => a.slug === "rust")!;
+    const { unmount } = render(
+      <KnowledgeReader
+        initialArticle={rustArticle}
+        allArticles={articles}
+        returnFrom="m2-universe"
+      />
+    );
+    const rustBackLink = screen.getByTestId("back-to-universe-link");
+    expect(rustBackLink.getAttribute("href")).toBe("/lab/m2-universe?concept=rust");
+    expect(rustBackLink.getAttribute("aria-label")).toContain("M2 Universe");
+    unmount();
+
+    // 2. Pilot candidate with URL parameter ?from=m2-universe
+    window.history.pushState(null, "", "/lab/knowledge-reader/virtual-memory?from=m2-universe");
+    const vmArticle = articles.find((a) => a.slug === "virtual-memory")!;
+    const { unmount: unmountVm } = render(
+      <KnowledgeReader initialArticle={vmArticle} allArticles={articles} />
+    );
+    const vmBackLink = screen.getByTestId("back-to-universe-link");
+    expect(vmBackLink.getAttribute("href")).toBe("/lab/m2-universe?concept=virtual-memory");
+    expect(vmBackLink.getAttribute("aria-label")).toContain("M2 Universe");
+
+    // 3. Connection card Explore in Universe links
+    const connCards = screen.getAllByTestId(/^connection-card-/);
+    expect(connCards.length).toBeGreaterThan(0);
+    const firstExploreLink = connCards[0]!.querySelector('a[href*="/lab/m2-universe?concept="]');
+    expect(firstExploreLink).toBeDefined();
+
+    unmountVm();
+  });
+
+  it("preserves from=m2-universe when navigating between articles", () => {
+    const pushStateSpy = vi.spyOn(window.history, "pushState");
+    window.history.pushState(null, "", "/lab/knowledge-reader/rust?from=m2-universe");
+
+    render(
+      <KnowledgeReader
+        initialArticle={initialArticle}
+        allArticles={articles}
+        returnFrom="m2-universe"
+      />
+    );
+
+    const vmButton = screen.getByTestId("article-nav-button-virtual-memory");
+    fireEvent.click(vmButton);
+
+    expect(pushStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      "/lab/knowledge-reader/virtual-memory?from=m2-universe"
+    );
+
+    pushStateSpy.mockRestore();
+  });
 });

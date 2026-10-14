@@ -6,6 +6,7 @@ import { KnowledgeReader } from "@/features/knowledge-reader";
 
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export function generateStaticParams() {
@@ -36,8 +37,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function KnowledgeReaderSlugPage({ params }: Props) {
+export default async function KnowledgeReaderSlugPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const returnFrom =
+    resolvedSearchParams.from === "m2-universe" ? "m2-universe" : undefined;
+
   const article = loadPilotArticle(slug);
 
   if (!article) {
@@ -64,7 +69,11 @@ export default async function KnowledgeReaderSlugPage({ params }: Props) {
         </div>
       }
     >
-      <KnowledgeReader initialArticle={article} allArticles={allArticles} />
+      <KnowledgeReader
+        initialArticle={article}
+        allArticles={allArticles}
+        returnFrom={returnFrom}
+      />
     </Suspense>
   );
 }

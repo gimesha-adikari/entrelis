@@ -21,6 +21,7 @@ interface Props {
   dataset?: KnowledgeDataset;
   initialSlug?: string;
   initialVariant?: ProjectedVariant;
+  navigationMode?: "production" | "lab";
 }
 
 function parseVariantFromSearch(search: string, fallback: ProjectedVariant): ProjectedVariant {
@@ -89,8 +90,22 @@ export default function KnowledgeGraphExperience({
   dataset = SEED_DATASET,
   initialSlug = "rust",
   initialVariant = "anchored",
+  navigationMode = "production",
 }: Props) {
-  const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
+  const [selectedSlug, setSelectedSlug] = useState<string>(() => {
+    if (typeof window !== "undefined" && navigationMode === "lab") {
+      const urlConcept = new URLSearchParams(window.location.search).get("concept");
+      if (urlConcept) return urlConcept;
+    }
+    return initialSlug;
+  });
+
+  const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
+  if (prevInitialSlug !== initialSlug) {
+    setPrevInitialSlug(initialSlug);
+    setSelectedSlug(initialSlug);
+  }
+
   const [variantOverride, setVariantOverride] = useState<ProjectedVariant | null>(null);
   const [focusPos, setFocusPos] = useState<ProjectionAnchor | null>(null);
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
@@ -173,62 +188,104 @@ export default function KnowledgeGraphExperience({
   /**
    * Synchronize selection changes with browser history and URL.
    */
-  const selectConcept = useCallback((slug: string) => {
-    setSelectedSlug(slug);
-    if (typeof window !== "undefined") {
-      const targetUrl = `/concept/${slug}`;
-      if (window.location.pathname !== targetUrl) {
-        window.history.pushState({ slug }, "", targetUrl);
+  const selectConcept = useCallback(
+    (slug: string) => {
+      setSelectedSlug(slug);
+      if (typeof window !== "undefined") {
+        if (navigationMode === "lab") {
+          const url = new URL(window.location.href);
+          url.searchParams.set("concept", slug);
+          if (window.location.search !== url.search) {
+            window.history.pushState({ slug }, "", url.toString());
+          }
+        } else {
+          const targetUrl = `/concept/${slug}`;
+          if (window.location.pathname !== targetUrl) {
+            window.history.pushState({ slug }, "", targetUrl);
+          }
+        }
       }
-    }
-  }, []);
+    },
+    [navigationMode]
+  );
 
   // Listen to popstate for seamless browser Back/Forward navigation
   useEffect(() => {
     const handlePopState = () => {
       if (typeof window === "undefined") return;
-      const pathname = window.location.pathname;
-      const match = pathname.match(/^\/concept\/([^/]+)/);
-      if (match && match[1]) {
-        setSelectedSlug(match[1]);
-      } else if (pathname === "/") {
-        setSelectedSlug("rust");
+      if (navigationMode === "lab") {
+        const params = new URLSearchParams(window.location.search);
+        const conceptParam = params.get("concept");
+        if (conceptParam) {
+          setSelectedSlug(conceptParam);
+        } else {
+          setSelectedSlug("rust");
+        }
+      } else {
+        const pathname = window.location.pathname;
+        const match = pathname.match(/^\/concept\/([^/]+)/);
+        if (match && match[1]) {
+          setSelectedSlug(match[1]);
+        } else if (pathname === "/") {
+          setSelectedSlug("rust");
+        }
       }
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [navigationMode]);
 
   // Synchronize document title during client exploration without triggering route remounts
   useEffect(() => {
     if (typeof document === "undefined" || !selectedConcept) return;
 
-    if (
-      selectedSlug === "rust" &&
-      typeof window !== "undefined" &&
-      window.location.pathname === "/"
-    ) {
-      document.title = "Entrelis — Everything is connected";
+    if (navigationMode === "lab") {
+      document.title = `${selectedConcept.name} — M2 Connected Universe Preview | Entrelis Lab`;
     } else {
-      document.title = `${selectedConcept.name} — Entrelis`;
+      if (
+        selectedSlug === "rust" &&
+        typeof window !== "undefined" &&
+        window.location.pathname === "/"
+      ) {
+        document.title = "Entrelis — Everything is connected";
+      } else {
+        document.title = `${selectedConcept.name} — Entrelis`;
+      }
     }
-  }, [selectedConcept, selectedSlug]);
+  }, [navigationMode, selectedConcept, selectedSlug]);
 
   // Reset view to root / default Rust selection
   const handleResetCamera = useCallback(() => {
     setSelectedSlug("rust");
-    if (typeof window !== "undefined" && window.location.pathname !== "/") {
-      window.history.pushState({ slug: "rust" }, "", "/");
+    if (typeof window !== "undefined") {
+      if (navigationMode === "lab") {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("concept");
+        window.history.pushState({ slug: "rust" }, "", url.toString());
+      } else if (window.location.pathname !== "/") {
+        window.history.pushState({ slug: "rust" }, "", "/");
+      }
     }
-  }, []);
+  }, [navigationMode]);
 
   return (
     <div className={styles.container}>
       {/* Minimal Entrelis brand identity */}
       <header className={styles.brandOverlay}>
-        <h1 className={styles.brandTitle}>Entrelis</h1>
-        <p className={styles.brandTagline}>Everything is connected</p>
+        <div className={styles.brandTitleRow}>
+          <h1 className={styles.brandTitle}>Entrelis</h1>
+          {navigationMode === "lab" && (
+            <span className={styles.labBadge} data-testid="m2-preview-badge">
+              M2 Preview · 13 Nodes
+            </span>
+          )}
+        </div>
+        <p className={styles.brandTagline}>
+          {navigationMode === "lab"
+            ? "Editorial Research Universe Preview (13 Nodes · 19 Connections)"
+            : "Everything is connected"}
+        </p>
       </header>
 
       {/* Exploration Variant Switcher Pill - only displayed in dev mode with ?switcher=true */}
@@ -292,6 +349,7 @@ export default function KnowledgeGraphExperience({
           index={index}
           onSelectConcept={selectConcept}
           variant={variant}
+          navigationMode={navigationMode}
           isMobileExpanded={isMobileExpanded}
           onToggleMobileExpanded={() => setIsMobileExpanded((prev) => !prev)}
           fieldWidth={fieldWidth}

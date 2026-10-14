@@ -135,6 +135,67 @@ export const ENTRELIS_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdent
 };
 
 /**
+ * Curated 6 Entrelis Milestone 2 Batch 01 Pilot Candidate identities.
+ * Isolated from seed records until formal editorial promotion.
+ */
+export const M2_PILOT_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdentity>> = {
+  "instruction-set-architecture": {
+    archetype: "golden-star",
+    seed: 8192,
+    paletteVariant: 0,
+  },
+  "virtual-memory": {
+    archetype: "crystal-world",
+    seed: 16384,
+    paletteVariant: 0,
+  },
+  "file-systems": {
+    archetype: "mineral-rocky",
+    seed: 32768,
+    paletteVariant: 0,
+    rings: {
+      innerRadius: 60,
+      outerRadius: 82,
+      tilt: 0.28,
+      opacity: 0.75,
+      style: "dust",
+      seed: 32768,
+      color: 0xd97706,
+    },
+  },
+  concurrency: {
+    archetype: "storm-giant",
+    seed: 65536,
+    paletteVariant: 0,
+    moons: [
+      {
+        archetype: "rocky",
+        relativeRadius: 0.2,
+        distance: 135,
+        phase: 2.1,
+        seed: 65537,
+        orbitalSpeed: 0.15,
+      },
+    ],
+  },
+  "asynchronous-io": {
+    archetype: "blue-atmospheric",
+    seed: 131072,
+    paletteVariant: 0,
+  },
+  "machine-code": {
+    archetype: "metallic-world",
+    seed: 262144,
+    paletteVariant: 0,
+  },
+};
+
+export const ALL_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdentity>> = {
+  ...ENTRELIS_CONCEPT_IDENTITIES,
+  ...M2_PILOT_CONCEPT_IDENTITIES,
+};
+
+/**
  * Full Archetype Catalog entries for testing and review in `/lab/celestial-3d`.
  */
 export interface CatalogItem {
@@ -339,7 +400,10 @@ const ALL_ARCHETYPES: readonly CelestialArchetype[] = [
  */
 export function getConceptCelestialIdentity(conceptId: string): CelestialIdentity {
   const normalized = conceptId.toLowerCase().trim();
-  const curated = ENTRELIS_CONCEPT_IDENTITIES[normalized];
+  const stripped = normalized.startsWith("concept-") ? normalized.slice(8) : normalized;
+  const curated =
+    ALL_CONCEPT_IDENTITIES[normalized] ??
+    ALL_CONCEPT_IDENTITIES[stripped];
   if (curated) {
     return curated;
   }

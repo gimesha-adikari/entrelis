@@ -9,12 +9,14 @@ interface KnowledgeConnectionsProps {
   readonly currentConceptName: string;
   readonly connections: readonly ArticleConnection[];
   readonly onSelectArticle?: (slug: string) => void;
+  readonly returnFrom?: string;
 }
 
 export function KnowledgeConnections({
   currentConceptName,
   connections,
   onSelectArticle,
+  returnFrom,
 }: KnowledgeConnectionsProps) {
   if (connections.length === 0) return null;
 
@@ -77,7 +79,31 @@ export function KnowledgeConnections({
               <p className={styles.explanation}>{conn.explanation}</p>
 
               <div className={styles.cardFooter}>
-                {isSeed ? (
+                {returnFrom === "m2-universe" ? (
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                    <Link
+                      href={`/lab/m2-universe?concept=${conn.relatedConcept.slug}`}
+                      className={styles.exploreLink}
+                      aria-label={`Explore ${conn.relatedConcept.name} in M2 Universe`}
+                    >
+                      <span>Explore in Universe</span>
+                      <span className={styles.arrow} aria-hidden="true">
+                        ↗
+                      </span>
+                    </Link>
+                    <button
+                      type="button"
+                      className={styles.readArticleButton}
+                      onClick={() => onSelectArticle?.(conn.relatedConcept.slug)}
+                      aria-label={`Read article for ${conn.relatedConcept.name}`}
+                    >
+                      <span>Read Article</span>
+                      <span className={styles.arrow} aria-hidden="true">
+                        →
+                      </span>
+                    </button>
+                  </div>
+                ) : isSeed ? (
                   <Link
                     href={`/concept/${conn.relatedConcept.slug}`}
                     className={styles.exploreLink}

@@ -30,6 +30,7 @@ export interface ConceptPanelProps {
   index?: KnowledgeGraphIndex;
   onSelectConcept: (slug: string) => void;
   variant?: ProjectedVariant;
+  navigationMode?: "production" | "lab";
   isMobileExpanded?: boolean;
   onToggleMobileExpanded?: () => void;
   fieldWidth?: number;
@@ -58,6 +59,7 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
     index,
     onSelectConcept,
     variant = "anchored",
+    navigationMode = "production",
     isMobileExpanded: controlledMobileExpanded,
     onToggleMobileExpanded,
     fieldWidth,
@@ -440,7 +442,11 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
         {hasArticle && (
           <div className={styles.learnMoreContainer}>
             <Link
-              href={`/lab/knowledge-reader/${concept.slug}`}
+              href={
+                navigationMode === "lab"
+                  ? `/lab/knowledge-reader/${concept.slug}?from=m2-universe`
+                  : `/lab/knowledge-reader/${concept.slug}`
+              }
               className={styles.learnMoreLink}
               onClick={(e) => e.stopPropagation()}
               data-testid="learn-more-link"

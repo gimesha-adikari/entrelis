@@ -52,6 +52,9 @@ export default async function KnowledgeReaderPage({ searchParams }: Props) {
     notFound();
   }
 
+  const returnFrom =
+    resolvedSearchParams.from === "m2-universe" ? "m2-universe" : undefined;
+
   return (
     <Suspense
       fallback={
@@ -70,7 +73,11 @@ export default async function KnowledgeReaderPage({ searchParams }: Props) {
         </div>
       }
     >
-      <KnowledgeReader initialArticle={initialArticle} allArticles={allArticles} />
+      <KnowledgeReader
+        initialArticle={initialArticle}
+        allArticles={allArticles}
+        returnFrom={returnFrom}
+      />
     </Suspense>
   );
 }

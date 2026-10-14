@@ -109,4 +109,36 @@ describe("Celestial 3D Identity Mapping", () => {
     // Verify identity object has no role property
     expect("role" in rustIdentity).toBe(false);
   });
+
+  it("maps the 6 M2 pilot concepts to their curated celestial identities", () => {
+    const isa = getConceptCelestialIdentity("instruction-set-architecture");
+    expect(isa.archetype).toBe("golden-star");
+    expect(isa.seed).toBe(8192);
+
+    const vm = getConceptCelestialIdentity("virtual-memory");
+    expect(vm.archetype).toBe("crystal-world");
+    expect(vm.seed).toBe(16384);
+
+    const fs = getConceptCelestialIdentity("file-systems");
+    expect(fs.archetype).toBe("mineral-rocky");
+    expect(fs.seed).toBe(32768);
+    expect(fs.rings?.style).toBe("dust");
+
+    const concurrency = getConceptCelestialIdentity("concurrency");
+    expect(concurrency.archetype).toBe("storm-giant");
+    expect(concurrency.seed).toBe(65536);
+    expect(concurrency.moons).toHaveLength(1);
+
+    const aio = getConceptCelestialIdentity("asynchronous-io");
+    expect(aio.archetype).toBe("blue-atmospheric");
+    expect(aio.seed).toBe(131072);
+
+    const mc = getConceptCelestialIdentity("machine-code");
+    expect(mc.archetype).toBe("metallic-world");
+    expect(mc.seed).toBe(262144);
+
+    // Verify lookup works seamlessly with conceptId prefix
+    expect(getConceptCelestialIdentity("concept-virtual-memory")).toEqual(vm);
+    expect(getConceptCelestialIdentity("concept-machine-code")).toEqual(mc);
+  });
 });

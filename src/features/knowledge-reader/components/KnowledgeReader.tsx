@@ -11,12 +11,25 @@ import styles from "./KnowledgeReader.module.css";
 interface KnowledgeReaderProps {
   readonly initialArticle: PilotArticle;
   readonly allArticles: readonly PilotArticle[];
+  readonly returnFrom?: string;
 }
 
-export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReaderProps) {
+export function KnowledgeReader({
+  initialArticle,
+  allArticles,
+  returnFrom: propReturnFrom,
+}: KnowledgeReaderProps) {
   const [, startTransition] = useTransition();
 
   const [activeSlug, setActiveSlug] = useState<string>(initialArticle.slug);
+  const [returnFrom, setReturnFrom] = useState<string | null>(() => {
+    if (propReturnFrom) return propReturnFrom;
+    if (typeof window !== "undefined") {
+      const fromParam = new URLSearchParams(window.location.search).get("from");
+      if (fromParam === "m2-universe") return "m2-universe";
+    }
+    return null;
+  });
   const [activeCitation, setActiveCitation] = useState<CitationRecord | null>(null);
   const [activeTrigger, setActiveTrigger] = useState<HTMLElement | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +54,11 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
 
     function syncFromUrl() {
       if (typeof window === "undefined") return;
+      const params = new URLSearchParams(window.location.search);
+      const fromParam = params.get("from");
+      if (fromParam === "m2-universe") {
+        setReturnFrom("m2-universe");
+      }
       const urlSlug = getSlugFromLocation();
       if (urlSlug && allArticles.some((a) => a.slug === urlSlug)) {
         setActiveSlug(urlSlug);
@@ -70,10 +88,17 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
 
   const currentArticle = allArticles.find((a) => a.slug === activeSlug) ?? initialArticle;
   const isSeed = currentArticle.tier === "seed";
-  const backUrl = isSeed ? `/concept/${currentArticle.slug}` : "/";
-  const backLabel = isSeed
-    ? `Return to ${currentArticle.title} in Universe`
-    : "Return to Universe";
+  const isFromM2Universe = returnFrom === "m2-universe";
+  const backUrl = isFromM2Universe
+    ? `/lab/m2-universe?concept=${currentArticle.slug}`
+    : isSeed
+      ? `/concept/${currentArticle.slug}`
+      : "/";
+  const backLabel = isFromM2Universe
+    ? `Return to ${currentArticle.title} in M2 Universe`
+    : isSeed
+      ? `Return to ${currentArticle.title} in Universe`
+      : "Return to Universe";
 
   // Keep document title in sync with active article
   useEffect(() => {
@@ -96,9 +121,12 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
         const isQueryStyle =
           window.location.pathname === "/lab/knowledge-reader" &&
           window.location.search.includes("article=");
-        const targetUrl = isQueryStyle
+        const baseTarget = isQueryStyle
           ? `/lab/knowledge-reader?article=${slug}`
           : `/lab/knowledge-reader/${slug}`;
+        const targetUrl = isFromM2Universe
+          ? `${baseTarget}${isQueryStyle ? "&" : "?"}from=m2-universe`
+          : baseTarget;
 
         window.history.pushState(null, "", targetUrl);
       }
@@ -349,6 +377,7 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
             currentConceptName={currentArticle.title}
             connections={currentArticle.connections}
             onSelectArticle={handleSelectArticle}
+            returnFrom={returnFrom ?? undefined}
           />
 
           {/* Next / Prev Article Footer Navigation */}

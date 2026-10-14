@@ -85,11 +85,87 @@ export const SEED_CONCEPT_OVERVIEWS: Record<string, ConceptOverview> = {
   },
 };
 
+export const PILOT_CONCEPT_OVERVIEWS: Record<string, ConceptOverview> = {
+  "concept-instruction-set-architecture": {
+    conceptId: "concept-instruction-set-architecture",
+    slug: "instruction-set-architecture",
+    title: "Instruction Set Architecture",
+    paragraphs: [
+      "An instruction set architecture, or ISA, is the foundational boundary where software meets physical computer hardware. It defines the vocabulary of commands that a processor understands, specifying available registers, mathematical operations, and the exact binary format used to encode every instruction.",
+      "By establishing this consistent contract, an ISA allows software developers and compilers to write programs that run reliably across different chip implementations without needing to know how internal silicon circuits are arranged. It is the universal blueprint that makes modern software portable and processor design possible.",
+    ],
+    wordCount: 87,
+  },
+  "concept-virtual-memory": {
+    conceptId: "concept-virtual-memory",
+    slug: "virtual-memory",
+    title: "Virtual Memory",
+    paragraphs: [
+      "Virtual memory is an architectural technique that gives every active program the illusion of having its own private, unbroken expanse of memory. Instead of accessing physical RAM chips directly, programs read and write to virtual addresses that the processor and operating system translate on the fly.",
+      "This translation is performed in fixed-size blocks called pages using specialized hardware inside the CPU. By separating logical program addresses from physical storage frames, virtual memory protects applications from interfering with one another, prevents accidental crashes, and allows computers to run programs larger than available physical RAM.",
+    ],
+    wordCount: 91,
+  },
+  "concept-file-systems": {
+    conceptId: "concept-file-systems",
+    slug: "file-systems",
+    title: "File Systems",
+    paragraphs: [
+      "A file system is the organizational layer of an operating system that transforms raw, unstructured storage disks into accessible hierarchies of named files and directories. Rather than forcing programs to track raw storage sectors, it manages where data lives and keeps an index of metadata like ownership and permissions.",
+      "To protect your data against unexpected crashes or power failures, modern file systems employ techniques like journaling to log changes before applying them permanently. This systematic discipline ensures that documents, databases, and programs remain intact, recoverable, and organized across years of continuous computer use.",
+    ],
+    wordCount: 91,
+  },
+  "concept-concurrency": {
+    conceptId: "concept-concurrency",
+    slug: "concurrency",
+    title: "Concurrency",
+    paragraphs: [
+      "Concurrency is the art of structuring a software system so that multiple computational tasks can make progress during overlapping periods of time. Rather than waiting for a slow task like a disk read or network request to finish, a concurrent program switches attention to other useful calculations.",
+      "Concurrency can happen on a single processor core through rapid multitasking or across multiple cores running instructions in parallel. By coordinating shared data with careful synchronization rules, concurrent systems remain responsive, handle thousands of simultaneous user connections, and extract maximum throughput from modern multi-core computing hardware.",
+    ],
+    wordCount: 93,
+  },
+  "concept-asynchronous-io": {
+    conceptId: "concept-asynchronous-io",
+    slug: "asynchronous-io",
+    title: "Asynchronous I/O",
+    paragraphs: [
+      "Asynchronous I/O is a processing design that allows a program to initiate an input or output operation—such as downloading a file or querying a database—without freezing execution while waiting for the hardware to respond. The program requests data transfer and immediately continues doing other meaningful work.",
+      "When the storage drive or network adapter completes the transfer, the operating system alerts the application through an event loop or completion signal. This prevents wasteful idle waiting, allowing a single lightweight process to coordinate thousands of active connections simultaneously without dedicating a separate system thread to each one.",
+    ],
+    wordCount: 96,
+  },
+  "concept-machine-code": {
+    conceptId: "concept-machine-code",
+    slug: "machine-code",
+    title: "Machine Code",
+    paragraphs: [
+      "Machine code represents the most fundamental language in computing: the raw binary streams of ones and zeros that a central processing unit executes directly. Every high-level algorithm, graphical interface, and web service ultimately gets translated into these elementary binary instructions before the processor can run them.",
+      "Each machine instruction carries a numerical operation code that commands the processor's silicon circuits to perform an exact physical task, such as adding numbers or loading data from a register. It is the purest expression of software, turning mathematical logic into physical electrical signals inside the machine.",
+    ],
+    wordCount: 92,
+  },
+};
+
+export const ALL_CONCEPT_OVERVIEWS: Record<string, ConceptOverview> = {
+  ...SEED_CONCEPT_OVERVIEWS,
+  ...PILOT_CONCEPT_OVERVIEWS,
+};
+
 /**
- * Retrieves an enhanced Level 1 overview for a given concept ID.
+ * Retrieves an enhanced Level 1 overview for a given concept ID or slug.
  */
-export function getConceptOverview(conceptId: string): ConceptOverview | undefined {
-  return SEED_CONCEPT_OVERVIEWS[conceptId];
+export function getConceptOverview(conceptIdOrSlug: string): ConceptOverview | undefined {
+  if (ALL_CONCEPT_OVERVIEWS[conceptIdOrSlug]) {
+    return ALL_CONCEPT_OVERVIEWS[conceptIdOrSlug];
+  }
+  for (const overview of Object.values(ALL_CONCEPT_OVERVIEWS)) {
+    if (overview.slug === conceptIdOrSlug || overview.conceptId === conceptIdOrSlug) {
+      return overview;
+    }
+  }
+  return undefined;
 }
 
 /**
