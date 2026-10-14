@@ -17,7 +17,7 @@ In accordance with the [Knowledge Writing Standard (`12-knowledge-writing-standa
 1. **Six Batch 01 Pilot Articles:** Located under `research/m2-knowledge-universe-01/articles/pilot/`.
 2. **Seven Seed Proposal Drafts:** Located under `research/m2-knowledge-universe-01/articles/seed-proposals/`.
 
-Every article avoids terse bullet points and fragmented summaries in favor of continuous, chapter-style educational prose (~1,400–2,200 words per article; 23,637 total words across all 13 articles). Significant technical assertions and historical landmarks are supported by compact, clickable inline references placed immediately adjacent to the relevant text.
+Every article avoids terse bullet points and fragmented summaries in favor of continuous, chapter-style educational prose (~1,400–2,400 words per article; 24,373 total words across all 13 articles). Significant technical assertions and historical landmarks are supported by compact, clickable inline references placed immediately adjacent to the relevant text.
 
 ---
 
@@ -28,10 +28,10 @@ The table below details the word count, inline citation appearances, unique sour
 | Article File | Concept ID | Word Count | Inline Citation Appearances | Unique Sources Cited in Ref Section | Primary Evidence Tiers |
 | :--- | :--- | :---: | :---: | :--- | :--- |
 | `pilot/instruction-set-architecture.md` | `concept-instruction-set-architecture` | 1,992 | 12 | `src-patterson-hennessy-cod`, `src-riscv-spec` | Tier 1 (Open Standard), Tier 2 (Academic Text) |
-| `pilot/virtual-memory.md` | `concept-virtual-memory` | 2,132 | 14 | `src-arpaci-ostep`, `src-bryant-csapp`, `src-denning-virtual-memory`, `src-patterson-hennessy-cod` | Tier 1 (Open Text), Tier 2 (Academic Text), Tier 3 (Paywalled Paper) |
-| `pilot/file-systems.md` | `concept-file-systems` | 1,976 | 10 | `src-arpaci-ostep` | Tier 1 (Open Textbook) |
-| `pilot/concurrency.md` | `concept-concurrency` | 2,218 | 13 | `src-arpaci-ostep`, `src-herlihy-multiprocessor`, `src-lamport-clocks-1978`, `src-posix-base-spec` | Tier 1 (Open Text / Std), Tier 2 (Academic Text), Tier 3 (Paywalled Paper) |
-| `pilot/asynchronous-io.md` | `concept-asynchronous-io` | 1,890 | 10 | `src-arpaci-ostep`, `src-posix-base-spec` | Tier 1 (Open Text & International Standard) |
+| `pilot/virtual-memory.md` | `concept-virtual-memory` | 2,233 | 14 | `src-arpaci-ostep`, `src-bryant-csapp`, `src-denning-virtual-memory`, `src-patterson-hennessy-cod` | Tier 1 (Open Text), Tier 2 (Academic Text), Tier 3 (Paywalled Paper) |
+| `pilot/file-systems.md` | `concept-file-systems` | 2,300 | 10 | `src-arpaci-ostep` | Tier 1 (Open Textbook) |
+| `pilot/concurrency.md` | `concept-concurrency` | 2,387 | 13 | `src-arpaci-ostep`, `src-herlihy-multiprocessor`, `src-lamport-clocks-1978`, `src-posix-base-spec` | Tier 1 (Open Text / Std), Tier 2 (Academic Text), Tier 3 (Paywalled Paper) |
+| `pilot/asynchronous-io.md` | `concept-asynchronous-io` | 2,032 | 10 | `src-arpaci-ostep`, `src-posix-base-spec` | Tier 1 (Open Text & International Standard) |
 | `pilot/machine-code.md` | `concept-machine-code` | 1,779 | 10 | `src-intel-sdm`, `src-patterson-hennessy-cod` | Tier 1 (Architecture Manual), Tier 2 (Academic Text) |
 | `seed-proposals/rust.md` | `concept-rust` | 1,478 | 7 | `src-rust-book` | Tier 1 (Official Living Documentation) |
 | `seed-proposals/ownership.md` | `concept-ownership` | 1,557 | 10 | `src-rust-book`, `src-rust-reference` | Tier 1 (Official Docs & Reference) |
@@ -42,8 +42,8 @@ The table below details the word count, inline citation appearances, unique sour
 | `seed-proposals/transistors.md` | `concept-transistors` | 1,769 | 11 | `src-ieee-transistor-milestone`, `src-patterson-hennessy-cod`, `src-sze-semiconductor` | Tier 2 (Academic Text), Tier 4 (Archival Milestone) |
 
 **Totals:**
-- **Total Word Count:** 23,637 words across 13 articles.
-- **Pilot Batch 01 Word Count:** 11,987 words across 6 pilot articles.
+- **Total Word Count:** 24,373 words across 13 articles.
+- **Pilot Batch 01 Word Count:** 12,723 words across 6 pilot articles.
 - **Seed Proposals Word Count:** 11,650 words across 7 seed proposals.
 - **Total Inline Citation Appearances in Article Bodies:** 132 (69 pilot + 63 seed proposals).
 - **Starting Baseline Inline Appearances (at commit `ff14f37`):** 124 (61 pilot + 63 seed proposals).
@@ -69,8 +69,9 @@ To ensure editorial clarity and statistical integrity, the metrics are formally 
    - Counts the distinct source entities defined in `02-source-registry.json` that appear in Section 7 of the articles:
      - `src-arpaci-ostep`, `src-bryant-csapp`, `src-denning-virtual-memory`, `src-herlihy-multiprocessor`, `src-ieee-transistor-milestone`, `src-intel-sdm`, `src-lamport-clocks-1978`, `src-patterson-hennessy-cod`, `src-posix-base-spec`, `src-riscv-spec`, `src-rust-book`, `src-rust-reference`, `src-sze-semiconductor`, `src-tanenbaum-mos`.
 
-3. **Unique Claim-to-Source Mappings (97 Claims):**
-   - Counts the distinct claim entries in `03-evidence-ledger.json` supporting the Wave 1 research package.
+3. **Previously Cataloged Wave 1 Research Claims (97 Claims):**
+   - Counts the distinct candidate claim entries in `10-wave-1-evidence-ledger.json` established during the initial Wave 1 research and scoping phase.
+   - *Epistemic Distinction:* This catalog of 97 claims supports the Wave 1 candidate node imports, but does not represent an exhaustive claim-level audit of the expanded 13 knowledge articles. While those 97 foundational claims ground the core graph concepts and relationships, the 13 completed articles comprise 24,373 words of continuous educational prose containing 132 visible inline citation appearances, which include broader historical context, microarchitectural nuances, and concrete systems programming walkthroughs.
 
 4. **Epistemic Boundaries — What "Verified" Means:**
    - **Hyperlink validity does not equal factual truth:** Confirming that a URL resolves with HTTP status 200 verifies only source accessibility, not the accuracy of claims in the text.
@@ -96,29 +97,39 @@ During this quality gate, several substantive technical issues and generic citat
 - **Architectural vs. Microarchitectural Distinction:** Reinforced the difference between ISA specification (program-visible registers, instructions, memory semantics) and microarchitectural implementation (pipeline depth, superscalar issue width, branch predictors).
 
 ### 2. Virtual Memory (`pilot/virtual-memory.md`)
-- **TLB Miss vs. Page Fault Distinction:** Formally differentiated a TLB miss from a page fault. A TLB miss is a hardware cache miss in the MMU translation buffer, resolved in single-digit nanoseconds by a hardware page-table walker without halting instruction execution or trapping to the operating system (provided the page table entry is marked present). A page fault occurs when the entry is missing or invalid, or violates permission bits; this halts instruction retirement and triggers an operating system trap to allocate memory or terminate the process.
-- **Hardware Page-Table Walking:** Explained how the MMU autonomously walks multi-level hierarchical radix trees in DRAM (e.g., traversing CR3 on x86-64 or satp on RISC-V).
-- **Access Latency Corrections:** Corrected memory access timings to reflect realistic physical latencies (TLB hit ~1 cycle / < 1 ns; DRAM access 50–100 ns).
+- **TLB Miss vs. Page Fault Distinction:** Formally differentiated a TLB miss from a page fault. A TLB miss is a hardware cache miss in the MMU translation buffer, resolved by a hardware page-table walker without halting instruction execution or trapping to the operating system (provided the page table entry is marked present). A page fault occurs when the entry is missing or invalid, or violates permission bits; this halts instruction retirement and triggers an operating system trap to allocate memory or terminate the process.
+- **Hardware Page-Table Walking:** Explained how the MMU autonomously walks multi-level hierarchical radix trees in DRAM (e.g., traversing `CR3` on x86-64 or `satp` on RISC-V).
+- **Access Latency Nuance:** Qualified TLB lookup latencies across microarchitectures and hierarchies (L1 TLB hits typically ~1 cycle / < 1 ns, whereas secondary L2 TLBs require 7 to 12 cycles). Corrected DRAM access latency claims to reflect realistic physical bounds (50–100 ns).
+- **Mobile Memory Reclamation & Swapping Policies:** Replaced the inaccurate universal assertion that iOS and Android "never swap" with an accurate description of platform-specific policies. Clarified that while consumer mobile OSes historically avoided swap partitions to protect flash memory endurance (relying instead on in-RAM compressed swap like Linux `zram` and memory pressure daemons like Android's Low Memory Killer or iOS jetsam), modern platforms implement device-specific policies—including iPadOS Virtual Memory Swap on M-series chips and select Android OEM storage-backed extensions.
 - **Process Isolation & Physical Vulnerabilities:** Qualified isolation guarantees by discussing microarchitectural vulnerabilities (Rowhammer DRAM disturbance, Spectre/Meltdown speculative execution attacks).
 - **Precise OSTEP Links:** Replaced generic textbook links with specific open chapter PDFs: `vm-intro.pdf`, `vm-paging.pdf`, `vm-tlbs.pdf`, and `vm-smalltables.pdf`.
 
 ### 3. Concurrency (`pilot/concurrency.md`)
-- **Undefined Behavior in C Counter Example:** Removed the unsynchronized `volatile int` multi-threaded counter example. Documented that in standard C (ISO/IEC 9899:2011 §5.1.2.4), concurrent unsynchronized access where at least one thread writes constitutes a data race resulting in undefined behavior, and that `volatile` provides neither atomicity nor hardware memory barriers.
-- **Assembly Interleaving Demonstration:** Replaced the flawed C code with an explicitly labeled conceptual machine-instruction trace (`load`, `increment`, `store`) showing how thread preemption between instructions corrupts intermediate state.
-- **Mutex Semantics & Memory Ordering:** Clarified that a mutex enforces mutual exclusion via hardware atomic instructions and memory barriers (acquire on lock, release on unlock), rather than making arbitrary sequences of CPU instructions physically indivisible in silicon.
+- **Data Races vs. Race Conditions Formally Delineated:** Distinctly separated low-level memory data races (concurrent unsynchronized accesses to the same memory location where at least one is a write, constituting undefined behavior in ISO C11 §5.1.2.4) from high-level semantic race conditions (program logic flaws where outcome correctness depends on execution interleaving, which can occur even in 100% data-race-free code).
+- **Assembly Interleaving Demonstration:** Replaced the flawed, undefined C `volatile int` code with an explicitly labeled conceptual machine-instruction trace (`load`, `increment`, `store`) showing how thread preemption between instructions corrupts intermediate state.
+- **Mutex Mechanics & Memory Ordering:** Clarified that acquiring a mutex enforces mutual exclusion rather than physically preventing CPU pipeline instruction interleaving or halting timer interrupts. Clarified that releasing a mutex does **not** flush memory writes to persistent storage or off-chip DRAM (which is the role of filesystem calls like `fsync`), but establishes a formal **happens-before ordering** across threads via acquire-release semantics and hardware cache-coherency protocols (such as MESI/MOESI).
 - **Herlihy Textbook Reconciliation:** Reconciled the Herlihy & Shavit reference with the research registry: *The Art of Multiprocessor Programming*, Revised 1st Edition, 2012, ISBN `978-0-12-397337-5`, published by Morgan Kaufmann / Elsevier.
 - **Precise Links:** Linked to OSTEP chapter PDFs (`threads-intro.pdf`, `threads-locks.pdf`, `threads-cv.pdf`, `threads-bugs.pdf`) and POSIX standard documentation (`pthread_mutex_lock.html`).
 
 ### 4. Asynchronous I/O (`pilot/asynchronous-io.md`)
-- **POSIX AIO Code Corrections:** Corrected the C code walkthrough into an executable, standard-conforming POSIX AIO implementation, including required headers (`<aio.h>`, `<fcntl.h>`, `<unistd.h>`, `<errno.h>`), explicit error handling (`aio_error()` returning `EINPROGRESS`), correct return value extraction (`aio_return()` returning `ssize_t`), non-blocking polling, and resource cleanup (`close(fd)`).
+- **POSIX AIO Code Corrections & Compilation Verification:** Converted the C code walkthrough into an executable, standard-conforming POSIX AIO implementation. Added `#define _POSIX_C_SOURCE 200809L` and `<time.h>` `nanosleep()` (replacing obsolete `usleep()`). Explicitly handled all three `aio_error(&cb)` outcomes: `EINPROGRESS` (in-flight), `-1` (query failure), and completion.
+- **Result Retrieval via `aio_return()`:** Documented that POSIX mandates calling `aio_return()` exactly once per submitted request to retrieve the transferred byte count and release internal kernel/runtime resources, even when the asynchronous operation reports an error.
+- **Verified Toolchain Instructions:** Confirmed compilation and execution with:
+  `gcc -Wall -Wextra -pedantic -std=c11 async_read.c -o async_read -lrt`
+  explaining the requirement of the POSIX Real-Time Extensions library (`-lrt`).
 - **Resource Lifecycle Guardrails:** Documented that the `struct aiocb` control block and data buffer must remain allocated and untouched in memory until `aio_return()` completes.
 - **Readiness vs. Completion:** Clarified the distinction between synchronous readiness-notification mechanisms (`select`, `poll`, `epoll`) and true asynchronous completion frameworks (Linux `io_uring`, Windows IOCP, POSIX AIO).
-- **Implementation Divergence:** Clarified that user-space POSIX AIO (`glibc`) relies on background worker thread pools, whereas modern kernel subsystems (`io_uring`) and DMA controllers provide true hardware asynchronous operation.
 - **Precise Links:** Linked to OSTEP `file-devices.pdf` and POSIX specifications for `aio.h`, `aio_read`, `aio_error`, and `aio_return`.
 
 ### 5. File Systems (`pilot/file-systems.md`)
-- **Universal vs. Implementation-Specific Concepts:** Delineated universal abstractions (hierarchical directory tree, open file descriptors, separation of data and metadata) from implementation choices (inodes vs. FAT cluster chains vs. NTFS Master File Tables; direct block pointers vs. extents; write-ahead journaling vs. Copy-on-Write B-trees).
-- **Crash Consistency & Persistence Prerequisites:** Documented the requirement to issue `fsync()` on the parent directory when creating new files, ensuring that directory entries are persisted to disk across unexpected crashes.
+- **File Creation vs. Opening Existing Files:** Explicitly delineated brand-new file creation (`O_CREAT | O_EXCL`), which requires the kernel to allocate an unused inode and insert a directory entry into the parent directory, from opening existing files (`open("file.txt", O_WRONLY)`), which reuses established inode numbers and directory linkages.
+- **Practical File-Plus-Parent-Directory Sync Pattern:** Documented the complete pattern required to ensure crash durability for newly created files:
+  1. Write data and check `write()` return values.
+  2. Call `fsync(file_fd)` on the file and check for writeback errors (`EIO`, `ENOSPC`).
+  3. Close `file_fd` and check return value.
+  4. Open the parent directory (`open(".", O_RDONLY | O_DIRECTORY)`), call `fsync(dir_fd)`, and verify its return value before closing.
+- **Platform and Filesystem Assumptions:** Explicitly disclosed platform dependencies: POSIX/Linux directory `fsync` requirements; macOS `fcntl(fd, F_FULLFSYNC)` requirements to force non-volatile commit past physical drive caches; Copy-on-Write (ZFS, Btrfs, APFS) transaction group semantics; and Windows/NTFS `FlushFileBuffers()`.
+- **Universal vs. Implementation-Specific Concepts:** Delineated universal abstractions (hierarchical directory tree, open file descriptors, separation of data and metadata) from implementation choices (inodes vs. FAT clusters vs. NTFS MFT; direct pointers vs. extents; journaling vs. CoW).
 - **Precise Links:** Linked to OSTEP chapter PDFs: `file-intro.pdf`, `file-implementation.pdf`, and `file-journaling.pdf`.
 
 ### 6. Machine Code (`pilot/machine-code.md`)

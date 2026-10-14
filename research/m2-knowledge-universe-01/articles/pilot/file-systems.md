@@ -96,19 +96,38 @@ Modern architectures solve this using two primary paradigms:
 
 ## 4. Concrete Example & Practical Walkthrough
 
-Let us trace what occurs under the hood when a C or Rust program creates and writes a small file:
+Let us trace what occurs under the hood when a program creates and writes a new file:
 
 ```c
-int fd = open("greeting.txt", O_CREAT | O_WRONLY, 0644);
-write(fd, "Hello, world!\n", 14);
+/* 1. Create a brand-new file atomically (failing if it already exists) */
+int fd = open("greeting.txt", O_WRONLY | O_CREAT | O_EXCL, 0644);
+if (fd < 0) {
+    perror("Failed to create file");
+    return 1;
+}
+
+/* 2. Write data payload into the file */
+ssize_t bytes_written = write(fd, "Hello, world!\n", 14);
+if (bytes_written < 0) {
+    perror("Write failed");
+    close(fd);
+    return 1;
+}
+
+/* 3. Flush file data and inode to persistent media */
+if (fsync(fd) < 0) {
+    perror("fsync failed");
+    close(fd);
+    return 1;
+}
+
 close(fd);
 ```
 
-When this code executes:
-1. **Directory Lookup & Inode Allocation:** The kernel scans the current working directory to verify `greeting.txt` does not already exist. It then consults the **inode bitmap**, finds an unused bit, flips it to `1`, and initializes a new inode structure in memory.
-2. **Directory Insertion:** The kernel appends a new entry `("greeting.txt", inode_num)` to the parent directory's block list.
-3. **Data Buffer Allocation:** When `write()` is invoked, the operating system kernel copies the 14 bytes `"Hello, world!\n"` into an in-memory page cache buffer. It consults the **block bitmap**, allocates a free storage block on the disk, and writes that block number into the new inode's direct block pointer table or extent tree.
-4. **Journal Commit & Asynchronous Flushing:** The operating system logs this transaction into the filesystem journal. To maximize performance, the actual write of the 14 bytes to the physical drive is deferred; the kernel keeps the data in the RAM **page cache** and schedules background kernel threads (such as `kworker` or `pdflush`) to flush the dirty data to physical storage asynchronously.
+When this code executes, the kernel distinguishes **file creation** from opening an existing file:
+1. **Creation vs. Opening Existing Files:** When opening an existing file (e.g., `open("greeting.txt", O_WRONLY)`), the kernel merely looks up the existing file name in the directory, retrieves its established inode number, and increments its open file table reference count without modifying directory linkage. In contrast, with `O_CREAT | O_EXCL`, the kernel confirms the name does not exist, allocates an unused inode from the **inode bitmap**, initializes its metadata (ownership, timestamps, mode), and inserts a new directory entry `("greeting.txt", inode_num)` into the parent directory's block list.
+2. **Data Buffer Allocation:** When `write()` is invoked, the operating system kernel copies the 14 bytes into an in-memory page cache buffer. It consults the **block bitmap**, allocates a free storage block on the disk, and records that block address in the inode's direct block pointer table or extent tree.
+3. **Journal Commit & Asynchronous Flushing:** The operating system logs this transaction into the filesystem journal. To maximize throughput, physical writes to storage are initially deferred; the kernel retains the data in the RAM **page cache** and schedules background kernel threads (such as `kworker` or `pdflush`) to flush dirty data asynchronously unless explicitly forced by `fsync()`.
 
 ---
 
@@ -122,9 +141,20 @@ This architectural separation enables **hard links**: multiple directory entries
 ### Misconception 2: "Journaling Guarantees That No Data Can Ever Be Lost"
 A widespread misconception among developers is that a journaling file system (such as Linux ext4 in its standard `data=ordered` mode) guarantees that recent file writes will survive an unexpected crash.
 
-In reality, standard journaling protects **metadata integrity**, not uncommitted application payloads. It guarantees that the directory tree, block pointers, and free-space bitmaps will not be corrupted or point to orphaned garbage. However, data written by an application often sits in volatile CPU and drive write caches for several seconds before being written to persistent silicon. If power is pulled, that uncommitted data vanishes unless the application explicitly invokes **`fsync()`** or **`fdatasync()`** to force a synchronous hardware cache flush. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/file-journaling.pdf)
+In reality, standard journaling protects **filesystem metadata integrity**, not uncommitted application data payloads. It guarantees that the directory tree, block pointers, and free-space bitmaps will not be corrupted into an inconsistent state after a reboot. However, data written by an application often sits in volatile OS page cache and drive write buffers for several seconds before being flushed to persistent media. If power is interrupted, uncommitted application data vanishes unless the application explicitly invokes synchronization primitives. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/file-journaling.pdf)
 
-Furthermore, there is a critical prerequisite developers frequently miss: while `fsync(fd)` guarantees that the file's data and its inode are flushed to disk, guaranteeing that a *newly created file's name* persists in its directory across power loss requires calling `fsync()` on the file descriptor of the **parent directory** as well.
+### Durability in Practice: The File-Plus-Parent-Directory Sync Pattern
+To guarantee that a newly created file and its name survive an unexpected power failure, applications must follow a disciplined multi-step synchronization pattern and check all return values:
+
+1. **Write and Flush the File:** Write data with `write()` and call `fsync(file_fd)` on the file descriptor. Checking return values is essential: writeback errors (such as drive I/O failures `EIO` or disk full `ENOSPC`) are often deferred by the operating system and surfaced only during `fsync()` or `close()`!
+2. **Flush the Parent Directory:** While `fsync(file_fd)` guarantees the file's data and its inode are persisted, the directory entry linking the file's name to that inode lives in the *parent directory*. Guaranteeing persistence of a new file requires opening the parent directory (`int dir_fd = open(".", O_RDONLY | O_DIRECTORY)`) and calling `fsync(dir_fd)` before closing it.
+
+### Platform and Filesystem Assumptions
+Developers must account for platform-specific variations in persistence semantics:
+- **POSIX & Linux (ext4, XFS):** Directory `fsync` is strictly necessary for newly created, renamed, or unlinked files. In ext4's default `data=ordered` mode, metadata updates are ordered behind data writes, but durability requires explicit `fsync`.
+- **macOS / Darwin:** A standard POSIX `fsync()` flushes dirty buffers to the drive's internal write cache, but does not guarantee the drive has committed them to non-volatile flash cells; guaranteeing non-volatile persistence on macOS requires calling `fcntl(file_fd, F_FULLFSYNC)`.
+- **Copy-on-Write Filesystems (ZFS, Btrfs, APFS):** CoW systems commit updates in atomic transaction groups, ensuring structural consistency without separate journaling, but uncommitted dirty buffers still require `fsync` barriers to guarantee persistence before power loss.
+- **Windows / NTFS:** NTFS coordinates directory index commits through atomic Master File Table (MFT) logging via `FlushFileBuffers()`.
 
 ---
 

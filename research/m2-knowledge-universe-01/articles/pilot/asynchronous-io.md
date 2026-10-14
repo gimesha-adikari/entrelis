@@ -67,14 +67,16 @@ In a true asynchronous completion model (exemplified by the POSIX AIO specificat
 
 The POSIX standard defines asynchronous I/O interfaces through the `<aio.h>` header, using the **Asynchronous I/O Control Block (`struct aiocb`)**. [2](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/aio.h.html)
 
-Here is a complete, technically valid C demonstration of initiating a non-blocking background file read:
+Here is a complete, standard-conforming C demonstration of initiating a non-blocking background file read using the POSIX asynchronous I/O interface:
 
 ```c
+#define _POSIX_C_SOURCE 200809L
 #include <aio.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 /* Illustrative CPU-bound computation helper */
@@ -102,9 +104,9 @@ int main(void) {
     cb.aio_nbytes = sizeof(buffer);
     cb.aio_offset = 0;
 
-    /* 2. Submit the read request to the kernel; returns immediately! */
+    /* 2. Submit the read request to the kernel; returns immediately */
     if (aio_read(&cb) != 0) {
-        perror("aio_read failed immediately");
+        perror("aio_read submission failed");
         close(fd);
         return 1;
     }
@@ -112,20 +114,39 @@ int main(void) {
     /* 3. The calling thread is free to perform CPU work concurrently */
     perform_independent_work();
 
-    /* 4. Check or await completion. In production systems, aio_suspend()
-          or signal/thread notifications (sigevent) are preferred over 
-          tight polling to avoid burning unnecessary CPU cycles. */
-    while (aio_error(&cb) == EINPROGRESS) {
-        usleep(100); /* Relinquish CPU time slice while I/O is in-flight */
+    /* 4. Poll for completion. In production systems, aio_suspend()
+          or signal notifications (sigevent) are preferred over tight
+          polling to avoid burning unnecessary CPU cycles. */
+    struct timespec req = { 0, 100000L }; /* 100 microseconds */
+    int err;
+    while ((err = aio_error(&cb)) == EINPROGRESS) {
+        nanosleep(&req, NULL); /* Relinquish CPU time slice */
     }
 
-    /* 5. Retrieve final error status and byte count */
-    int err = aio_error(&cb);
+    /* 5. Check whether the aio_error query call itself failed */
+    if (err == -1) {
+        perror("aio_error query failed");
+        close(fd);
+        return 1;
+    }
+
+    /* 6. Retrieve completed operation result.
+          POSIX mandates calling aio_return exactly once per submitted
+          request to finalize the request and reclaim internal resources,
+          even if an asynchronous operation error occurred. */
+    ssize_t bytes_read = aio_return(&cb);
     if (err == 0) {
-        ssize_t bytes_read = aio_return(&cb);
-        printf("Successfully read %zd bytes asynchronously!\n", bytes_read);
+        if (bytes_read >= 0) {
+            printf("Successfully read %zd bytes asynchronously!\n", bytes_read);
+        } else {
+            perror("aio_return unexpected failure");
+            close(fd);
+            return 1;
+        }
     } else {
-        fprintf(stderr, "Asynchronous read failed: %s\n", strerror(err));
+        fprintf(stderr, "Asynchronous read operation failed: %s\n", strerror(err));
+        close(fd);
+        return 1;
     }
 
     close(fd);
@@ -133,10 +154,16 @@ int main(void) {
 }
 ```
 
+On Linux systems, compiling this standard POSIX program requires defining the appropriate POSIX feature macro and linking against the POSIX Real-Time Extensions library (`librt`):
+```bash
+gcc -Wall -Wextra -pedantic -std=c11 async_read.c -o async_read -lrt
+```
+
 In this walkthrough:
 - When `aio_read(&cb)` is called, the system queues the request and returns execution control back to the application in mere microseconds. [2](https://pubs.opengroup.org/onlinepubs/9699919799/functions/aio_read.html)
-- While storage hardware and background completion engines transfer the 4,096 bytes into `buffer`, the function `perform_independent_work()` executes on the CPU at full speed.
-- Once `aio_error(&cb)` transitions from `EINPROGRESS` to `0`, `aio_return(&cb)` retrieves the byte count (`ssize_t`). POSIX mandates that `aio_return()` must be called exactly once per request to finalize kernel state.
+- While storage hardware or worker pools transfer the bytes into `buffer`, the function `perform_independent_work()` executes on the CPU at full speed.
+- The program polls `aio_error(&cb)`, testing for `EINPROGRESS` (in flight), `-1` (error querying status), or `0` (clean completion).
+- Once the operation completes, `aio_return(&cb)` is invoked to retrieve the transferred byte count (`ssize_t`) and allow the runtime to finalize internal state. POSIX mandates that `aio_return()` must be called exactly once per submitted request to prevent resource leaks.
 
 ### The Critical Rule of Resource Lifecycle
 A vital prerequisite of asynchronous I/O is **resource lifecycle management**. Because `aio_read()` returns immediately while the operation continues in the background, the memory buffers passed to the kernel (`buffer` and `cb`) **must remain allocated and unmodified** in memory until `aio_return()` has retrieved the final result. If a program allocates `cb` or `buffer` on a local function stack and that function returns before the I/O completes, the stack frame is popped, and incoming background writes will silently corrupt whatever new data occupies that stack memory. Production systems typically allocate control blocks and I/O buffers on the heap or within permanent event-loop arenas.
