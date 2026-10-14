@@ -14,7 +14,7 @@ In computer software, managing memory has historically been one of the most peri
 
 In managed languages like Java or Python, the machine takes over through an automated **garbage collector**. While convenient, garbage collection incurs continuous runtime overhead, burns CPU cycles scanning memory graphs, and can cause unpredictable latency spikes as execution is periodically halted to clean up debris.
 
-**Ownership** is a groundbreaking alternative: a discipline enforced strictly at compile time that guarantees deterministic, safe memory management with zero runtime overhead and without an automated garbage collector. [1](https://doc.rust-lang.org/book/)
+**Ownership** is a groundbreaking alternative: a discipline enforced strictly at compile time that guarantees deterministic, safe memory management with zero runtime overhead and without an automated garbage collector. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html)
 
 To understand the core mental model, imagine a physical library with a single, highly valued book:
 - **Ownership:** Exactly one person holds the master library card for that book at any given time. If they hand the card to a friend, they have made a **move**—the original holder no longer owns the card and cannot claim the book.
@@ -27,12 +27,12 @@ To understand the core mental model, imagine a physical library with a single, h
 
 For decades, computer scientists believed that software systems faced an inescapable law: you could have low-level control, or you could have memory safety, but you could never have both. Memory management bugs were viewed as an unavoidable occupational hazard of systems programming.
 
-In the late 2000s, language designers working on the Rust project asked a radical question: could affine logic and type-system theory be adapted into a practical, industrial programming language? By treating memory allocations not as raw numerical addresses, but as **linearly owned resources** bound to lexical variables, the compiler could track the exact lifetime of every byte of memory from creation to disposal. [1](https://doc.rust-lang.org/book/)
+In the late 2000s, language designers working on the Rust project asked a radical question: could affine logic and type-system theory be adapted into a practical, industrial programming language? By treating memory allocations not as raw numerical addresses, but as **linearly owned resources** bound to lexical variables, the compiler could track the exact lifetime of every byte of memory from creation to disposal. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html)
 
 The result was the invention of the **Rust Ownership and Borrowing Model**. By proving safety invariants at compile time, ownership eliminates:
 - **Dangling Pointers:** Pointers that point to freed memory.
 - **Double Frees:** Releasing the same memory allocation twice.
-- **Data Races:** Two execution threads accessing the same memory concurrently without synchronization when at least one access is a write. [1](https://doc.rust-lang.org/book/)
+- **Data Races:** Two execution threads accessing the same memory concurrently without synchronization when at least one access is a write. [1](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html)
 
 ---
 
@@ -42,7 +42,7 @@ The entire ownership discipline is founded upon three deceptively simple rules:
 
 1. **Each value in Rust has an owner variable.**
 2. **There can only be one owner at a time.**
-3. **When the owner variable goes out of scope, the value is dropped.** [1](https://doc.rust-lang.org/book/)
+3. **When the owner variable goes out of scope, the value is dropped.** [2](https://doc.rust-lang.org/reference/destructors.html)
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -60,16 +60,16 @@ The entire ownership discipline is founded upon three deceptively simple rules:
 
 ### 1. Moves vs. Copies
 How data behaves when passed between variables depends on how it is stored:
-- **Copy Types:** Primitive data types with a fixed size known at compile time—such as integers (`i32`), floating-point numbers (`f64`), and booleans (`bool`)—implement the `Copy` trait. [1](https://doc.rust-lang.org/book/) When assigned to a new variable or passed to a function, their raw bits are quickly duplicated on the stack. The original variable remains completely valid.
+- **Copy Types:** Primitive data types with a fixed size known at compile time—such as integers (`i32`), floating-point numbers (`f64`), and booleans (`bool`)—implement the `Copy` trait. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) When assigned to a new variable or passed to a function, their raw bits are quickly duplicated on the stack. The original variable remains completely valid.
 - **Move Types:** Complex data structures that manage dynamic heap allocations—such as `String` or `Vec<T>`—consist of a small metadata header on the stack (a pointer, length, and capacity) pointing to a heap buffer in RAM. When assigned to another variable (`let b = a;`), Rust performs a shallow copy of the stack header and instantly **invalidates the source variable `a`**. This transfer of ownership is called a **move**. It guarantees that the underlying heap memory is still owned by exactly one variable, completely preventing double-free bugs.
 
 ### 2. Borrowing & References
-Creating new copies of large heap data structures is expensive. To inspect or update data without transferring ownership, programs use **borrowing**—creating references (`&` or `&mut`) that point to values without taking ownership: [1](https://doc.rust-lang.org/book/)
+Creating new copies of large heap data structures is expensive. To inspect or update data without transferring ownership, programs use **borrowing**—creating references (`&` or `&mut`) that point to values without taking ownership: [1](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html)
 - **Immutable References (`&T`):** Allow reading the value. Multiple immutable references can coexist peacefully throughout the program.
-- **Mutable References (`&mut T`):** Allow modifying the value. To prevent data corruption, Rust enforces the cardinal rule: **Aliasing XOR Mutability**. You can have any number of readers, OR exactly one writer, but never both at the same time. [2](https://doc.rust-lang.org/reference/)
+- **Mutable References (`&mut T`):** Allow modifying the value. To prevent data corruption, Rust enforces the cardinal rule: **Aliasing XOR Mutability**. You can have any number of readers, OR exactly one writer, but never both at the same time. [1](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html)
 
 ### 3. Lifetimes: Preventing Dangling References
-Every reference in a program has a **lifetime**—the scope for which that reference is valid. In most cases, the compiler infers lifetimes automatically through local type inference. However, when functions accept and return references, the compiler uses explicit lifetime annotations (e.g., `'a`) to mathematically prove that a returned reference cannot outlive the underlying data it points to. [1](https://doc.rust-lang.org/book/)
+Every reference in a program has a **lifetime**—the scope for which that reference is valid. In most cases, the compiler infers lifetimes automatically through local type inference. However, when functions accept and return references, the compiler uses explicit lifetime annotations (e.g., `'a`) to mathematically prove that a returned reference cannot outlive the underlying data it points to. [1](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html)
 
 ---
 
@@ -109,7 +109,7 @@ let ref2 = &mut numbers;    // ERROR! Cannot borrow `numbers` as mutable
 println!("{}", ref1.len());
 ```
 
-In languages like C++, appending an element to a vector might reallocate the underlying heap buffer to a new memory address, leaving `ref1` pointing to deallocated memory (an **iterator invalidation bug**). In Rust, the compiler's borrow checker detects this conflict at compile time and refuses to generate binary code, protecting the program from runtime crashes. [1](https://doc.rust-lang.org/book/)
+In languages like C++, appending an element to a vector might reallocate the underlying heap buffer to a new memory address, leaving `ref1` pointing to deallocated memory (an **iterator invalidation bug**). In Rust, the compiler's borrow checker detects this conflict at compile time and refuses to generate binary code, protecting the program from runtime crashes. [1](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html)
 
 ---
 
@@ -123,7 +123,7 @@ A common misunderstanding among beginners is believing that the borrow checker i
 ### Misconception 2: "Borrowing Automatically Clones or Duplicates Memory"
 Learners sometimes confuse borrowing a reference (`&data`) with cloning a value (`data.clone()`). 
 - Borrowing creates a lightweight pointer to the existing value without copying a single byte of heap data. 
-- Deep duplication occurs only when the developer explicitly invokes `.clone()`, ensuring that expensive memory allocations are never hidden behind innocent-looking syntax. [1](https://doc.rust-lang.org/book/)
+- Deep duplication occurs only when the developer explicitly invokes `.clone()`, ensuring that expensive memory allocations are never hidden behind innocent-looking syntax. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html)
 
 ---
 

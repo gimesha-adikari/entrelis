@@ -27,9 +27,9 @@ In the 1950s and early 1960s, computers executed one program at a time, or share
 The breakthrough arrived in 1962 with the Manchester Atlas supercomputer, which pioneered the concept of hardware-assisted dynamic address translation, later formalized in Peter J. Denning's seminal 1970 survey. [2](https://doi.org/10.1145/356571.356573) 
 
 Virtual memory solved three monumental engineering challenges simultaneously:
-1. **Total Process Isolation:** Because every process resides in its own isolated address space, an errant pointer or rogue program cannot read or write the memory of another application or the operating system kernel.
+1. **Robust Process Isolation:** Because every process resides in its own isolated address space, an errant pointer or rogue application cannot directly read or write the memory of another application or the operating system kernel. However, virtual memory alone does not eliminate all vulnerabilities: microarchitectural side channels (such as Spectre and Meltdown) and physical DRAM disturbance errors (such as Rowhammer) demonstrate that software-isolated address spaces can still experience state leakage across hardware resources.
 2. **Elimination of Physical Fragmentation:** Physical RAM can be fragmented across thousands of non-contiguous 4-kilobyte chunks, yet the application experiences a perfectly smooth, contiguous address space. [3](https://csapp.cs.cmu.edu/)
-3. **Flexible Protection and Sharing:** Individual memory regions can be marked as read-only, read-write, or executable, preventing security exploits such as buffer-overflow code injection.
+3. **Flexible Protection and Access Control:** Individual page table entries enforce read, write, and execute permissions. Marking stack and heap pages as non-executable (via the NX/XD bit) neutralizes basic buffer-overflow code injection attacks, though attackers may still craft return-oriented programming (ROP) exploits.
 
 ---
 
@@ -45,23 +45,23 @@ A complete understanding of virtual memory requires distinguishing three distinc
                            ▼
 ┌────────────────────────────────────────────────────────┐
 │  Hardware MMU & Translation Lookaside Buffer (TLB)     │
-│  - Checks on-chip TLB cache in < 1 nanosecond          │
-│  - Translates Virtual Page Number to Physical Frame    │
+│  - TLB Hit: Translates VPN to PPN in ~1 clock cycle    │
+│  - TLB Miss: Hardware Page-Table Walker reads RAM tree │
 └──────────────────────────┬─────────────────────────────┘
                            │ Physical Frame Number + Offset
                            ▼
 ┌────────────────────────────────────────────────────────┐
-│  Physical RAM: Accesses Silicon Frame at 0x8F40        │
+│  Physical Memory: Accesses L1/L2/L3 or DRAM (50–100 ns)│
 └────────────────────────────────────────────────────────┘
 ```
 
 ### 1. The Virtual Address Space Abstraction
-An application thread deals exclusively with **virtual addresses**. In standard 64-bit architectures, an address space is divided into two parts: the high-order bits represent the **Virtual Page Number (VPN)**, and the low-order bits represent the **Page Offset**. The page offset specifies the exact byte within a fixed-size chunk called a **page** (typically 4,096 bytes, or 4 KiB). [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+An application thread deals exclusively with **virtual addresses**. In standard 64-bit architectures, an address space is divided into two parts: the high-order bits represent the **Virtual Page Number (VPN)**, and the low-order bits represent the **Page Offset**. The page offset specifies the exact byte within a fixed-size chunk called a **page** (typically 4,096 bytes, or 4 KiB). [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf)
 
 Because a 4 KiB page requires 12 bits to address all 4,096 individual bytes ($2^{12} = 4096$), the lowest 12 bits of any virtual address remain identical between the virtual address and the physical address; only the page number itself needs to be translated.
 
 ### 2. The Operating System's Role: Page Tables and Policy
-The operating system kernel is the master architect of memory mappings. For every process it creates, the kernel constructs a tree-like data structure called a **multi-level page table** in RAM. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) 
+The operating system kernel is the master architect of memory mappings. For every process it creates, the kernel constructs a tree-like data structure called a **multi-level page table** in physical RAM. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-paging.pdf) [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-smalltables.pdf)
 
 The page table records:
 - The **Physical Frame Number (PFN)** corresponding to each virtual page.
@@ -71,12 +71,13 @@ The page table records:
 
 When a process allocates memory via system calls like `mmap` or `brk`, the operating system does not immediately allocate physical silicon. Instead, it merely records the valid range in kernel accounting structures. The actual physical RAM is allocated on demand when the program first attempts to access that memory—a strategy known as **demand paging**. [3](https://csapp.cs.cmu.edu/)
 
-### 3. The Hardware CPU Role: MMU and TLB Acceleration
-If the computer had to consult the operating system kernel or traverse memory-resident page tables on every single CPU memory access, software performance would collapse by 90% or more. 
+### 3. The Hardware CPU Role: MMU, TLB, and Page-Table Walkers
+If the computer had to invoke the operating system kernel on every single memory access, software performance would collapse. Instead, address translation during normal execution is handled entirely by dedicated silicon hardware built into the CPU: the **Memory Management Unit (MMU)**. [4](https://www.elsevier.com/books/computer-organization-and-design-mips-edition/patterson/978-0-12-820109-1)
 
-Instead, address translation during normal execution is handled entirely by dedicated silicon hardware built into the CPU: the **Memory Management Unit (MMU)**. [4](https://www.elsevier.com/books/computer-organization-and-design-mips-edition/patterson/978-0-12-820109-1) 
-
-To make translation instantaneous, the MMU contains an on-chip associative cache called the **Translation Lookaside Buffer (TLB)**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) The TLB stores the most recently used virtual-to-physical address mappings. On a **TLB hit**, the hardware translates the virtual address into a physical address in a fraction of a nanosecond, with zero operating system intervention. Only on a **TLB miss** does the hardware page-table walker traverse the in-memory page tables.
+To make translation near-instantaneous, the MMU contains an on-chip associative cache called the **Translation Lookaside Buffer (TLB)**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-tlbs.pdf) The TLB stores the most recently used virtual-to-physical address mappings. 
+- On a **TLB hit**, the hardware translates the virtual address into a physical address in approximately one clock cycle (< 1 ns), with zero software overhead.
+- On a **TLB miss**, modern processors (including x86-64 and ARM) activate an internal **hardware page-table walker**. The walker reads the base address of the process's page table from a dedicated CPU register (such as `CR3` on x86-64 or `satp` on RISC-V) and automatically traverses the multi-level page table hierarchy in physical RAM. If the walker finds a valid Page Table Entry with its presence bit set, it automatically loads the translation into the TLB and completes the memory access without ever trapping to the operating system. (By contrast, architectures with software-managed TLBs, such as classic MIPS, raise a fast exception to let a kernel trap handler reload the TLB).
+- Only when the page table entry is marked **not present**, or when an access violates permissions (such as writing to a read-only page), does the processor fire a **Page Fault Exception**, halting the instruction and trapping to the operating system kernel.
 
 ---
 
@@ -88,10 +89,11 @@ Let us trace what occurs during a memory access in a 64-bit system with 4 KiB pa
 2. **Address Splitting:** The MMU splits the address into:
    - **Offset (lowest 12 bits):** `0x040` (byte 64 within the page).
    - **Virtual Page Number (remaining upper bits):** `0x00007FFF5B321`.
-3. **TLB Lookup:** The MMU queries its internal TLB for virtual page `0x00007FFF5B321`.
-   - *Scenario A (Hit):* The TLB immediately returns physical frame `0x0000000108A42`. The MMU appends the offset `0x040`, yielding physical address `0x0000000108A42040`. The CPU accesses the DRAM chip in single-digit nanoseconds. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
-   - *Scenario B (Miss & Page Fault):* If the mapping is absent or the page table marks the entry as not present, the hardware halts the instruction and fires an **Interrupt / Page Fault Exception**, transferring control to the operating system kernel. [3](https://csapp.cs.cmu.edu/)
-4. **Kernel Exception Handler:** The OS inspects the faulting address. If the access is valid (e.g., an unallocated heap page), the kernel finds a free physical frame in RAM, writes the new mapping into the process's page table, updates the TLB, and resumes the application thread at the exact instruction that faulted. The thread continues execution, completely unaware that a brief hardware interrupt occurred.
+3. **TLB Lookup & Hardware Translation:**
+   - *Case 1 (TLB Hit):* The MMU finds virtual page `0x00007FFF5B321` in its TLB cache within ~1 clock cycle (< 1 ns), immediately retrieving physical frame `0x0000000108A42`. Appending the offset yields physical address `0x0000000108A42040`. If the line resides in the L1/L2 cache, data arrives in 1–5 ns; if it must be fetched from DRAM, it arrives in 50–100 ns. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-tlbs.pdf)
+   - *Case 2 (TLB Miss, Page Present):* The translation is absent from the TLB. The MMU's hardware page-table walker traverses the multi-level page directory in RAM, locates the valid Page Table Entry, installs it into the TLB, and executes the access. The operating system kernel is never invoked. [3](https://csapp.cs.cmu.edu/)
+   - *Case 3 (Page Fault Exception):* The hardware page-table walker discovers that the Page Table Entry has its present bit set to `0` (or the operation violates read/write/execute permissions). The hardware suspends the instruction and triggers an architectural **Page Fault Exception** (Interrupt 14 on x86-64), switching privilege to the OS kernel. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-paging.pdf)
+4. **Kernel Exception Handler:** The OS inspects the faulting address. If the access is valid (e.g., an unallocated heap page subject to demand paging), the kernel finds a free physical frame in RAM, writes the new physical mapping into the process's page table, updates the TLB, and resumes the application thread at the exact instruction that faulted. The thread continues execution, completely unaware that a brief kernel intervention occurred.
 
 ---
 
@@ -99,11 +101,11 @@ Let us trace what occurs during a memory access in a 64-bit system with 4 KiB pa
 
 ### Misconception 1: "Virtual Memory Translation is Done by Software"
 A frequent misunderstanding is that the operating system kernel translates every memory pointer. If software had to intervene on every memory access, modern processors executing billions of instructions per second would grind to a halt. 
-- **The MMU (Hardware)** performs every single translation using on-chip TLB caches.
-- **The OS Kernel (Software)** is invoked only during anomalies: page faults, initial process setup, context switches, or permission violations.
+- **The MMU (Hardware)** performs every single translation using on-chip TLB caches and hardware page-table walkers.
+- **The OS Kernel (Software)** is invoked only during anomalies: page faults, initial process page-table creation, context switches, or permission violations. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf)
 
 ### Misconception 2: "Virtual Memory Requires Swapping to a Hard Drive"
-Many textbooks introduce virtual memory exclusively as a way to use hard drives as "overflow RAM" when physical memory is exhausted. Swapping inactive pages to secondary disk storage is merely an optional reclamation policy, not an inherent requirement of virtual memory. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) 
+Many textbooks introduce virtual memory exclusively as a way to use hard drives as "overflow RAM" when physical memory is exhausted. Swapping inactive pages to secondary disk storage is merely an optional reclamation policy, not an inherent requirement of virtual memory. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf) 
 
 In fact, modern mobile operating systems (including Apple iOS and Android) and embedded real-time systems **never** swap anonymous application memory to disk, because writing continuously to flash memory degrades silicon storage cells and introduces unacceptable battery and latency penalties. Instead, they rely on virtual memory strictly for address space isolation, memory protection, shared libraries, and in-RAM memory compression (such as `zram`).
 
@@ -123,9 +125,14 @@ Virtual memory links the physical and software layers of the Entrelis universe:
 
 1. `src-arpaci-ostep`: Remzi H. Arpaci-Dusseau and Andrea C. Arpaci-Dusseau. *Operating Systems: Three Easy Pieces*. Arpaci-Dusseau Books, Version 1.10, 2023.  
    - **URL:** [https://pages.cs.wisc.edu/~remzi/OSTEP/](https://pages.cs.wisc.edu/~remzi/OSTEP/)  
+   - **Direct Chapter URLs:**
+     - Chapter 13 "The Abstraction: Address Spaces": [https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf)
+     - Chapter 18 "Paging: Introduction": [https://pages.cs.wisc.edu/~remzi/OSTEP/vm-paging.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-paging.pdf)
+     - Chapter 19 "Paging: Faster Translations (TLBs)": [https://pages.cs.wisc.edu/~remzi/OSTEP/vm-tlbs.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-tlbs.pdf)
+     - Chapter 20 "Paging: Smaller Tables": [https://pages.cs.wisc.edu/~remzi/OSTEP/vm-smalltables.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-smalltables.pdf)
    - **Evidence Tier:** Tier 1 (Direct Full-Text Verified Open Textbook)  
-   - **Location:** Chapter 13 "The Abstraction: Address Spaces", pp. 1–10; Chapter 18 "Paging: Introduction", pp. 1–18; Chapter 19 "Paging: Faster Translations (TLBs)", pp. 1–14; Chapter 20 "Paging: Smaller Tables", pp. 1–16.  
-   - **Supported Claims:** Address space virtualization, multi-level page table mechanics, hardware TLB caching, demand paging, and decoupling of paging from physical disk swapping.
+   - **Location:** Chapter 13, pp. 1–10; Chapter 18, pp. 1–18; Chapter 19, pp. 1–14; Chapter 20, pp. 1–16.  
+   - **Supported Claims:** Address space virtualization, multi-level page table mechanics, hardware TLB caching, hardware page-table walk sequence, page fault exception handling, demand paging, and decoupling of paging from physical disk swapping.
 
 2. `src-denning-virtual-memory`: Peter J. Denning. "Virtual Memory", *ACM Computing Surveys*, 2(3): 153–189, September 1970.  
    - **URL:** [https://doi.org/10.1145/356571.356573](https://doi.org/10.1145/356571.356573)  

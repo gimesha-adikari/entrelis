@@ -12,7 +12,7 @@
 
 A computer without an operating system is nothing more than an inert collection of silicon chips, copper circuit traces, and storage platters. While the central processing unit can execute machine instructions at blistering speeds, it possesses no built-in awareness of files, windows, multiple users, network connections, or security. Left to itself, a computer processor would execute whatever raw bytes happened to be in memory, with no mechanism to prevent a single buggy calculation from corrupting everything or seizing the machine forever.
 
-An **Operating System (OS)** is the fundamental system software that manages physical hardware resources and provides a secure, predictable, and standardized execution environment for application software. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+An **Operating System (OS)** is the fundamental system software that manages physical hardware resources and provides a secure, predictable, and standardized execution environment for application software. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/intro.pdf)
 
 To understand the core mental model, imagine the air traffic control system of a major international airport:
 - The airport possesses strictly limited physical resources: a few concrete runways (CPU cores), a finite number of terminal gates (physical RAM), and shared taxiways and baggage tunnels (hardware I/O buses).
@@ -34,13 +34,13 @@ By the 1960s, computer scientists at MIT, Bell Labs, and General Electric pionee
 Time-sharing transformed the computer from a solitary calculation engine into an interactive, multi-user utility. Operating systems introduced:
 1. **Resource Multiplexing:** Sharing a single physical processor among dozens of concurrent users so smoothly that each user felt they possessed the entire machine.
 2. **Hardware Abstraction:** Exposing unified APIs (like `read`, `write`, `open`, `close`) so software could interact with storage and peripherals without writing custom hardware drivers for every brand of drive.
-3. **Privilege Separation:** Guaranteeing that untrusted user programs could never seize control of the hardware or spy on other users. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+3. **Privilege Separation:** Guaranteeing that untrusted user programs could never seize control of the hardware or spy on other users. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-mechanisms.pdf)
 
 ---
 
 ## 3. Architectural Anatomy & How It Works
 
-As formalized in the seminal textbook *Operating Systems: Three Easy Pieces*, every modern operating system is constructed upon **Three Great Pillars**: **Virtualization**, **Concurrency**, and **Persistence**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+As formalized in the seminal textbook *Operating Systems: Three Easy Pieces*, every modern operating system is constructed upon **Three Great Pillars**: **Virtualization**, **Concurrency**, and **Persistence**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/intro.pdf)
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -66,9 +66,9 @@ As formalized in the seminal textbook *Operating Systems: Three Easy Pieces*, ev
 ```
 
 ### 1. The Three Pillars
-- **Virtualization:** The OS takes a physical resource (like a processor core or a physical DRAM chip) and transforms it into a powerful, easy-to-use virtual form. It virtualizes the CPU into **processes and threads**, and virtualizes physical memory into private **virtual address spaces**. Every program imagines it possesses infinite, contiguous memory and continuous access to a CPU. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+- **Virtualization:** The OS takes a physical resource (like a processor core or a physical DRAM chip) and transforms it into a powerful, easy-to-use virtual form. It virtualizes the CPU into **processes and threads**, and virtualizes physical memory into private **virtual address spaces**. Every program imagines it possesses infinite, contiguous memory and continuous access to a CPU. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-intro.pdf)
 - **Concurrency:** Because dozens of applications, background daemons, and device drivers must share hardware simultaneously, the OS kernel manages concurrent thread scheduling, preemptive context switches, and inter-thread synchronization primitives to ensure fairness and prevent deadlocks.
-- **Persistence:** Because RAM is volatile and loses all contents when powered off, the OS provides structured storage abstractions—**file systems**, directory trees, and journaling engines—that allow data to be safely organized, indexed, and retrieved across reboots. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+- **Persistence:** Because RAM is volatile and loses all contents when powered off, the OS provides structured storage abstractions—**file systems**, directory trees, and journaling engines—that allow data to be safely organized, indexed, and retrieved across reboots. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/file-intro.pdf)
 
 ### 2. Privilege Separation: Kernel Mode vs. User Mode
 How does an operating system maintain control if it shares the CPU with user applications? The answer lies in **hardware privilege rings** provided by the processor architecture: [2](https://www.pearson.com/en-us/subject-catalog/p/modern-operating-systems/P200000003310)
@@ -76,7 +76,7 @@ How does an operating system maintain control if it shares the CPU with user app
 - **User Mode (Ring 3 / User Mode):** The execution mode of normal applications. The CPU restricts access: user code cannot execute privileged instructions, cannot modify page tables, and cannot directly talk to hardware pins. If user code attempts to execute a privileged instruction, the CPU immediately halts the instruction and fires a hardware exception, transferring control to the kernel.
 
 ### 3. System Calls: The Gateway
-When an application needs to interact with the outside world—allocating memory, reading a file, or sending a network packet—it cannot touch the hardware directly. Instead, it must issue a **System Call (syscall)**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) 
+When an application needs to interact with the outside world—allocating memory, reading a file, or sending a network packet—it cannot touch the hardware directly. Instead, it must issue a **System Call (syscall)**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-mechanisms.pdf) 
 
 A system call uses a special CPU instruction (such as `syscall` on x86-64 or `ecall` on RISC-V) to intentionally trigger a controlled, hardware-enforced privilege elevation. The processor transitions from User Mode to Kernel Mode, saves the application's registers, jumps to a pre-registered kernel dispatch table, verifies the safety of the request, executes the operation, drops privilege back to User Mode, and returns the result to the application.
 
@@ -95,7 +95,7 @@ int main() {
 }
 ```
 
-1. **Setting up Syscall Arguments:** In accordance with the System V AMD64 ABI on x86-64, the C runtime places the arguments into CPU registers: [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+1. **Setting up Syscall Arguments:** In accordance with the System V AMD64 ABI on x86-64, the C runtime places the arguments into CPU registers: [1](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-mechanisms.pdf)
    - `rax = 1` (the system call number for `sys_write`)
    - `rdi = 1` (the file descriptor for standard output, `stdout`)
    - `rsi = 0x0000000000402000` (the virtual memory address of the string buffer)
@@ -115,7 +115,7 @@ int main() {
 ### Misconception 1: "The OS is a Continuous Program Running Alongside My App"
 Beginners often picture the operating system as a background process that runs continuously alongside their program on the same CPU core, watching every step like a supervisor looking over an employee's shoulder. 
 - In physical reality, when an application is executing instructions on a CPU core, **the operating system kernel is completely dormant**. The CPU executes user instructions at 100% native hardware speed with zero OS code executing.
-- The kernel only wakes up when triggered by an event: a **hardware timer interrupt** (to force a context switch), a **peripheral device interrupt** (e.g., keyboard press, network packet arrival), a **hardware exception** (e.g., divide-by-zero, page fault), or a deliberate **system call**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+- The kernel only wakes up when triggered by an event: a **hardware timer interrupt** (to force a context switch), a **peripheral device interrupt** (e.g., keyboard press, network packet arrival), a **hardware exception** (e.g., divide-by-zero, page fault), or a deliberate **system call**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/cpu-mechanisms.pdf)
 
 ### Misconception 2: "The GUI Desktop is the Operating System"
 Users frequently conflate the graphical desktop environment (such as Windows Explorer, macOS Aqua, or GNOME) with the operating system itself. 

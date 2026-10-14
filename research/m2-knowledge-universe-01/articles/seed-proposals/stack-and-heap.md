@@ -70,7 +70,7 @@ When a function is called:
 
 When the function finishes, cleanup is instantaneous: the CPU adds the bytes back to the stack pointer (e.g., `add rsp, 32`) and pops the return address. Because allocation and deallocation require only a single register addition or subtraction, stack memory is virtually free in terms of CPU cycles.
 
-However, the stack has a fixed upper bound (typically 1 to 8 megabytes, configured by the operating system). If a recursive function runs without a base case, or if a function allocates an enormous array on the stack, the stack pointer collides with protected memory boundaries, triggering a catastrophic hardware exception known as a **Stack Overflow**. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+However, the stack has a fixed upper bound (typically 1 to 8 megabytes, configured by the operating system). If a recursive function runs without a base case, or if a function allocates an enormous array on the stack, the stack pointer collides with protected memory boundaries, triggering a catastrophic hardware exception known as a **Stack Overflow**. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf)
 
 ### 2. The Dynamic Heap Mechanics
 The heap is an unstructured, open territory of memory. Unlike the stack, heap allocations are not tied to function scopes; a piece of data allocated on the heap remains alive until it is explicitly freed by the program or collected by a runtime engine. [1](https://csapp.cs.cmu.edu/)
@@ -80,7 +80,7 @@ Because heap allocations occur in arbitrary sizes and are freed in arbitrary ord
 The allocator:
 - Maintains free-lists or segregated size bins tracking available memory chunks.
 - Splits larger blocks when an application requests small buffers.
-- Coalesces adjacent free blocks to combat **external fragmentation** (where plenty of total memory is free, but scattered in tiny pieces too small to satisfy a new request). [2](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+- Coalesces adjacent free blocks to combat **external fragmentation** (where plenty of total memory is free, but scattered in tiny pieces too small to satisfy a new request). [2](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-api.pdf)
 - Requests additional virtual memory pages from the operating system kernel via system calls like `mmap()` or `brk()` when the heap runs out of room.
 
 ---

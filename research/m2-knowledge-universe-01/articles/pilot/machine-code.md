@@ -77,17 +77,19 @@ On modern Complex Instruction Set Computers (CISC architectures, like Intel and 
 
 ## 4. Concrete Example & Practical Walkthrough
 
-Let us trace how an x86-64 processor interprets a concrete machine code instruction. Consider the task of assigning the integer value 42 to a CPU register:
+Let us trace how an x86-64 processor interprets a concrete machine code instruction. Consider the illustrative task of assigning the integer value 42 to a CPU register:
 
 In C or Rust, you write:
 ```c
 int x = 42;
 ```
 
-In human-readable x86-64 assembly language, this translates to:
+In human-readable x86-64 assembly language, an unoptimized local initialization often translates to:
 ```assembly
 mov eax, 42
 ```
+
+*(Note on Compiler Optimizations: This sequence is an illustrative demonstration of x86-64 instruction encoding. In production software compiled with optimization enabled (such as `-O2` or `-O3`), compilers frequently optimize away unused local variables entirely, perform constant propagation directly into downstream operations, or pass values inside dedicated ABI registers (such as `edi` or `esi` under the System V AMD64 ABI), rather than emitting an isolated register immediate assignment).*
 
 When an assembler translates this mnemonic into machine code, it outputs a sequence of exactly five bytes:
 ```
@@ -140,7 +142,7 @@ Machine code is the ultimate destination of all software and the direct input of
 1. `src-intel-sdm`: Intel Corporation. *Intel® 64 and IA-32 Architectures Software Developer's Manuals*. Intel Technical Publications, Order Number 325462-084US, June 2024.  
    - **URL:** [https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html)  
    - **Evidence Tier:** Tier 1 (Direct Full-Text Verified Open Official Architecture Manual)  
-   - **Location:** Volume 1, Chapter 3 "Basic Execution Environment", Section 3.1; Volume 2 "Instruction Set Reference", Section "MOV—Move".  
+   - **Location:** Volume 1, Chapter 3 "Basic Execution Environment", Section 3.1; Volume 2A, Chapter 3 "Instruction Set Reference: MOV—Move".  
    - **Supported Claims:** Fetch-decode-execute instruction cycle, program counter (`rip`) tracking, little-endian binary instruction byte encoding (e.g. `B8 2A 00 00 00`), and opcode-to-register bitfield mapping.
 
 2. `src-patterson-hennessy-cod`: David A. Patterson and John L. Hennessy. *Computer Organization and Design: The Hardware/Software Interface* (MIPS 6th Edition). Morgan Kaufmann / Elsevier, 2020. ISBN: 978-0-12-820109-1.  

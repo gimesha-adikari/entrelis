@@ -14,7 +14,7 @@ In traditional, sequential programming, code executes like a recipe in a cookboo
 
 In the real world, this is not how effective systems operate. While the bread is baking, the chef chops vegetables, washes dishes, and sets the dining table. 
 
-**Concurrency** is the structural composition and organization of a computer program into independently executing computations whose execution lifetimes overlap in time. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) It is the discipline that allows a software system to juggle multiple ongoing concerns—handling user keyboard input, rendering a graphical interface, downloading a file from the internet, and crunching background calculations—without allowing any single slow task to freeze the entire machine.
+**Concurrency** is the structural composition and organization of a computer program into independently executing computations whose execution lifetimes overlap in time. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf) It is the discipline that allows a software system to juggle multiple ongoing concerns—handling user keyboard input, rendering a graphical interface, downloading a file from the internet, and crunching background calculations—without allowing any single slow task to freeze the entire machine.
 
 To understand the foundational mental model, consider the difference between a juggler and a team of workers:
 - A single juggler keeps five balls in the air at the same time. The juggler has only two hands, meaning they only touch one or two balls at any exact instant. However, because they rapidly catch, toss, and interleave their attention across all five balls, the system as a whole exhibits **concurrency**: multiple tasks are in flight simultaneously.
@@ -52,67 +52,64 @@ Thread A (Active)          Thread B (Ready)              Thread C (Blocked on I/
 ```
 
 ### 1. Threads and Context Switching
-A **thread** is the smallest unit of execution that an operating system kernel can schedule. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) Multiple threads residing within the same process share that process's virtual address space, heap memory, open file descriptors, and global variables. However, every thread possesses its own private **call stack**, its own **program counter (`pc`)**, and its own private snapshot of CPU **registers**.
+A **thread** is the smallest unit of execution that an operating system kernel can schedule. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf) Multiple threads residing within the same process share that process's virtual address space, heap memory, open file descriptors, and global variables. However, every thread possesses its own private **call stack**, its own **program counter (`pc`)**, and its own private snapshot of CPU **registers**.
 
-To execute multiple threads concurrently on a limited number of processor cores, the operating system kernel employs a **preemptive scheduler**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) The hardware timer interrupt periodically interrupts the CPU (e.g., every 1 to 10 milliseconds). The kernel halts the currently executing thread, saves its registers and stack pointer into a kernel data structure (the Thread Control Block), loads the saved registers of another thread, and jumps to that thread's program counter. This rapid swapping is called a **context switch**.
+To execute multiple threads concurrently on a limited number of processor cores, the operating system kernel employs a **preemptive scheduler**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf) The hardware timer interrupt periodically interrupts the CPU (e.g., every 1 to 10 milliseconds). The kernel halts the currently executing thread, saves its registers and stack pointer into a kernel data structure (the Thread Control Block), loads the saved registers of another thread, and jumps to that thread's program counter. This rapid swapping is called a **context switch**.
 
 ### 2. The Danger: Shared Mutable State & Race Conditions
 Because concurrent threads share the same address space, they can communicate with extraordinary efficiency: one thread writes data to a memory buffer, and another thread immediately reads it. 
 
-However, this shared memory introduces the most notorious hazard in computer science: the **race condition**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/) A race condition occurs when two or more threads access shared memory concurrently, at least one access is a write, and the threads perform no synchronization. Because the operating system scheduler can interrupt a thread at any arbitrary machine instruction, the final outcome depends on the unpredictable, non-deterministic timing of the execution interleaving.
+However, this shared memory introduces the most notorious hazard in computer science: the **race condition**. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf) A race condition occurs when two or more threads access shared memory concurrently, at least one access is a write, and the threads perform no synchronization. Because the operating system scheduler can interrupt a thread at any arbitrary machine instruction, the final outcome depends on the unpredictable, non-deterministic timing of the execution interleaving.
 
 ### 3. Synchronization Primitives
 To prevent race conditions, concurrent programs use synchronization primitives to enforce **mutual exclusion**—ensuring that only one thread can access a shared resource or execute a "critical section" at any given time:
 
-- **Mutexes (Mutual Exclusion Locks):** A locking mechanism where a thread acquires the lock before entering a critical section and releases it upon exit. If another thread attempts to acquire an already-locked mutex, it is placed in a sleep queue until the lock becomes available. [3](https://pubs.opengroup.org/onlinepubs/9699919799/)
-- **Atomic Operations:** Low-level CPU instructions (such as `atomic_fetch_add` or Compare-and-Swap `CAS`) that read, modify, and write a memory word in a single, indivisible hardware transaction that hardware execution units guarantee cannot be interrupted. [4](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-370591-4)
-- **Condition Variables & Semaphores:** Signaling mechanisms that allow threads to sleep efficiently until a specific condition becomes true (e.g., a shared queue receives new work). [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+- **Mutexes (Mutual Exclusion Locks):** A locking mechanism where a thread acquires the lock before entering a critical section and releases it upon exit. If another thread attempts to acquire an already-locked mutex, it is placed in a sleep queue until the lock becomes available. [3](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_mutex_lock.html)
+- **Atomic Operations:** Low-level CPU instructions (such as `atomic_fetch_add` or Compare-and-Swap `CAS`) that read, modify, and write a memory word in a single, indivisible hardware transaction that hardware execution units guarantee cannot be interrupted. [4](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-397337-5)
+- **Condition Variables & Semaphores:** Signaling mechanisms that allow threads to sleep efficiently until a specific condition becomes true (e.g., a shared queue receives new work). [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf)
 
 ---
 
 ## 4. Concrete Example & Practical Walkthrough
 
-To see how concurrency goes wrong without synchronization, consider two threads attempting to increment a shared counter:
+To understand why concurrency requires formal synchronization, consider the classic problem of two threads attempting to increment a shared counter variable.
 
-```c
-volatile int counter = 0;
-
-void* worker(void* arg) {
-    for (int i = 0; i < 10000; i++) {
-        counter++;
-    }
-    return NULL;
-}
-```
-
-At the high-level language level, `counter++` looks like a single atomic step. However, an ISA translates `counter++` into three distinct assembly instructions:
+In high-level source code, an expression like `counter++` looks like a single atomic step. However, on physical processor architectures, an increment operation decomposes into three distinct machine-level instructions:
 
 ```assembly
-mov eax, [counter]   ; 1. Load: read counter from RAM into CPU register eax
-add eax, 1           ; 2. Update: increment register eax by 1
-mov [counter], eax   ; 3. Store: write the new value back to RAM
+mov eax, [counter]   ; 1. Load: read counter value from RAM into CPU register eax
+add eax, 1           ; 2. Update: increment the value inside register eax by 1
+mov [counter], eax   ; 3. Store: write the updated register value back to RAM
 ```
 
-Now trace the disaster that occurs when two threads interleave:
-1. **Thread 1** reads `counter` (value is 0) into its register `eax`.
-2. **Thread 1** increments its `eax` to 1.
-3. *Timer Interrupt!* The OS context-switches to **Thread 2** before Thread 1 can store its result.
-4. **Thread 2** reads `counter` from RAM (value is still 0!) into its register `eax`.
-5. **Thread 2** increments its `eax` to 1 and stores 1 into `counter`.
-6. *Context Switch!* The OS resumes **Thread 1**.
-7. **Thread 1** stores its saved `eax` (which is 1) into `counter`.
+In languages governed by formal memory models like C (ISO C11 §5.1.2.4) or C++, concurrently executing unsynchronized reads and writes across threads constitutes a **data race**, which results in undefined behavior. Merely labeling a variable `volatile` does not fix this: in C and C++, `volatile` informs the compiler that a memory location may change unexpectedly (such as a memory-mapped hardware peripheral), but it does **not** provide atomicity, does not generate atomic CPU instructions, and does not establish inter-thread memory barriers.
 
-Two separate increment operations occurred, but the final value of `counter` is **1**, not 2! One entire update vanished into thin air. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+Now trace the conceptual interleaving that occurs when two threads attempt to execute this non-atomic sequence concurrently:
 
-To fix this, the programmer wraps the increment in a POSIX mutex:
+1. **Thread 1** executes the load instruction, reading `counter` (currently 0) into its private register `eax`.
+2. **Thread 1** executes the addition, incrementing its `eax` to 1.
+3. *Timer Interrupt!* Before Thread 1 can store its result, the operating system's preemptive scheduler deschedules Thread 1 and context-switches to **Thread 2**.
+4. **Thread 2** executes its load instruction. Because Thread 1 never stored its update, `counter` in RAM is still 0! Thread 2 loads 0 into its register `eax`.
+5. **Thread 2** increments its `eax` to 1, executes its store instruction, and writes 1 into `counter` in RAM.
+6. *Context Switch!* The OS scheduler resumes **Thread 1** exactly where it was halted.
+7. **Thread 1** executes its pending store instruction, writing its saved register value (1) into `counter`.
+
+Two complete increments were attempted, yet the final value in `counter` is **1**, not 2! Thread 1 unknowingly overwrote Thread 2's update, causing an entire computation to vanish. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf)
+
+### Restoring Correctness: Mutual Exclusion and Memory Ordering
+
+To eliminate this data race, programs synchronize access using a POSIX mutex lock: [3](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_mutex_lock.html)
 
 ```c
 pthread_mutex_lock(&lock);
-counter++;
+counter++;  /* Protected critical section */
 pthread_mutex_unlock(&lock);
 ```
 
-Now, when Thread 1 acquires the lock, any attempt by Thread 2 to acquire that same lock causes the kernel to block Thread 2, guaranteeing that Thread 1 completes all three assembly instructions atomically before Thread 2 can touch the memory. [3](https://pubs.opengroup.org/onlinepubs/9699919799/)
+A mutex solves the problem through two coordinated mechanisms:
+
+1. **Mutual Exclusion:** Exactly one thread can hold the mutex at any given instant. Crucially, acquiring a lock does **not** make the underlying CPU instructions physically indivisible, nor does it prevent hardware interrupts or thread context switches while Thread 1 is in the critical section. Rather, it enforces exclusive access: if Thread 1 is preempted while holding the lock, Thread 2 may be scheduled, but when Thread 2 attempts to call `pthread_mutex_lock(&lock)`, the operating system halts Thread 2 and puts it to sleep until Thread 1 completes its work and releases the lock.
+2. **Memory Ordering (Acquire-Release Semantics):** Modern out-of-order CPUs and optimizing compilers aggressively reorder instructions and buffer memory writes. A mutex operation acts as a two-way memory barrier. Releasing a lock (`unlock`) has *release semantics*, ensuring all writes performed inside the critical section are committed and visible in cache coherence protocols before the lock is released. Acquiring a lock (`lock`) has *acquire semantics*, preventing reads and writes inside the critical section from being speculatively reordered before the lock acquisition. [4](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-397337-5)
 
 ---
 
@@ -120,13 +117,13 @@ Now, when Thread 1 acquires the lock, any attempt by Thread 2 to acquire that sa
 
 ### Misconception 1: "Concurrency Requires Multiple Physical CPU Cores"
 A fundamental conceptual error is believing that concurrency is synonymous with multi-core processors. 
-- **Concurrency is about system structure:** managing many overlapping computational tasks at once. Concurrency operates with complete fidelity on a single-core CPU through time-sliced preemptive context switching. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+- **Concurrency is about system structure:** managing many overlapping computational tasks at once. Concurrency operates with complete fidelity on a single-core CPU through time-sliced preemptive context switching. [1](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf)
 - **Parallelism is about simultaneous physical execution:** executing multiple operations at the exact same physical clock cycle. True parallelism requires multiple processing resources—such as multiple CPU cores, hardware execution units, SIMD/vector units, or GPUs.
 
 A single-core computer running an operating system, a music player, a web browser, and an editor is highly concurrent, but completely non-parallel.
 
 ### Misconception 2: "More Threads Automatically Means Faster Code"
-Many junior engineers assume that splitting an algorithm across 64 threads will make it run 64 times faster. In practice, uncoordinated multithreading frequently makes programs *slower*. Creating threads consumes memory; context switching burns thousands of CPU cycles saving and restoring state; lock contention forces threads into sleep queues; and cache coherency protocols force CPU cores to repeatedly invalidate and reload shared cache lines (a phenomenon known as *cache bouncing*). Concurrency improves software structure and latency overlap, but only careful parallel design enhances computational throughput. [4](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-370591-4)
+Many junior engineers assume that splitting an algorithm across 64 threads will make it run 64 times faster. In practice, uncoordinated multithreading frequently makes programs *slower*. Creating threads consumes memory; context switching burns thousands of CPU cycles saving and restoring state; lock contention forces threads into sleep queues; and cache coherency protocols force CPU cores to repeatedly invalidate and reload shared cache lines (a phenomenon known as *cache bouncing*). Concurrency improves software structure and latency overlap, but only careful parallel design enhances computational throughput. [4](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-397337-5)
 
 ---
 
@@ -144,8 +141,13 @@ Concurrency sits at the crossroads of operating systems, hardware architecture, 
 
 1. `src-arpaci-ostep`: Remzi H. Arpaci-Dusseau and Andrea C. Arpaci-Dusseau. *Operating Systems: Three Easy Pieces*. Arpaci-Dusseau Books, Version 1.10, 2023.  
    - **URL:** [https://pages.cs.wisc.edu/~remzi/OSTEP/](https://pages.cs.wisc.edu/~remzi/OSTEP/)  
+   - **Direct Chapter URLs:**
+     - Chapter 26 "Concurrency: An Introduction": [https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf)
+     - Chapter 28 "Locks": [https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-locks.pdf)
+     - Chapter 30 "Condition Variables": [https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf)
+     - Chapter 32 "Common Concurrency Problems": [https://pages.cs.wisc.edu/~remzi/OSTEP/threads-bugs.pdf](https://pages.cs.wisc.edu/~remzi/OSTEP/threads-bugs.pdf)
    - **Evidence Tier:** Tier 1 (Direct Full-Text Verified Open Textbook)  
-   - **Location:** Chapter 26 "Concurrency: An Introduction", pp. 1–14; Chapter 28 "Locks", pp. 1–20; Chapter 30 "Condition Variables", pp. 1–18; Chapter 32 "Common Concurrency Problems", pp. 1–16.  
+   - **Location:** Chapter 26, pp. 1–14; Chapter 28, pp. 1–20; Chapter 30, pp. 1–18; Chapter 32, pp. 1–16.  
    - **Supported Claims:** Distinction between concurrency and parallelism, thread lifecycle, preemptive scheduling, race condition assembly trace, critical sections, and mutual exclusion locks.
 
 2. `src-lamport-clocks-1978`: Leslie Lamport. "Time, Clocks, and the Ordering of Events in a Distributed System", *Communications of the ACM*, 21(7): 558–565, July 1978.  
@@ -156,12 +158,15 @@ Concurrency sits at the crossroads of operating systems, hardware architecture, 
 
 3. `src-posix-base-spec`: The IEEE and The Open Group. *The Open Group Base Specifications Issue 7 / IEEE Std 1003.1-2017*.  
    - **URL:** [https://pubs.opengroup.org/onlinepubs/9699919799/](https://pubs.opengroup.org/onlinepubs/9699919799/)  
+   - **Direct Reference URLs:**
+     - Header `<pthread.h>`: [https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/pthread.h.html](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/pthread.h.html)
+     - Function `pthread_mutex_lock()`: [https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_mutex_lock.html](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_mutex_lock.html)
    - **Evidence Tier:** Tier 1 (Direct Full-Text Verified Open International Standard)  
    - **Location:** System Interfaces, Section 2.9 "Threads", pp. 497–505; Header `<pthread.h>`.  
    - **Supported Claims:** Standard POSIX thread synchronization semantics, `pthread_mutex_lock`, `pthread_mutex_unlock`, condition variables, and thread memory barriers.
 
-4. `src-herlihy-multiprocessor`: Maurice Herlihy and Nir Shavit. *The Art of Multiprocessor Programming* (Revised 1st Edition). Morgan Kaufmann / Elsevier, 2012. ISBN: 978-0-12-370591-4.  
-   - **URL:** [https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-370591-4](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-370591-4)  
+4. `src-herlihy-multiprocessor`: Maurice Herlihy and Nir Shavit. *The Art of Multiprocessor Programming* (Revised 1st Edition). Morgan Kaufmann / Elsevier, 2012. ISBN: 978-0-12-397337-5.  
+   - **URL:** [https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-397337-5](https://www.elsevier.com/books/the-art-of-multiprocessor-programming/herlihy/978-0-12-397337-5)  
    - **Evidence Tier:** Tier 2 (Chapter & TOC Confirmed Academic Textbook)  
    - **Location:** Chapter 1 "Introduction", pp. 1–20; Chapter 3 "Concurrent Objects", pp. 45–65.  
    - **Supported Claims:** Shared mutable memory challenges, hardware atomic instructions, linearizability, and multicore contention overhead.

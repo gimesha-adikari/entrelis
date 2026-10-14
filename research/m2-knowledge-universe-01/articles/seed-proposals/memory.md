@@ -60,14 +60,14 @@ Why does the memory hierarchy work so well? It relies on a universal truth of so
 Because of locality, computer chips place tiny, ultra-fast **Static RAM (SRAM)** caches directly on the CPU silicon die next to the execution units. When data is fetched from distant DRAM, the hardware automatically pulls in a whole **64-byte cache line** and keeps it in L1/L2/L3 caches. Subsequent reads hit the on-chip cache in single-digit nanoseconds, masking the slow latency of main memory over 95% of the time. [1](https://csapp.cs.cmu.edu/)
 
 ### 2. Physical DRAM Architecture
-Main memory is implemented with **Dynamic RAM (DRAM)**. Each DRAM bit cell consists of a single microscopic capacitor and a field-effect transistor. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/) A charged capacitor represents a binary `1`; a discharged capacitor represents a `0`. 
+Main memory is implemented with **Dynamic RAM (DRAM)**. Each DRAM bit cell consists of a single microscopic capacitor and a field-effect transistor. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-intro.pdf) A charged capacitor represents a binary `1`; a discharged capacitor represents a `0`. 
 
 Because microscopic capacitors naturally leak charge through silicon over time, dynamic memory has a biological-like expiration: it must be refreshed thousands of times every second by the memory controller, reading each row and rewriting its electrical charge before the bits fade into noise.
 
 ### 3. Addressing: From Physical Pins to Virtual Address Spaces
 In physical hardware, memory is an enormous sequence of 8-bit bytes, each assigned a sequential **physical memory address**. Modern 64-bit processors organize these bytes into 64-bit words (8 bytes). To maximize bus throughput, architectures enforce **memory alignment**: accessing a 64-bit integer whose address is an exact multiple of 8 is dramatically faster than accessing an unaligned integer split across two cache lines.
 
-Crucially, modern operating systems never expose raw physical DRAM addresses directly to user applications. Instead, the OS and CPU **Memory Management Unit (MMU)** establish **virtual memory**, providing each running process with its own private, isolated address space while translating virtual addresses to physical RAM frames under the hood. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+Crucially, modern operating systems never expose raw physical DRAM addresses directly to user applications. Instead, the OS and CPU **Memory Management Unit (MMU)** establish **virtual memory**, providing each running process with its own private, isolated address space while translating virtual addresses to physical RAM frames under the hood. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-paging.pdf)
 
 ---
 
@@ -79,7 +79,7 @@ Let us trace what occurs under the hood when a CPU executes a basic assembly ins
 mov rax, [rbx]
 ```
 
-1. **Virtual Address Translation:** The CPU takes the virtual address stored in register `rbx` and queries the on-chip **Translation Lookaside Buffer (TLB)**. The TLB instantly translates the virtual page number into a physical memory frame. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/)
+1. **Virtual Address Translation:** The CPU takes the virtual address stored in register `rbx` and queries the on-chip **Translation Lookaside Buffer (TLB)**. The TLB instantly translates the virtual page number into a physical memory frame. [2](https://pages.cs.wisc.edu/~remzi/OSTEP/vm-tlbs.pdf)
 2. **L1 Data Cache Check:** The CPU checks its on-chip L1 Data Cache (typically 32 to 48 KiB). 
    - *If hit (Latency ~1 ns):* The 8 bytes are copied directly into register `rax`.
 3. **L2 & L3 Cache Traversal:** If L1 misses, the request cascades to the larger, unified L2 cache (latency ~3–5 ns), and then to the massive multi-megabyte shared L3 cache (latency ~10–15 ns). [1](https://csapp.cs.cmu.edu/)

@@ -14,7 +14,7 @@ For nearly fifty years, systems software engineering was locked in a brutal comp
 
 If you prioritized software security and memory safety, you chose managed languages like Java, C#, or Go. But these languages achieve safety by introducing an automated **garbage collector**—a runtime engine that periodically pauses execution to scan memory and reclaim abandoned objects. For real-time audio, device drivers, or microsecond-latency infrastructure, garbage collection pauses are unacceptable.
 
-**Rust** is a modern systems programming language that shatters this historic dilemma. [1](https://doc.rust-lang.org/book/) It delivers the raw execution speed and predictable zero-cost performance of C and C++, while providing absolute mathematical guarantees of memory safety and data-race prevention—all enforced entirely at compile time without a garbage collector. [1](https://doc.rust-lang.org/book/)
+**Rust** is a modern systems programming language that shatters this historic dilemma. [1](https://doc.rust-lang.org/book/ch01-01-installation.html) It delivers the raw execution speed and predictable zero-cost performance of C and C++, while providing mathematical guarantees of memory safety and data-race prevention—all enforced entirely at compile time without a garbage collector. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html)
 
 To understand the core mental model, imagine a high-performance race car. In traditional systems languages, safety is like having no guardrails on a mountain track: you can drive as fast as the engine allows, but a momentary lapse of concentration sends the car plummeting over the cliff. Managed languages install a sluggish autopilot that limits your top speed and periodically pulls the handbrake to inspect the vehicle. Rust, instead, designs a mathematically verified track and structural collision prevention into the car's steering geometry at the factory: you drive at full bare-metal velocity, but the mechanics make it physically impossible to steer off the cliff.
 
@@ -52,10 +52,10 @@ Rust achieves its unique balance through three architectural pillars: the **Owne
 ```
 
 ### 1. The Ownership Discipline
-Rather than relying on manual programmer discipline (like C's `malloc` and `free`) or an automated runtime garbage collector, Rust tracks memory resource management through an **affine type system**. [1](https://doc.rust-lang.org/book/) Every value allocated in memory has a single designated owner variable. When an owner goes out of scope, the compiler automatically inserts the cleanup code (the `drop` destructor) at that exact point during compilation. Memory is reclaimed deterministically, immediately, and with zero runtime overhead.
+Rather than relying on manual programmer discipline (like C's `malloc` and `free`) or an automated runtime garbage collector, Rust tracks memory resource management through an **affine type system**. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) Every value allocated in memory has a single designated owner variable. When an owner goes out of scope, the compiler automatically inserts the cleanup code (the `drop` destructor) at that exact point during compilation. Memory is reclaimed deterministically, immediately, and with zero runtime overhead.
 
 ### 2. The Borrow Checker & Compile-Time Lifetimes
-To allow different parts of a program to read or update data without duplicating it, Rust provides **borrowing**. The compiler includes a static analysis engine called the **Borrow Checker**. [1](https://doc.rust-lang.org/book/) The borrow checker enforces a fundamental invariant known as *Aliasing XOR Mutability*:
+To allow different parts of a program to read or update data without duplicating it, Rust provides **borrowing**. The compiler includes a static analysis engine called the **Borrow Checker**. [1](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html) The borrow checker enforces a fundamental invariant known as *Aliasing XOR Mutability*:
 - You may have any number of immutable references (`&T`) to a piece of data.
 - **OR** you may have exactly one mutable reference (`&mut T`).
 - You can **never** have both at the same time.
@@ -65,7 +65,7 @@ By forbidding mutable aliasing at compile time, Rust completely eliminates data 
 ### 3. The Explicit Separation of Safe and Unsafe Rust
 Real computers have memory-mapped hardware registers, direct memory addresses, and operating system system calls that cannot be statically verified by a compiler. Rust acknowledges this reality by splitting the language into two realms:
 - **Safe Rust:** The default realm, where the compiler strictly enforces all ownership, type safety, and memory rules.
-- **Unsafe Rust:** An explicitly marked opt-in block (`unsafe { ... }`) that unlocks five specific low-level superpowers: dereferencing raw pointers, calling foreign C functions (FFI), mutating mutable static variables, accessing fields of unions, and implementing unsafe traits. [1](https://doc.rust-lang.org/book/)
+- **Unsafe Rust:** An explicitly marked opt-in block (`unsafe { ... }`) that unlocks five specific low-level superpowers: dereferencing raw pointers, calling foreign C functions (FFI), mutating mutable static variables, accessing fields of unions, and implementing unsafe traits. [1](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html)
 
 Crucially, `unsafe` does not turn off the borrow checker or make Rust lawless. It serves as a well-defined boundary, allowing systems programmers to build low-level, high-performance abstractions (like standard library vectors or lock-free queues) while presenting a safe, impenetrable interface to application developers.
 
@@ -95,7 +95,7 @@ In languages like C++, assigning `s2 = s1` either performs an expensive deep cop
 In Rust:
 1. When `let s2 = s1;` executes, ownership of the underlying heap buffer is **moved** to `s2`.
 2. The compiler marks `s1` as completely invalid. 
-3. If you uncomment line 8, the compiler halts compilation with error `E0382: borrow of moved value: s1`. [1](https://doc.rust-lang.org/book/)
+3. If you uncomment line 8, the compiler halts compilation with error `E0382: borrow of moved value: s1`. [1](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html)
 4. When `main()` ends, only `s2` is dropped, freeing the heap buffer exactly once. The bug is prevented before the binary is ever created.
 
 ---
@@ -108,7 +108,7 @@ A frequent confusion among newcomers is assuming that because Rust frees memory 
 - Its memory reclamation is identical to C++ RAII (Resource Acquisition Is Initialization): destructors are placed deterministically at compile time. A Rust binary can run on bare-metal microcontrollers without an operating system.
 
 ### Misconception 2: "Unsafe Rust Disables the Type System"
-Learners sometimes believe that entering an `unsafe` block turns Rust into an unconstrained C environment. In truth, `unsafe` disables none of Rust's standard type checks. The borrow checker still operates inside `unsafe` blocks; the keyword merely permits the programmer to dereference raw pointers or call unverified external C routines, with the programmer personally guaranteeing that the surrounding invariants remain sound. [1](https://doc.rust-lang.org/book/)
+Learners sometimes believe that entering an `unsafe` block turns Rust into an unconstrained C environment. In truth, `unsafe` disables none of Rust's standard type checks. The borrow checker still operates inside `unsafe` blocks; the keyword merely permits the programmer to dereference raw pointers or call unverified external C routines, with the programmer personally guaranteeing that the surrounding invariants remain sound. [1](https://doc.rust-lang.org/book/ch19-01-unsafe-rust.html)
 
 ---
 
