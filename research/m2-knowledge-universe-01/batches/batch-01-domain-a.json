@@ -452,7 +452,7 @@
       "slug": "instruction-set-architecture",
       "name": "Instruction Set Architecture",
       "shortDescription": "The abstract interface between software and hardware that defines supported instructions, registers, addressing modes, and memory models.",
-      "description": "An Instruction Set Architecture (ISA) establishes the programmer-visible contract of a processor. It defines the word size, available architectural registers, binary instruction encoding formats, interrupt models, and memory consistency semantics, allowing software compilers to generate target code independently of whether the underlying silicon microarchitecture uses out-of-order execution, deep pipelining, or multithreading.",
+      "description": "An Instruction Set Architecture (ISA) establishes the programmer-visible contract between software and a central processor. Distinct from the underlying silicon microarchitecture (which governs physical pipeline depth, superscalar execution, and cache topology), modern ISAs explicitly partition the unprivileged user-level instruction set—defining integer/floating-point registers, instruction encodings, and addressing modes for application compilers—from separate privileged architecture specifications that define execution privilege modes (machine, supervisor, user), control and status registers, interrupt handling, and address translation hardware.",
       "domains": [
         "computer-architecture",
         "hardware"
@@ -479,7 +479,7 @@
       "slug": "virtual-memory",
       "name": "Virtual Memory",
       "shortDescription": "An architectural memory management scheme that provides an idealized, contiguous abstraction of storage, isolating process address spaces and mapping them to physical storage.",
-      "description": "Virtual memory decouples the address space seen by an application from the physical RAM installed in a computer. Using hardware memory management units (MMUs) and operating system page tables, virtual memory translates virtual page addresses into physical frames, isolates concurrent processes into protected address spaces, prevents invalid memory accesses, and allows programs to exceed physical memory limits via paging.",
+      "description": "Virtual memory provides an idealized, contiguous private address space for each executing process, decoupling program addresses from physical RAM locations. Managed jointly through CPU memory management units (MMUs) and operating system page tables, virtual memory translates virtual page addresses into physical frames, enforces memory protection boundaries, and isolates concurrent processes. While secondary backing-store paging allows systems to overcommit memory, swapping inactive pages to disk is an optional operating system memory reclamation policy rather than an inherent architectural requirement of virtual memory.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -505,8 +505,8 @@
       "id": "concept-concurrency",
       "slug": "concurrency",
       "name": "Concurrency",
-      "shortDescription": "The composition and execution of multiple computational tasks whose lifetimes overlap, enabling non-sequential progress and parallel execution.",
-      "description": "Concurrency coordinates overlapping computational sequences over time. In single-core environments, concurrency is achieved through preemptive time-slicing and context switching, while in multicore architectures, tasks execute physically in parallel. Safe concurrency requires synchronization primitives (such as mutexes, semaphores, and atomic operations) to prevent data races and avoid deadlocks.",
+      "shortDescription": "The compositional property of systems where multiple computational task lifetimes overlap in time, distinct from simultaneous parallel hardware execution.",
+      "description": "Concurrency is the composition and structural organization of independently executing computations whose execution lifetimes overlap in time. Fundamentally distinct from parallelism—which requires multiple physical hardware cores executing instructions simultaneously—concurrency addresses how a system handles many tasks at once (often interleaved on a single core via scheduling and context switching). Coordinating shared mutable state across concurrent threads or asynchronous tasks requires synchronization primitives (such as mutexes, condition variables, and atomics) to prevent race conditions and enforce memory ordering.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -750,7 +750,7 @@
       "slug": "file-systems",
       "name": "File Systems",
       "shortDescription": "Operating system abstractions that manage how persistent storage is structured, indexed, retrieved, and protected as hierarchical files and directories.",
-      "description": "File systems bridge volatile main memory and block-oriented persistent storage (such as NVMe SSDs or magnetic hard drives). By organizing bytes into named streams, mapping logical file offsets to disk blocks via metadata structures (such as inodes or extents), providing directory hierarchies, and maintaining write journals, file systems guarantee data durability and crash consistency.",
+      "description": "File systems bridge volatile main memory and block-oriented persistent storage (such as NVMe SSDs or magnetic hard drives) by organizing storage into named hierarchical byte streams, directories, and indexing metadata structures (such as inodes and extents). To maintain filesystem structural consistency and minimize data loss across unexpected power failures, modern file systems implement write-ahead journaling or copy-on-write trees; however, metadata logging preserves directory structure rather than guaranteeing that uncommitted or in-flight application file payloads survive catastrophic failure without explicit storage cache flushes.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -804,7 +804,7 @@
       "slug": "asynchronous-io",
       "name": "Asynchronous I/O",
       "shortDescription": "A non-blocking input/output processing mechanism allowing an execution thread to initiate I/O operations and proceed with other work before data transfer completes.",
-      "description": "Asynchronous I/O eliminates blocking system call overhead by decoupling the initiation of an I/O request (such as reading a socket or writing a file) from its eventual completion. Operating system event demultiplexers (such as Linux epoll, BSD kqueue, or Windows IOCP) notify an application's event loop when descriptors become ready, enabling single threads to efficiently handle tens of thousands of concurrent connections.",
+      "description": "Asynchronous I/O decouples the initiation of an input/output request from its eventual completion, allowing an execution thread to continue computational progress without blocking on high-latency storage or network hardware. Distinct from synchronous I/O multiplexing readiness notifications (such as Linux epoll or BSD kqueue, which merely signal when a file descriptor can be read without blocking), true asynchronous completion models (such as Linux io_uring, Windows IOCP, or POSIX AIO) transfer data in the background and notify the application only upon the complete arrival or delivery of the requested buffer.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -1008,7 +1008,7 @@
       "sourceConceptId": "concept-virtual-memory",
       "targetConceptId": "concept-memory",
       "type": "manages",
-      "explanation": "Virtual memory maps isolated logical process addresses onto physical memory frames while swapping inactive segments to disk.",
+      "explanation": "Virtual memory maps isolated logical process address spaces onto physical memory frames, providing uniform addressing and memory protection, with optional backing store paging or memory compression for inactive pages.",
       "strength": "primary",
       "sourceIds": [
         "src-denning-virtual-memory",
@@ -1138,7 +1138,7 @@
       "sourceConceptId": "concept-asynchronous-io",
       "targetConceptId": "concept-operating-systems",
       "type": "uses",
-      "explanation": "Asynchronous I/O utilizes operating system notification facilities (such as epoll and kqueue) to execute non-blocking event loops.",
+      "explanation": "Asynchronous I/O utilizes operating system kernel completion mechanisms (such as POSIX AIO, Linux io_uring, or Windows IOCP) to execute background data transfers and notify user space upon completion.",
       "strength": "primary",
       "sourceIds": [
         "src-posix-base-spec",

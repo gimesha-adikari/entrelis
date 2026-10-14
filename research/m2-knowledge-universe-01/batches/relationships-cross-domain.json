@@ -136,8 +136,8 @@
       "id": "rel-asynchronous-io-concurrency",
       "sourceConceptId": "concept-asynchronous-io",
       "targetConceptId": "concept-concurrency",
-      "type": "implemented-with",
-      "explanation": "Asynchronous I/O implements single-threaded or thread-pool concurrency by demultiplexing readiness events, avoiding blocking overhead across concurrent connections.",
+      "type": "related-to",
+      "explanation": "Asynchronous I/O enables efficient concurrent application architectures by overlapping I/O wait latency across operations without allocating a dedicated operating system thread per connection.",
       "strength": "primary",
       "sourceIds": [
         "src-posix-base-spec",

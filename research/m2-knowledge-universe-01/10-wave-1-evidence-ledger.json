@@ -819,7 +819,7 @@
     "claimId": "claim-rel-virtual-memory-memory",
     "entityId": "rel-virtual-memory-memory",
     "entityType": "relationship",
-    "claimText": "Virtual memory maps isolated logical process addresses onto physical memory frames while swapping inactive segments to disk.",
+    "claimText": "Virtual memory maps isolated logical process address spaces onto physical memory frames, providing uniform addressing and memory protection, with optional backing store paging or memory compression for inactive pages.",
     "sourceId": "src-bryant-csapp",
     "sourceTitle": "Computer Systems: A Programmer's Perspective (3rd Edition)",
     "sourceUrl": "https://csapp.cs.cmu.edu/",
@@ -828,7 +828,7 @@
     "verificationResult": "CHAPTER-TOC-AND-METADATA-CONFIRMED",
     "verificationDate": "2026-10-14",
     "accessRestrictions": "Copyrighted Academic Textbook (publisher catalog, official table of contents, and chapter syllabus verified; full internal text not directly examined)",
-    "editorialNotes": "Virtual memory translates contiguous virtual addresses into non-contiguous physical RAM pages. Chapter and section coverage verified via publisher official table of contents and curriculum syllabus; line-level interior text restricted by academic copyright.",
+    "editorialNotes": "Virtual memory translates contiguous virtual addresses into non-contiguous physical RAM pages and isolates process address spaces; disk paging or compression is an optional operating system memory reclamation mechanism. Chapter and section coverage verified via publisher official table of contents and curriculum syllabus; line-level interior text restricted by academic copyright.",
     "unresolvedConcerns": null
   },
   {
@@ -931,7 +931,7 @@
     "claimId": "claim-rel-asynchronous-io-operating-systems",
     "entityId": "rel-asynchronous-io-operating-systems",
     "entityType": "relationship",
-    "claimText": "Asynchronous I/O utilizes operating system notification facilities (such as epoll and kqueue) to execute non-blocking event loops.",
+    "claimText": "Asynchronous I/O utilizes operating system kernel completion mechanisms (such as POSIX AIO, Linux io_uring, or Windows IOCP) to execute background data transfers and notify user space upon completion.",
     "sourceId": "src-posix-base-spec",
     "sourceTitle": "The Open Group Base Specifications Issue 7 / IEEE Std 1003.1-2017",
     "sourceUrl": "https://pubs.opengroup.org/onlinepubs/9699919799/",
@@ -940,7 +940,7 @@
     "verificationResult": "DIRECT-FULL-TEXT-VERIFIED",
     "verificationDate": "2026-10-14",
     "accessRestrictions": "Open Access",
-    "editorialNotes": "Async I/O relies on operating system notification facilities and event demultiplexers.",
+    "editorialNotes": "Async I/O relies on operating system kernel completion queues and background worker threads, distinct from readiness notification interfaces.",
     "unresolvedConcerns": null
   },
   {
@@ -1299,7 +1299,7 @@
     "claimId": "claim-rel-asynchronous-io-concurrency",
     "entityId": "rel-asynchronous-io-concurrency",
     "entityType": "relationship",
-    "claimText": "Asynchronous I/O implements single-threaded or thread-pool concurrency by demultiplexing readiness events, avoiding blocking overhead across concurrent connections.",
+    "claimText": "Asynchronous I/O enables efficient concurrent application architectures by overlapping I/O wait latency across operations without allocating a dedicated operating system thread per connection.",
     "sourceId": "src-posix-base-spec",
     "sourceTitle": "The Open Group Base Specifications Issue 7 / IEEE Std 1003.1-2017",
     "sourceUrl": "https://pubs.opengroup.org/onlinepubs/9699919799/",
@@ -1308,7 +1308,7 @@
     "verificationResult": "DIRECT-FULL-TEXT-VERIFIED",
     "verificationDate": "2026-10-14",
     "accessRestrictions": "Open Access",
-    "editorialNotes": "Asynchronous I/O implements concurrent task execution without requiring one OS thread per connection.",
+    "editorialNotes": "Asynchronous I/O structures concurrent execution flows by overlapping I/O wait latency across operations without requiring one OS thread per connection.",
     "unresolvedConcerns": null
   },
   {

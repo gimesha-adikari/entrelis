@@ -331,7 +331,7 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
      - *Verification Method:* ACM Digital Library DOI confirmed.
 - **Proposed Relationships:**
   - `concept-concurrency --(depends-on)--> concept-operating-systems`: Concurrency depends on operating system thread scheduling and hardware interrupt dispatch.
-  - `concept-asynchronous-io --(implemented-with)--> concept-concurrency`: Non-blocking asynchronous I/O coordinates overlapping execution tasks.
+  - `concept-asynchronous-io --(related-to)--> concept-concurrency`: Non-blocking asynchronous I/O coordinates overlapping execution tasks.
 - **Pedagogical Nuances & Misconceptions:**
   - *Misconception:* Concurrency and parallelism are the exact same thing. Concurrency is about program *structure* (dealing with lots of things at once); parallelism is about *execution* (doing lots of things simultaneously on multiple CPU cores).
 - **Editorial Recommendation:** **Approve for Wave 1 Import** (Score: 9.5/10). Expands Operating Systems and prepares bridges to Distributed Systems.
@@ -373,8 +373,8 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
      - *Claim Supported:* Hardware DMA interaction and kernel notification mechanisms for asynchronous data transfers.
      - *Verification Method:* Open-access textbook verified online.
 - **Proposed Relationships:**
-  - `concept-asynchronous-io --(uses)--> concept-operating-systems`: Asynchronous I/O utilizes OS kernel event multiplexers (epoll, kqueue, io_uring).
-  - `concept-asynchronous-io --(implemented-with)--> concept-concurrency`: Non-blocking event loops structure concurrent processing flows.
+  - `concept-asynchronous-io --(uses)--> concept-operating-systems`: Asynchronous I/O utilizes operating system kernel completion mechanisms (POSIX AIO, Linux io_uring, Windows IOCP).
+  - `concept-asynchronous-io --(related-to)--> concept-concurrency`: Non-blocking asynchronous I/O enables concurrent processing architectures by overlapping I/O wait latency.
 - **Pedagogical Nuances & Misconceptions:**
   - *Misconception:* Non-blocking I/O and asynchronous I/O are identical. Non-blocking I/O (`O_NONBLOCK`) returns `EAGAIN` if data is not ready; true asynchronous I/O initiates the transfer in the background and notifies the caller upon completion.
 - **Editorial Recommendation:** **Approve for Wave 1 Import** (Score: 9.4/10). Essential modern systems concept linking OS primitives to concurrency.

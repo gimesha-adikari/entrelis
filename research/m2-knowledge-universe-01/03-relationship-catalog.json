@@ -95,7 +95,7 @@
     "sourceConceptId": "concept-virtual-memory",
     "targetConceptId": "concept-memory",
     "type": "manages",
-    "explanation": "Virtual memory maps isolated logical process addresses onto physical memory frames while swapping inactive segments to disk.",
+    "explanation": "Virtual memory maps isolated logical process address spaces onto physical memory frames, providing uniform addressing and memory protection, with optional backing store paging or memory compression for inactive pages.",
     "strength": "primary",
     "sourceIds": [
       "src-denning-virtual-memory",
@@ -225,7 +225,7 @@
     "sourceConceptId": "concept-asynchronous-io",
     "targetConceptId": "concept-operating-systems",
     "type": "uses",
-    "explanation": "Asynchronous I/O utilizes operating system notification facilities (such as epoll and kqueue) to execute non-blocking event loops.",
+    "explanation": "Asynchronous I/O utilizes operating system kernel completion mechanisms (such as POSIX AIO, Linux io_uring, or Windows IOCP) to execute background data transfers and notify user space upon completion.",
     "strength": "primary",
     "sourceIds": [
       "src-posix-base-spec",
@@ -1658,8 +1658,8 @@
     "id": "rel-asynchronous-io-concurrency",
     "sourceConceptId": "concept-asynchronous-io",
     "targetConceptId": "concept-concurrency",
-    "type": "implemented-with",
-    "explanation": "Asynchronous I/O implements single-threaded or thread-pool concurrency by demultiplexing readiness events, avoiding blocking overhead across concurrent connections.",
+    "type": "related-to",
+    "explanation": "Asynchronous I/O enables efficient concurrent application architectures by overlapping I/O wait latency across operations without allocating a dedicated operating system thread per connection.",
     "strength": "primary",
     "sourceIds": [
       "src-posix-base-spec",
