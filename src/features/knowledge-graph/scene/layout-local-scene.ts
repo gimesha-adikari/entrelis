@@ -27,8 +27,10 @@ export function computeAdaptiveFocalOffset({
   primaryCount: number;
   hasContextNodes: boolean;
 }): { offsetX: number; offsetY: number } {
-  const minDim = Math.min(viewportWidth, viewportHeight);
-  const scaleFactor = Math.max(0.8, Math.min(1.35, minDim / 800));
+  // Available open sky width to the left of the knowledge field
+  const availableSkyWidth = Math.max(300, viewportWidth - fieldWidth);
+  const effectiveDim = Math.min(availableSkyWidth, viewportHeight);
+  const scaleFactor = Math.max(0.68, Math.min(1.35, effectiveDim / 800));
 
   // Determine radial footprint of celestial cluster
   const primaryRadiusX = Math.round(220 * scaleFactor);
@@ -39,8 +41,6 @@ export function computeAdaptiveFocalOffset({
     ? primaryRadiusX + 28
     : 45;
 
-  // Available open sky width to the left of the knowledge field
-  const availableSkyWidth = Math.max(300, viewportWidth - fieldWidth);
   const skyCenterScreenX = availableSkyWidth / 2;
   const nominalOffsetX = Math.round(skyCenterScreenX - viewportWidth / 2);
 
@@ -100,9 +100,17 @@ export function layoutLocalUniverseScene(
   const minDim = Math.min(viewportWidth, viewportHeight);
 
   // Derive composition scale from available dimensions (55-75% canvas utilization)
+  // On desktop with knowledge field present, derive scale from the open sky area
+  const availableSkyWidth = !isMobile && config.knowledgeFieldWidth !== undefined
+    ? Math.max(300, viewportWidth - config.knowledgeFieldWidth)
+    : viewportWidth;
+  const effectiveDim = !isMobile && config.knowledgeFieldWidth !== undefined
+    ? Math.min(availableSkyWidth, viewportHeight)
+    : minDim;
+
   const scaleFactor = isMobile
     ? Math.max(0.85, Math.min(1.25, minDim / 375))
-    : Math.max(0.8, Math.min(1.35, minDim / 800));
+    : Math.max(0.68, Math.min(1.35, effectiveDim / 800));
 
   // 2. Focal Origin
   let originX: number;

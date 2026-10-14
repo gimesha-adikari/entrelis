@@ -13,6 +13,7 @@ export interface BuildSceneOptions {
   readonly dataset?: KnowledgeDataset;
   readonly index?: KnowledgeGraphIndex;
   readonly focusSlug?: string;
+  readonly previousFocusSlug?: string;
   readonly isMobile?: boolean;
   readonly budget?: SceneBudgetPolicy;
 }
@@ -31,12 +32,14 @@ const STRENGTH_SCORE: Record<Relationship["strength"], number> = {
  *    scanning the global relationship list on every navigation.
  * 2. Focus concept is visual anchor (visualMass: 1.0, celestial radius 30-38px on desktop).
  * 3. Primary direct neighbors ranked by relationship strength then stable ID order.
- * 4. Context concepts (2nd-degree) selected exclusively through visible primary neighbors.
- * 5. Strict budget bounds enforced (Desktop <= 10, Mobile <= 6).
- * 6. Strict SOURCE --TYPE--> TARGET directional invariant maintained on all relationships.
+ * 4. When previousFocusSlug is a direct neighbor of focus, reserves one primary slot to
+ *    guarantee an asymmetric return path without exceeding the scene budget.
+ * 5. Context concepts (2nd-degree) selected exclusively through visible primary neighbors.
+ * 6. Strict budget bounds enforced (Desktop <= 10, Mobile <= 6).
+ * 7. Strict SOURCE --TYPE--> TARGET directional invariant maintained on all relationships.
  */
 export function buildLocalUniverseScene(options: BuildSceneOptions): UniverseScene {
-  const { focusSlug = "rust", isMobile = false } = options;
+  const { focusSlug = "rust", previousFocusSlug, isMobile = false } = options;
   const budget = options.budget ?? (isMobile ? MOBILE_SCENE_BUDGET : DESKTOP_SCENE_BUDGET);
 
   const index =
@@ -112,7 +115,29 @@ export function buildLocalUniverseScene(options: BuildSceneOptions): UniverseSce
     return a.concept.id.localeCompare(b.concept.id);
   });
 
-  const cappedPrimary = sortedPrimaryCandidates.slice(0, budget.maxPrimary);
+  // If previousFocusSlug is a direct neighbor of the new focus, reserve one primary slot for it
+  const previousCandidate = previousFocusSlug
+    ? sortedPrimaryCandidates.find((cand) => cand.concept.slug === previousFocusSlug)
+    : undefined;
+
+  let cappedPrimary: PrimaryCandidate[];
+  if (previousCandidate && budget.maxPrimary > 0) {
+    const otherCandidates = sortedPrimaryCandidates.filter(
+      (cand) => cand.concept.id !== previousCandidate.concept.id
+    );
+    const remainingSlots = Math.max(0, budget.maxPrimary - 1);
+    const selected = [previousCandidate, ...otherCandidates.slice(0, remainingSlots)];
+    // Sort selected candidates using the established priority rules for deterministic slot assignment
+    selected.sort((a, b) => {
+      if (b.maxStrengthScore !== a.maxStrengthScore) {
+        return b.maxStrengthScore - a.maxStrengthScore;
+      }
+      return a.concept.id.localeCompare(b.concept.id);
+    });
+    cappedPrimary = selected;
+  } else {
+    cappedPrimary = sortedPrimaryCandidates.slice(0, budget.maxPrimary);
+  }
   const primaryRadius = isMobile ? 14 : 18;
 
   const primaryNodes: UniverseNode[] = cappedPrimary.map((cand) => ({

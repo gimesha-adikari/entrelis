@@ -476,4 +476,68 @@ describe("layoutLocalUniverseScene", () => {
       }
     }
   });
+
+  it("guarantees positive clearance between celestial bodies and knowledge panel across viewports (1024x768, 1280x800, 1440x900, 390x844)", async () => {
+    const { WAVE1_PREVIEW_DATASET } = await import("@/data/preview");
+    const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+    const index = createKnowledgeGraphIndex(WAVE1_PREVIEW_DATASET);
+
+    const testViewports = [
+      { width: 1024, height: 768, fieldWidth: 389, isMobile: false },
+      { width: 1280, height: 800, fieldWidth: 486, isMobile: false },
+      { width: 1440, height: 900, fieldWidth: 547, isMobile: false },
+      { width: 390, height: 844, fieldWidth: 390, isMobile: true },
+    ];
+
+    // Test across high-degree nodes with full primary and context constellations
+    const testConcepts = ["operating-systems", "cpus", "memory", "rust"];
+
+    for (const vp of testViewports) {
+      for (const slug of testConcepts) {
+        const rawScene = buildLocalUniverseScene({
+          index,
+          focusSlug: slug,
+          isMobile: vp.isMobile,
+        });
+
+        const laidOut = layoutLocalUniverseScene(rawScene, {
+          viewportWidth: vp.width,
+          viewportHeight: vp.height,
+          isMobile: vp.isMobile,
+          knowledgeFieldWidth: vp.isMobile ? undefined : vp.fieldWidth,
+        });
+
+        if (!vp.isMobile) {
+          const panelLeft = vp.width - vp.fieldWidth;
+          for (const node of laidOut.allNodes) {
+            const screenX = vp.width / 2 + node.x;
+            const rightEdge = screenX + node.radius;
+
+            expect(
+              rightEdge,
+              `Node "${node.name}" (${node.role}) right edge ${rightEdge}px collides with panel at ${panelLeft}px on ${vp.width}x${vp.height}!`
+            ).toBeLessThan(panelLeft);
+
+            // Left window border clearance
+            const leftEdge = screenX - node.radius;
+            expect(
+              leftEdge,
+              `Node "${node.name}" (${node.role}) left edge ${leftEdge}px clips window on ${vp.width}x${vp.height}!`
+            ).toBeGreaterThan(0);
+          }
+        } else {
+          // On mobile, bottom sheet is at y > 580px
+          // Focus and bodies should stay in the top 65% of the screen
+          for (const node of laidOut.allNodes) {
+            const screenY = vp.height / 2 + node.y;
+            const bottomEdge = screenY + node.radius;
+            expect(
+              bottomEdge,
+              `Mobile node "${node.name}" bottom edge ${bottomEdge}px collides with bottom panel!`
+            ).toBeLessThan(vp.height - 200);
+          }
+        }
+      }
+    }
+  });
 });

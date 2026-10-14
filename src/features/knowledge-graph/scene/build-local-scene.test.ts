@@ -233,4 +233,139 @@ describe("buildLocalUniverseScene", () => {
     expect(scene.primaryNodes.length).toBeLessThanOrEqual(DESKTOP_SCENE_BUDGET.maxPrimary);
     expect(scene.contextNodes.length).toBeLessThanOrEqual(DESKTOP_SCENE_BUDGET.maxContext);
   });
+
+  describe("previousFocusSlug Return-Path Reservation", () => {
+    it("reserves a primary slot for previous direct neighbor on Memory -> Operating Systems (desktop & mobile)", async () => {
+      const { WAVE1_PREVIEW_DATASET } = await import("@/data/preview");
+      const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+      const index = createKnowledgeGraphIndex(WAVE1_PREVIEW_DATASET);
+
+      // Without previousFocusSlug: Memory is truncated from Operating Systems (7th alphabetically)
+      const osWithoutPrevious = buildLocalUniverseScene({
+        index,
+        focusSlug: "operating-systems",
+        isMobile: false,
+      });
+      expect(osWithoutPrevious.primaryNodes.map((n) => n.slug)).not.toContain("memory");
+
+      // With previousFocusSlug = 'memory': Memory is guaranteed a primary slot on desktop
+      const osDesktop = buildLocalUniverseScene({
+        index,
+        focusSlug: "operating-systems",
+        previousFocusSlug: "memory",
+        isMobile: false,
+      });
+      expect(osDesktop.primaryNodes.map((n) => n.slug)).toContain("memory");
+      expect(osDesktop.primaryNodes.length).toBe(DESKTOP_SCENE_BUDGET.maxPrimary); // exactly 6
+      expect(new Set(osDesktop.allNodes.map((n) => n.id)).size).toBe(osDesktop.allNodes.length); // 0 duplicates
+
+      // With previousFocusSlug = 'memory': Memory is guaranteed a primary slot on mobile (max 4)
+      const osMobile = buildLocalUniverseScene({
+        index,
+        focusSlug: "operating-systems",
+        previousFocusSlug: "memory",
+        isMobile: true,
+      });
+      expect(osMobile.primaryNodes.map((n) => n.slug)).toContain("memory");
+      expect(osMobile.primaryNodes.length).toBe(MOBILE_SCENE_BUDGET.maxPrimary); // exactly 4
+      expect(osMobile.allNodes.length).toBeLessThanOrEqual(MOBILE_SCENE_BUDGET.maxTotal); // <= 6
+      expect(new Set(osMobile.allNodes.map((n) => n.id)).size).toBe(osMobile.allNodes.length); // 0 duplicates
+    });
+
+    it("completes full round-trip navigation: Memory -> Operating Systems -> Memory", async () => {
+      const { WAVE1_PREVIEW_DATASET } = await import("@/data/preview");
+      const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+      const index = createKnowledgeGraphIndex(WAVE1_PREVIEW_DATASET);
+
+      // Hop 1: Memory (starting from rust)
+      const memHop1 = buildLocalUniverseScene({
+        index,
+        focusSlug: "memory",
+        previousFocusSlug: "rust",
+        isMobile: false,
+      });
+      expect(memHop1.primaryNodes.map((n) => n.slug)).toContain("rust");
+
+      // Hop 2: Operating Systems (coming from memory)
+      const osHop2 = buildLocalUniverseScene({
+        index,
+        focusSlug: "operating-systems",
+        previousFocusSlug: "memory",
+        isMobile: false,
+      });
+      expect(osHop2.primaryNodes.map((n) => n.slug)).toContain("memory");
+
+      // Hop 3: Memory (returning from operating-systems)
+      const memHop3 = buildLocalUniverseScene({
+        index,
+        focusSlug: "memory",
+        previousFocusSlug: "operating-systems",
+        isMobile: false,
+      });
+      expect(memHop3.primaryNodes.map((n) => n.slug)).toContain("operating-systems");
+    });
+
+    it("preserves return paths for other high-degree concepts (CPUs & Memory)", async () => {
+      const { WAVE1_PREVIEW_DATASET } = await import("@/data/preview");
+      const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+      const index = createKnowledgeGraphIndex(WAVE1_PREVIEW_DATASET);
+
+      // CPUs has 7 direct neighbors in Wave 1
+      // Navigating from transistors to cpus:
+      const cpusScene = buildLocalUniverseScene({
+        index,
+        focusSlug: "cpus",
+        previousFocusSlug: "transistors",
+        isMobile: false,
+      });
+      expect(cpusScene.primaryNodes.map((n) => n.slug)).toContain("transistors");
+      expect(cpusScene.primaryNodes.length).toBe(DESKTOP_SCENE_BUDGET.maxPrimary);
+
+      // Navigating from cpus to transistors:
+      const transScene = buildLocalUniverseScene({
+        index,
+        focusSlug: "transistors",
+        previousFocusSlug: "cpus",
+        isMobile: false,
+      });
+      expect(transScene.primaryNodes.map((n) => n.slug)).toContain("cpus");
+    });
+
+    it("does not reserve a primary slot for concepts that are not direct neighbors", async () => {
+      const { WAVE1_PREVIEW_DATASET } = await import("@/data/preview");
+      const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+      const index = createKnowledgeGraphIndex(WAVE1_PREVIEW_DATASET);
+
+      // 'rust' is NOT a direct neighbor of 'operating-systems'
+      const osWithUnrelated = buildLocalUniverseScene({
+        index,
+        focusSlug: "operating-systems",
+        previousFocusSlug: "rust",
+        isMobile: false,
+      });
+      expect(osWithUnrelated.primaryNodes.map((n) => n.slug)).not.toContain("rust");
+      expect(osWithUnrelated.primaryNodes.length).toBe(DESKTOP_SCENE_BUDGET.maxPrimary);
+    });
+
+    it("preserves strict relationship direction and source/target IDs when return slot is reserved", async () => {
+      const { WAVE1_PREVIEW_DATASET } = await import("@/data/preview");
+      const { createKnowledgeGraphIndex } = await import("../knowledge-index");
+      const index = createKnowledgeGraphIndex(WAVE1_PREVIEW_DATASET);
+
+      const scene = buildLocalUniverseScene({
+        index,
+        focusSlug: "operating-systems",
+        previousFocusSlug: "memory",
+        isMobile: false,
+      });
+
+      for (const rel of scene.relationships) {
+        const originalRel = WAVE1_PREVIEW_DATASET.relationships.find((r) => r.id === rel.id);
+        expect(originalRel).toBeDefined();
+        expect(rel.sourceId).toBe(originalRel?.sourceConceptId);
+        expect(rel.targetId).toBe(originalRel?.targetConceptId);
+        expect(rel.type).toBe(originalRel?.type);
+      }
+    });
+  });
 });

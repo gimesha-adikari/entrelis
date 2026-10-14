@@ -190,6 +190,7 @@ export function resolveDestinationAnchor(options: {
   readonly toKey: string;
   readonly fromSecondaryKey?: string;
   readonly toSecondaryKey?: string;
+  readonly fromAnchorOverride?: ConceptSpatialAnchor;
   readonly step: { readonly x: number; readonly y: number };
   readonly fallbackOffset?: { readonly x: number; readonly y: number };
 }): ConceptSpatialAnchor {
@@ -199,6 +200,7 @@ export function resolveDestinationAnchor(options: {
     toKey,
     fromSecondaryKey,
     toSecondaryKey,
+    fromAnchorOverride,
     step,
     fallbackOffset = { x: 0, y: 0 },
   } = options;
@@ -208,7 +210,10 @@ export function resolveDestinationAnchor(options: {
     return existing;
   }
 
-  const fromAnchor = getRememberedAnchor(anchorMap, fromKey, fromSecondaryKey) ?? fallbackOffset;
+  const fromAnchor =
+    fromAnchorOverride ??
+    getRememberedAnchor(anchorMap, fromKey, fromSecondaryKey) ??
+    fallbackOffset;
   const targetX = Number.isFinite(fromAnchor.x + step.x) ? fromAnchor.x + step.x : fromAnchor.x;
   const targetY = Number.isFinite(fromAnchor.y + step.y) ? fromAnchor.y + step.y : fromAnchor.y;
   const newAnchor: ConceptSpatialAnchor = { x: targetX, y: targetY };

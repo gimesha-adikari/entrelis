@@ -100,9 +100,12 @@ export default function KnowledgeGraphExperience({
     return initialSlug;
   });
 
+  const [previousSlug, setPreviousSlug] = useState<string | undefined>(undefined);
+
   const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
   if (prevInitialSlug !== initialSlug) {
     setPrevInitialSlug(initialSlug);
+    setPreviousSlug(selectedSlug);
     setSelectedSlug(initialSlug);
   }
 
@@ -190,7 +193,12 @@ export default function KnowledgeGraphExperience({
    */
   const selectConcept = useCallback(
     (slug: string) => {
-      setSelectedSlug(slug);
+      setSelectedSlug((prev) => {
+        if (prev !== slug) {
+          setPreviousSlug(prev);
+        }
+        return slug;
+      });
       if (typeof window !== "undefined") {
         if (navigationMode === "lab" || navigationMode === "wave1") {
           const url = new URL(window.location.href);
@@ -213,23 +221,26 @@ export default function KnowledgeGraphExperience({
   useEffect(() => {
     const handlePopState = () => {
       if (typeof window === "undefined") return;
+      let nextSlug = "rust";
       if (navigationMode === "lab" || navigationMode === "wave1") {
         const params = new URLSearchParams(window.location.search);
         const conceptParam = params.get("concept");
         if (conceptParam) {
-          setSelectedSlug(conceptParam);
-        } else {
-          setSelectedSlug("rust");
+          nextSlug = conceptParam;
         }
       } else {
         const pathname = window.location.pathname;
         const match = pathname.match(/^\/concept\/([^/]+)/);
         if (match && match[1]) {
-          setSelectedSlug(match[1]);
-        } else if (pathname === "/") {
-          setSelectedSlug("rust");
+          nextSlug = match[1];
         }
       }
+      setSelectedSlug((prev) => {
+        if (prev !== nextSlug) {
+          setPreviousSlug(prev);
+        }
+        return nextSlug;
+      });
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -259,7 +270,12 @@ export default function KnowledgeGraphExperience({
 
   // Reset view to root / default Rust selection
   const handleResetCamera = useCallback(() => {
-    setSelectedSlug("rust");
+    setSelectedSlug((prev) => {
+      if (prev !== "rust") {
+        setPreviousSlug(prev);
+      }
+      return "rust";
+    });
     if (typeof window !== "undefined") {
       if (navigationMode === "lab" || navigationMode === "wave1") {
         const url = new URL(window.location.href);
@@ -332,6 +348,7 @@ export default function KnowledgeGraphExperience({
           dataset={dataset}
           index={index}
           selectedConceptSlug={selectedSlug}
+          previousConceptSlug={previousSlug}
           onSelectConcept={selectConcept}
           onResetCamera={handleResetCamera}
           onFocusPositionChange={setFocusPos}

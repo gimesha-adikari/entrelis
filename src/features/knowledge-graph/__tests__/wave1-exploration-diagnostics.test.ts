@@ -85,7 +85,7 @@ describe("Wave 1 Exploration & Scene Budget Diagnostics", () => {
     expect(osDiag.mobile.truncatedFromPrimary).toBe(3); // 3 out of 7 neighbors truncated on mobile
   });
 
-  it("proves the asymmetric return-path trap: navigating A -> B where B drops A from its celestial scene", () => {
+  it("proves the asymmetric return-path trap without previousFocusSlug, and resolves it when previousFocusSlug is provided", () => {
     // Navigate from memory to operating-systems:
     // Memory has operating-systems as primary
     const memoryScene = buildLocalUniverseScene({
@@ -96,17 +96,25 @@ describe("Wave 1 Exploration & Scene Budget Diagnostics", () => {
     const memoryPrimaries = memoryScene.primaryNodes.map((n) => n.slug);
     expect(memoryPrimaries).toContain("operating-systems");
 
-    // But Operating Systems drops memory from its scene because of ID sorting tie-break and maxPrimary = 6!
+    // Baseline: Operating Systems drops memory when no previousFocusSlug is provided
     const osScene = buildLocalUniverseScene({
       index,
       focusSlug: "operating-systems",
       isMobile: false,
     });
     const osSceneSlugs = osScene.allNodes.map((n) => n.slug);
-
-    // Demonstrates empirical bug: user clicks 'Operating Systems' in 3D canvas,
-    // and once arrived at Operating Systems, 'Memory' is NOT visible in the 3D celestial canvas!
     expect(osSceneSlugs).not.toContain("memory");
+
+    // Recovery: When navigating memory -> operating-systems, previousFocusSlug guarantees memory is preserved in primary nodes
+    const osRecoveredScene = buildLocalUniverseScene({
+      index,
+      focusSlug: "operating-systems",
+      previousFocusSlug: "memory",
+      isMobile: false,
+    });
+    const osRecoveredPrimaries = osRecoveredScene.primaryNodes.map((n) => n.slug);
+    expect(osRecoveredPrimaries).toContain("memory");
+    expect(osRecoveredScene.primaryNodes.length).toBeLessThanOrEqual(DESKTOP_SCENE_BUDGET.maxPrimary);
   });
 
   it("confirms ConceptPanel maintains full relationship discoverability while 3D canvas is truncated", () => {

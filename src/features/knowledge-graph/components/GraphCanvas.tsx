@@ -37,6 +37,7 @@ interface Props {
   dataset: KnowledgeDataset;
   index?: KnowledgeGraphIndex;
   selectedConceptSlug: string | null;
+  previousConceptSlug?: string;
   onSelectConcept: (slug: string) => void;
   onResetCamera?: () => void;
   onFocusPositionChange?: (pos: { x: number; y: number; radius: number } | null) => void;
@@ -47,6 +48,7 @@ export default function GraphCanvas({
   dataset,
   index,
   selectedConceptSlug,
+  previousConceptSlug,
   onSelectConcept,
   onResetCamera,
   onFocusPositionChange,
@@ -68,6 +70,19 @@ export default function GraphCanvas({
   });
 
   const isMobile = dimensions.width <= 768;
+
+  // Track previous concept slug across renders when not explicitly passed as a prop
+  const previousSlugTrackingRef = useRef<string | undefined>(undefined);
+  const lastObservedSlugRef = useRef<string | null>(selectedConceptSlug);
+
+  if (lastObservedSlugRef.current !== selectedConceptSlug) {
+    if (lastObservedSlugRef.current) {
+      previousSlugTrackingRef.current = lastObservedSlugRef.current;
+    }
+    lastObservedSlugRef.current = selectedConceptSlug;
+  }
+
+  const effectivePreviousSlug = previousConceptSlug ?? previousSlugTrackingRef.current;
 
   // Camera transform state (pan offset x, y, and scale k)
   const transformRef = useRef<ViewportTransform>({ x: 0, y: 0, k: 1 });
@@ -115,6 +130,7 @@ export default function GraphCanvas({
       dataset,
       index,
       focusSlug: selectedConceptSlug ?? "rust",
+      previousFocusSlug: effectivePreviousSlug,
       isMobile,
     });
     return layoutLocalUniverseScene(rawScene, {
@@ -127,6 +143,7 @@ export default function GraphCanvas({
     dataset,
     index,
     selectedConceptSlug,
+    effectivePreviousSlug,
     isMobile,
     dimensions.width,
     dimensions.height,
@@ -360,6 +377,12 @@ export default function GraphCanvas({
       return;
     }
 
+    const isInterrupted =
+      (travelStateRef.current?.active ?? false) ||
+      (currentSceneRef.current !== null &&
+        (Math.abs(currentSceneRef.current.focus.x) > 0.5 ||
+          Math.abs(currentSceneRef.current.focus.y) > 0.5));
+
     // Capture start offset before canceling any in-flight animation for seamless continuity
     const startOffset = travelStateRef.current?.active
       ? travelStateRef.current.currentOffset
@@ -375,7 +398,9 @@ export default function GraphCanvas({
     const step = calculateNavigationStep({
       fromSceneNodes: fromScene.allNodes,
       toSceneNodes: toScene.allNodes,
-      fromFocus: fromScene.focus,
+      fromFocus: isInterrupted
+        ? { ...fromScene.focus, x: 0, y: 0 }
+        : fromScene.focus,
       toFocus: toScene.focus,
     });
 
@@ -386,6 +411,7 @@ export default function GraphCanvas({
       toKey: toScene.focus.id,
       fromSecondaryKey: fromScene.focus.slug,
       toSecondaryKey: toScene.focus.slug,
+      fromAnchorOverride: isInterrupted ? startOffset : undefined,
       step,
       fallbackOffset: startOffset,
     });
