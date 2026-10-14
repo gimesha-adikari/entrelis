@@ -217,13 +217,201 @@ export function layoutLocalUniverseScene(
     });
   }
 
-  const allNodes: UniverseNode[] = [focusNode, ...primaryNodes, ...contextNodes];
+  const rawNodes: UniverseNode[] = [focusNode, ...primaryNodes, ...contextNodes];
+  const allNodes = resolveCollisionFreeLabels(rawNodes, {
+    viewportWidth,
+    viewportHeight,
+    isMobile,
+  });
+
+  const nodeMap = new Map(allNodes.map((n) => [n.id, n]));
+  const resolvedFocus = nodeMap.get(focusNode.id) ?? focusNode;
+  const resolvedPrimaryNodes = primaryNodes.map((n) => nodeMap.get(n.id) ?? n);
+  const resolvedContextNodes = contextNodes.map((n) => nodeMap.get(n.id) ?? n);
 
   return {
     ...scene,
-    focus: focusNode,
-    primaryNodes,
-    contextNodes,
+    focus: resolvedFocus,
+    primaryNodes: resolvedPrimaryNodes,
+    contextNodes: resolvedContextNodes,
     allNodes,
   };
+}
+
+interface CandidatePlacement {
+  readonly offsetX: number;
+  readonly offsetY: number;
+  readonly alignment: "left" | "center" | "right";
+  readonly baseline: CanvasTextBaseline;
+  readonly score: number;
+}
+
+function getCandidatePlacements(node: UniverseNode, isMobile: boolean): CandidatePlacement[] {
+  const isFocus = node.role === "focus";
+  const gap = isMobile ? 8 : 10;
+  const r = node.radius;
+
+  if (isFocus) {
+    return [
+      { offsetX: 0, offsetY: r + gap, alignment: "center", baseline: "top", score: 0 },
+      { offsetX: 0, offsetY: -(r + gap), alignment: "center", baseline: "bottom", score: 5 },
+      { offsetX: r + gap, offsetY: 0, alignment: "left", baseline: "middle", score: 10 },
+      { offsetX: -(r + gap), offsetY: 0, alignment: "right", baseline: "middle", score: 10 },
+    ];
+  }
+
+  const angle = node.orbitalAngle ?? 0;
+  const normAngle = Math.atan2(Math.sin(angle), Math.cos(angle));
+  const diag = Math.round((r + gap) * 0.707);
+
+  // Sector canonical primary choice (score 0)
+  let canonical: CandidatePlacement;
+  if (normAngle >= -Math.PI / 4 && normAngle <= Math.PI / 4) {
+    canonical = { offsetX: r + gap, offsetY: 0, alignment: "left", baseline: "middle", score: 0 };
+  } else if (normAngle > Math.PI / 4 && normAngle < (3 * Math.PI) / 4) {
+    canonical = { offsetX: 0, offsetY: r + gap, alignment: "center", baseline: "top", score: 0 };
+  } else if (normAngle < -Math.PI / 4 && normAngle > -(3 * Math.PI) / 4) {
+    canonical = { offsetX: 0, offsetY: -(r + gap), alignment: "center", baseline: "bottom", score: 0 };
+  } else {
+    canonical = { offsetX: -(r + gap), offsetY: 0, alignment: "right", baseline: "middle", score: 0 };
+  }
+
+  return [
+    canonical,
+    { offsetX: 0, offsetY: r + gap, alignment: "center", baseline: "top", score: 2 },
+    { offsetX: 0, offsetY: -(r + gap), alignment: "center", baseline: "bottom", score: 3 },
+    { offsetX: r + gap, offsetY: 0, alignment: "left", baseline: "middle", score: 4 },
+    { offsetX: -(r + gap), offsetY: 0, alignment: "right", baseline: "middle", score: 4 },
+    { offsetX: diag, offsetY: diag, alignment: "left", baseline: "top", score: 6 },
+    { offsetX: -diag, offsetY: diag, alignment: "right", baseline: "top", score: 6 },
+    { offsetX: diag, offsetY: -diag, alignment: "left", baseline: "bottom", score: 7 },
+    { offsetX: -diag, offsetY: -diag, alignment: "right", baseline: "bottom", score: 7 },
+  ];
+}
+
+/**
+ * Resolves collision-free, screen-bounded label placements for all nodes in the scene.
+ * Prioritizes focus node legibility, avoids mutual label overlap and celestial body occlusion,
+ * and preserves outward sector legibility.
+ */
+export function resolveCollisionFreeLabels(
+  nodes: UniverseNode[],
+  options: {
+    viewportWidth: number;
+    viewportHeight: number;
+    isMobile: boolean;
+  }
+): UniverseNode[] {
+  const { viewportWidth, isMobile } = options;
+  const margin = 8;
+  const leftBound = -viewportWidth / 2 + margin;
+  const rightBound = viewportWidth / 2 - margin;
+
+  interface PlacedBox {
+    readonly id: string;
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
+  }
+
+  const placedBoxes: PlacedBox[] = [];
+
+  // Order nodes by priority: focus first, then primary, then context
+  const priorityOrder = [...nodes].sort((a, b) => {
+    const roleWeight = (r: string) => (r === "focus" ? 0 : r === "primary" ? 1 : 2);
+    return roleWeight(a.role) - roleWeight(b.role);
+  });
+
+  const nodeMap = new Map<string, UniverseNode>();
+
+  for (const node of priorityOrder) {
+    const isFocus = node.role === "focus";
+    const fontSize = isFocus ? (isMobile ? 14 : 16) : isMobile ? 11 : 12;
+    const textWidth = Math.max(1, node.name.length * fontSize * 0.58);
+    const textHeight = fontSize * 1.15;
+    const candidates = getCandidatePlacements(node, isMobile);
+
+    let bestCandidate = candidates[0]!;
+    let bestCost = Infinity;
+
+    for (const cand of candidates) {
+      let cost = cand.score;
+
+      const lx = node.x + cand.offsetX;
+      const ly = node.y + cand.offsetY;
+
+      let boxLeft = lx;
+      if (cand.alignment === "center") boxLeft = lx - textWidth / 2;
+      else if (cand.alignment === "right") boxLeft = lx - textWidth;
+
+      let boxTop = ly;
+      if (cand.baseline === "middle") boxTop = ly - textHeight / 2;
+      else if (cand.baseline === "bottom") boxTop = ly - textHeight;
+
+      const box = {
+        left: boxLeft - 3,
+        right: boxLeft + textWidth + 3,
+        top: boxTop - 2,
+        bottom: boxTop + textHeight + 2,
+      };
+
+      // 1. Screen horizontal boundary penalty
+      if (box.left < leftBound) cost += (leftBound - box.left) * 100 + 5000;
+      if (box.right > rightBound) cost += (box.right - rightBound) * 100 + 5000;
+
+      // 2. Overlap with already placed label boxes
+      for (const placed of placedBoxes) {
+        const xOver = Math.max(0, Math.min(box.right, placed.right) - Math.max(box.left, placed.left));
+        const yOver = Math.max(0, Math.min(box.bottom, placed.bottom) - Math.max(box.top, placed.top));
+        if (xOver > 0 && yOver > 0) {
+          cost += xOver * yOver * 1000 + 20000;
+        }
+      }
+
+      // 3. Overlap with celestial body spheres (other nodes)
+      for (const other of nodes) {
+        if (other.id === node.id) continue;
+        const closestX = Math.max(box.left, Math.min(other.x, box.right));
+        const closestY = Math.max(box.top, Math.min(other.y, box.bottom));
+        const dist = Math.hypot(other.x - closestX, other.y - closestY);
+        if (dist < other.radius + 4) {
+          cost += (other.radius + 4 - dist) * 500 + 10000;
+        }
+      }
+
+      if (cost < bestCost) {
+        bestCost = cost;
+        bestCandidate = cand;
+      }
+    }
+
+    const lx = node.x + bestCandidate.offsetX;
+    const ly = node.y + bestCandidate.offsetY;
+    let boxLeft = lx;
+    if (bestCandidate.alignment === "center") boxLeft = lx - textWidth / 2;
+    else if (bestCandidate.alignment === "right") boxLeft = lx - textWidth;
+    let boxTop = ly;
+    if (bestCandidate.baseline === "middle") boxTop = ly - textHeight / 2;
+    else if (bestCandidate.baseline === "bottom") boxTop = ly - textHeight;
+
+    placedBoxes.push({
+      id: node.id,
+      left: boxLeft - 3,
+      right: boxLeft + textWidth + 3,
+      top: boxTop - 2,
+      bottom: boxTop + textHeight + 2,
+    });
+
+    nodeMap.set(node.id, {
+      ...node,
+      labelOffsetX: bestCandidate.offsetX,
+      labelOffsetY: bestCandidate.offsetY,
+      labelAlignment: bestCandidate.alignment,
+      labelBaseline: bestCandidate.baseline,
+      labelFontSize: fontSize,
+    });
+  }
+
+  return nodes.map((node) => nodeMap.get(node.id) ?? node);
 }

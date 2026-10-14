@@ -1004,12 +1004,17 @@ function fitLabelWithinHorizontalBounds(
   const left = bounds.left + margin;
   const right = bounds.right - margin;
 
-  if (alignment === "left" && x + textWidth > right) {
-    const oppositeX = node.x - node.radius - 8;
-    if (oppositeX - textWidth >= left) return { x: oppositeX, alignment: "right" };
-  } else if (alignment === "right" && x - textWidth < left) {
-    const oppositeX = node.x + node.radius + 8;
-    if (oppositeX + textWidth <= right) return { x: oppositeX, alignment: "left" };
+  const hasSmoothLabel =
+    typeof node.labelOffsetX === "number" && typeof node.labelOffsetY === "number";
+
+  if (!hasSmoothLabel) {
+    if (alignment === "left" && x + textWidth > right) {
+      const oppositeX = node.x - node.radius - 8;
+      if (oppositeX - textWidth >= left) return { x: oppositeX, alignment: "right" };
+    } else if (alignment === "right" && x - textWidth < left) {
+      const oppositeX = node.x + node.radius + 8;
+      if (oppositeX + textWidth <= right) return { x: oppositeX, alignment: "left" };
+    }
   }
 
   const minimumX =

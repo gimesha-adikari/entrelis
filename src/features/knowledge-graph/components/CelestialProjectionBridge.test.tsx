@@ -215,6 +215,52 @@ describe("CelestialProjectionBridge", () => {
     expect(maskedGroup).toBeDefined();
   });
 
+  it("adjusts mobile departure radius and silhouette mask beyond outer ring radius when rings are present on mobile", () => {
+    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+      left: 0,
+      top: 500,
+      right: 375,
+      bottom: 812,
+      width: 375,
+      height: 312,
+      x: 0,
+      y: 500,
+      toJSON: () => {},
+    }));
+
+    const panelRef = createMockRef();
+    const ringConfig = {
+      innerRadius: 66,
+      outerRadius: 96,
+      tilt: 0.42,
+      opacity: 0.88,
+      style: "ice" as const,
+      seed: 1024,
+    };
+
+    const { container } = render(
+      <CelestialProjectionBridge
+        focusPos={{ x: 187, y: 150, radius: 50 }}
+        archetype="storm-giant"
+        rings={ringConfig}
+        panelRef={panelRef}
+        isMobile={true}
+        isMobileExpanded={false}
+      />
+    );
+
+    // ringVisualRadius = (96 / 50) * 50 = 96
+    // Mask circle radius must be greater than 96 to shield entire ring system
+    const mobileMask = container.querySelector("#mobilePlanetSilhouetteMask");
+    expect(mobileMask).toBeDefined();
+    const maskCircle = mobileMask?.querySelector("circle");
+    const maskRadius = Number(maskCircle?.getAttribute("r"));
+    expect(maskRadius).toBeGreaterThan(96);
+
+    const maskedGroup = container.querySelector("g[mask='url(#mobilePlanetSilhouetteMask)']");
+    expect(maskedGroup).toBeDefined();
+  });
+
   it("cleans up event listeners and ResizeObserver on unmount", () => {
     const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
     const disconnectMock = vi.fn();

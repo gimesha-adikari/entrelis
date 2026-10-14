@@ -294,4 +294,97 @@ describe("layoutLocalUniverseScene", () => {
       expect(screenX).toBeLessThan(1440 - 480 - 40); // at least 40px buffer
     }
   });
+
+  it("resolves collision-free labels for all concepts on mobile viewports (390x844 and 360x640) without mutual overlap", () => {
+    for (const [width, height] of [
+      [390, 844],
+      [360, 640],
+    ]) {
+      for (const concept of SEED_DATASET.concepts) {
+        const rawScene = buildLocalUniverseScene({
+          dataset: SEED_DATASET,
+          focusSlug: concept.slug,
+          isMobile: true,
+        });
+
+        const laidOut = layoutLocalUniverseScene(rawScene, {
+          viewportWidth: width,
+          viewportHeight: height,
+          isMobile: true,
+        });
+
+        // Verify every node receives resolved label properties
+        for (const node of laidOut.allNodes) {
+          expect(typeof node.labelOffsetX).toBe("number");
+          expect(typeof node.labelOffsetY).toBe("number");
+          expect(node.labelAlignment).toBeDefined();
+          expect(node.labelBaseline).toBeDefined();
+          expect(typeof node.labelFontSize).toBe("number");
+          expect(Number.isFinite(node.labelOffsetX)).toBe(true);
+          expect(Number.isFinite(node.labelOffsetY)).toBe(true);
+        }
+
+        // Compute bounding box for every node
+        interface Box {
+          readonly name: string;
+          readonly left: number;
+          readonly right: number;
+          readonly top: number;
+          readonly bottom: number;
+        }
+
+        const boxes: Box[] = laidOut.allNodes.map((node) => {
+          const fontSize = node.labelFontSize ?? 11;
+          const textWidth = Math.max(1, node.name.length * fontSize * 0.58);
+          const textHeight = fontSize * 1.15;
+
+          const lx = node.x + (node.labelOffsetX ?? 0);
+          const ly = node.y + (node.labelOffsetY ?? 0);
+
+          let boxLeft = lx;
+          if (node.labelAlignment === "center") boxLeft = lx - textWidth / 2;
+          else if (node.labelAlignment === "right") boxLeft = lx - textWidth;
+
+          let boxTop = ly;
+          if (node.labelBaseline === "middle") boxTop = ly - textHeight / 2;
+          else if (node.labelBaseline === "bottom") boxTop = ly - textHeight;
+
+          return {
+            name: node.name,
+            left: boxLeft,
+            right: boxLeft + textWidth,
+            top: boxTop,
+            bottom: boxTop + textHeight,
+          };
+        });
+
+        // Verify zero label-label overlaps with at least 0px clearance
+        for (let i = 0; i < boxes.length; i++) {
+          for (let j = i + 1; j < boxes.length; j++) {
+            const b1 = boxes[i]!;
+            const b2 = boxes[j]!;
+            const xOverlap = Math.max(0, Math.min(b1.right, b2.right) - Math.max(b1.left, b2.left));
+            const yOverlap = Math.max(0, Math.min(b1.bottom, b2.bottom) - Math.max(b1.top, b2.top));
+            expect(
+              xOverlap > 0 && yOverlap > 0,
+              `Collision detected between "${b1.name}" and "${b2.name}" under focus "${concept.name}" on ${width}x${height} viewport`
+            ).toBe(false);
+          }
+        }
+
+        // Specifically verify "Operating Systems" focus node does not overlap "Stack & Heap"
+        if (concept.slug === "operating-systems") {
+          const osBox = boxes.find((b) => b.name === "Operating Systems");
+          const shBox = boxes.find((b) => b.name === "Stack & Heap");
+          expect(osBox).toBeDefined();
+          expect(shBox).toBeDefined();
+          if (osBox && shBox) {
+            const xOver = Math.max(0, Math.min(osBox.right, shBox.right) - Math.max(osBox.left, shBox.left));
+            const yOver = Math.max(0, Math.min(osBox.bottom, shBox.bottom) - Math.max(osBox.top, shBox.top));
+            expect(xOver * yOver).toBe(0);
+          }
+        }
+      }
+    }
+  });
 });

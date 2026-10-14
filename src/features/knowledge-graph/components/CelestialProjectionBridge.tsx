@@ -423,7 +423,11 @@ export default function CelestialProjectionBridge({
   const originCenterX = focusPos.x;
   const originCenterY = focusPos.y;
 
-  const departureRadius = radius + 1.5;
+  const ringVisualRadius = rings ? (rings.outerRadius / 50) * radius : 0;
+  const hasRings = ringVisualRadius > radius;
+  const departureRadius = hasRings ? ringVisualRadius + 2 : radius + 1.5;
+  const maskRadius = hasRings ? ringVisualRadius + 1 : radius + 0.5;
+
   const planetBottomX = originCenterX;
   const planetBottomY = originCenterY + departureRadius;
 
@@ -434,15 +438,36 @@ export default function CelestialProjectionBridge({
     return null;
   }
 
-  const dy = Math.max(30, lensTopY - planetBottomY);
+  const dy = Math.max(20, lensTopY - planetBottomY);
+  const halfTopW = 2.5;
+  const halfBottomW = 9;
 
+  // Delicate slender starlight channel
   const mobileStreamPath = `
-    M ${planetBottomX - 16} ${planetBottomY}
-    C ${planetBottomX - 24} ${planetBottomY + dy * 0.4}, ${lensTopX - panelRect.width * 0.35} ${lensTopY - 10}, ${lensTopX - panelRect.width * 0.35} ${lensTopY}
-    L ${lensTopX + panelRect.width * 0.35} ${lensTopY}
-    C ${lensTopX + panelRect.width * 0.35} ${lensTopY - 10}, ${planetBottomX + 24} ${planetBottomY + dy * 0.4}, ${planetBottomX + 16} ${planetBottomY}
+    M ${planetBottomX - halfTopW} ${planetBottomY}
+    C ${planetBottomX - halfTopW - 1} ${planetBottomY + dy * 0.35}, ${lensTopX - halfBottomW - 1} ${lensTopY - 6}, ${lensTopX - halfBottomW} ${lensTopY}
+    L ${lensTopX + halfBottomW} ${lensTopY}
+    C ${lensTopX + halfBottomW + 1} ${lensTopY - 6}, ${planetBottomX + halfTopW + 1} ${planetBottomY + dy * 0.35}, ${planetBottomX + halfTopW} ${planetBottomY}
     Z
   `;
+
+  // Left & right guide filaments
+  const leftFilament = `
+    M ${planetBottomX - halfTopW} ${planetBottomY}
+    C ${planetBottomX - halfTopW - 1} ${planetBottomY + dy * 0.35}, ${lensTopX - halfBottomW - 1} ${lensTopY - 6}, ${lensTopX - halfBottomW} ${lensTopY}
+  `;
+  const rightFilament = `
+    M ${planetBottomX + halfTopW} ${planetBottomY}
+    C ${planetBottomX + halfTopW + 1} ${planetBottomY + dy * 0.35}, ${lensTopX + halfBottomW + 1} ${lensTopY - 6}, ${lensTopX + halfBottomW} ${lensTopY}
+  `;
+
+  // Central luminous carrier filament
+  const centerRay = `
+    M ${planetBottomX} ${planetBottomY}
+    L ${lensTopX} ${lensTopY}
+  `;
+
+  const crestRadius = 24;
 
   return (
     <svg
@@ -451,6 +476,7 @@ export default function CelestialProjectionBridge({
       preserveAspectRatio="none"
     >
       <defs>
+        {/* Soft starlight diffusion veil */}
         <linearGradient
           id="mobileVeilGradient"
           x1={planetBottomX}
@@ -459,51 +485,102 @@ export default function CelestialProjectionBridge({
           y2={lensTopY}
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0%" stopColor={`rgba(${palette.rgb}, 0.14)`} />
-          <stop offset="40%" stopColor={`rgba(${palette.rgb}, 0.05)`} />
-          <stop offset="100%" stopColor={`rgba(${palette.rgb}, 0.005)`} />
+          <stop offset="0%" stopColor={`rgba(${palette.rgb}, 0.035)`} />
+          <stop offset="45%" stopColor={`rgba(${palette.rgb}, 0.012)`} />
+          <stop offset="100%" stopColor="transparent" />
         </linearGradient>
 
+        {/* Luminous starlight filament gradient */}
+        <linearGradient
+          id="mobileBeamGradient"
+          x1={planetBottomX}
+          y1={planetBottomY}
+          x2={lensTopX}
+          y2={lensTopY}
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0%" stopColor={palette.secondary} stopOpacity="0.45" />
+          <stop offset="35%" stopColor={palette.primary} stopOpacity="0.22" />
+          <stop offset="80%" stopColor="rgba(255, 255, 255, 0.12)" />
+          <stop offset="100%" stopColor="rgba(255, 255, 255, 0.38)" />
+        </linearGradient>
+
+        {/* Compact, focused luminous crest on top rim of Cosmic Lens */}
         <linearGradient
           id="mobileRimGradient"
-          x1={panelRect.left}
+          x1={lensTopX - crestRadius}
           y1={lensTopY}
-          x2={panelRect.right}
+          x2={lensTopX + crestRadius}
           y2={lensTopY}
           gradientUnits="userSpaceOnUse"
         >
           <stop offset="0%" stopColor="transparent" />
-          <stop offset="25%" stopColor={palette.primary} stopOpacity="0.25" />
-          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.65" />
-          <stop offset="75%" stopColor={palette.primary} stopOpacity="0.25" />
+          <stop offset="28%" stopColor={palette.primary} stopOpacity="0.20" />
+          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.60" />
+          <stop offset="72%" stopColor={palette.primary} stopOpacity="0.20" />
           <stop offset="100%" stopColor="transparent" />
         </linearGradient>
 
-        {/* Mobile SVG Mask to ensure zero projection stream overlaps the celestial body */}
+        {/* Ring-aware SVG Mask to ensure zero projection overlap with celestial body or rings */}
         <mask id="mobilePlanetSilhouetteMask">
           <rect x="0" y="0" width="100%" height="100%" fill="white" />
           <circle
             cx={originCenterX}
             cy={originCenterY}
-            r={radius + 0.5}
+            r={maskRadius}
             fill="black"
           />
         </mask>
       </defs>
 
-      {/* Downward ethereal cone to mobile lens, masked outside planet disc */}
+      {/* Masked starlight connection outside planetary body and rings */}
       <g mask="url(#mobilePlanetSilhouetteMask)">
+        {/* 1. Subtle starlight diffusion veil */}
         <path d={mobileStreamPath} fill="url(#mobileVeilGradient)" />
+
+        {/* 2. Delicate outer boundary filaments */}
+        <path
+          d={leftFilament}
+          fill="none"
+          stroke="url(#mobileBeamGradient)"
+          strokeWidth="0.65"
+          strokeOpacity="0.30"
+        />
+        <path
+          d={rightFilament}
+          fill="none"
+          stroke="url(#mobileBeamGradient)"
+          strokeWidth="0.65"
+          strokeOpacity="0.30"
+        />
+
+        {/* 3. Central luminous carrier filament */}
+        <path
+          d={centerRay}
+          fill="none"
+          stroke="url(#mobileBeamGradient)"
+          strokeWidth="1.1"
+          strokeDasharray="3 4"
+        />
+
+        {/* 4. Soft departure starlight spark */}
+        <circle
+          cx={planetBottomX}
+          cy={planetBottomY + 0.5}
+          r={1.8}
+          fill={palette.secondary}
+          fillOpacity="0.4"
+        />
       </g>
 
       {/* Luminous crest on the top rim of the Cosmic Lens */}
       <line
-        x1={panelRect.left + 24}
+        x1={lensTopX - crestRadius}
         y1={lensTopY}
-        x2={panelRect.right - 24}
+        x2={lensTopX + crestRadius}
         y2={lensTopY}
         stroke="url(#mobileRimGradient)"
-        strokeWidth="2"
+        strokeWidth="1.2"
       />
     </svg>
   );
