@@ -1,5 +1,5 @@
 import type { Concept, Relationship, Source } from "@/domain/knowledge/types";
-import { SEED_CONCEPTS } from "@/data/seed";
+import { SEED_CONCEPTS, SEED_RELATIONSHIPS } from "@/data/seed";
 import type { ArticleConnection, PilotArticleMetadata, RelatedConceptSummary } from "./types";
 
 /**
@@ -327,6 +327,103 @@ export const PILOT_SOURCES: readonly Source[] = [
 ] as const;
 
 /**
+ * Pre-compiled metadata for the seven seed article proposals.
+ */
+export const SEED_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
+  {
+    slug: "rust",
+    conceptId: "concept-rust",
+    title: "Rust",
+    shortDescription:
+      "A systems programming language that combines low-level hardware control with compile-time safety guarantees.",
+    domains: ["programming-languages", "computer-science"],
+    tags: ["systems-programming", "type-safety", "compilers", "concurrency"],
+    wordCount: 1478,
+    readingTimeMinutes: 7,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+  {
+    slug: "ownership",
+    conceptId: "concept-ownership",
+    title: "Ownership",
+    shortDescription:
+      "The set of rules that governs how a Rust program manages memory and resources at compile time.",
+    domains: ["programming-languages", "computer-science"],
+    tags: ["memory-management", "type-system", "borrow-checker", "lifetimes"],
+    wordCount: 1557,
+    readingTimeMinutes: 7,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+  {
+    slug: "memory",
+    conceptId: "concept-memory",
+    title: "Memory",
+    shortDescription:
+      "The storage systems and addressable spaces computers use to retain active instructions and runtime data.",
+    domains: ["computer-science", "systems-architecture"],
+    tags: ["virtual-memory", "ram", "address-space", "computer-architecture"],
+    wordCount: 1607,
+    readingTimeMinutes: 8,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+  {
+    slug: "stack-and-heap",
+    conceptId: "concept-stack-and-heap",
+    title: "Stack & Heap",
+    shortDescription:
+      "Two common memory regions in conventional process address spaces that serve different allocation lifetimes and sizing needs.",
+    domains: ["computer-science", "systems-architecture"],
+    tags: ["memory-allocation", "stack-frame", "dynamic-memory", "runtime"],
+    wordCount: 1701,
+    readingTimeMinutes: 8,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+  {
+    slug: "operating-systems",
+    conceptId: "concept-operating-systems",
+    title: "Operating Systems",
+    shortDescription:
+      "System software that manages physical hardware resources and provides execution environments for applications.",
+    domains: ["computer-science", "systems-architecture"],
+    tags: ["kernel", "process-management", "virtualization", "system-software"],
+    wordCount: 1846,
+    readingTimeMinutes: 9,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+  {
+    slug: "cpus",
+    conceptId: "concept-cpus",
+    title: "CPUs",
+    shortDescription:
+      "The electronic circuitry that executes machine instructions and coordinates computation within a computer.",
+    domains: ["hardware", "computer-architecture"],
+    tags: ["processors", "microarchitecture", "instruction-set", "silicon"],
+    wordCount: 1692,
+    readingTimeMinutes: 8,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+  {
+    slug: "transistors",
+    conceptId: "concept-transistors",
+    title: "Transistors",
+    shortDescription:
+      "Semiconductor devices that switch or amplify electronic signals, serving as the physical building blocks of digital logic.",
+    domains: ["physics", "electronics", "hardware"],
+    tags: ["semiconductors", "mosfet", "digital-logic", "solid-state-physics"],
+    wordCount: 1769,
+    readingTimeMinutes: 8,
+    reviewStatus: "reviewed",
+    tier: "seed",
+  },
+] as const;
+
+/**
  * Pre-compiled metadata for the six pilot articles.
  */
 export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
@@ -341,6 +438,7 @@ export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
     wordCount: 1992,
     readingTimeMinutes: 8,
     reviewStatus: "needs-review",
+    tier: "pilot",
   },
   {
     slug: "virtual-memory",
@@ -353,6 +451,7 @@ export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
     wordCount: 2233,
     readingTimeMinutes: 9,
     reviewStatus: "needs-review",
+    tier: "pilot",
   },
   {
     slug: "file-systems",
@@ -365,6 +464,7 @@ export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
     wordCount: 2300,
     readingTimeMinutes: 10,
     reviewStatus: "needs-review",
+    tier: "pilot",
   },
   {
     slug: "concurrency",
@@ -377,6 +477,7 @@ export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
     wordCount: 2387,
     readingTimeMinutes: 10,
     reviewStatus: "needs-review",
+    tier: "pilot",
   },
   {
     slug: "asynchronous-io",
@@ -389,6 +490,7 @@ export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
     wordCount: 2032,
     readingTimeMinutes: 8,
     reviewStatus: "needs-review",
+    tier: "pilot",
   },
   {
     slug: "machine-code",
@@ -401,18 +503,41 @@ export const PILOT_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
     wordCount: 1779,
     readingTimeMinutes: 7,
     reviewStatus: "needs-review",
+    tier: "pilot",
   },
 ] as const;
 
 /**
- * Finds a pilot concept by slug.
+ * Combined catalog of all 13 available knowledge preview articles (7 seed proposals + 6 pilot candidates).
+ */
+export const ALL_ARTICLES_METADATA: readonly PilotArticleMetadata[] = [
+  ...SEED_ARTICLES_METADATA,
+  ...PILOT_ARTICLES_METADATA,
+] as const;
+
+/**
+ * Finds a concept by slug across both pilot and seed concepts.
+ */
+export function getConceptBySlug(slug: string): Concept | undefined {
+  return PILOT_CONCEPTS.find((c) => c.slug === slug) ?? SEED_CONCEPTS.find((c) => c.slug === slug);
+}
+
+/**
+ * Finds a concept by ID across both pilot and seed concepts.
+ */
+export function getConceptById(id: string): Concept | undefined {
+  return PILOT_CONCEPTS.find((c) => c.id === id) ?? SEED_CONCEPTS.find((c) => c.id === id);
+}
+
+/**
+ * Finds a pilot concept by slug (kept for backwards compatibility).
  */
 export function getPilotConceptBySlug(slug: string): Concept | undefined {
   return PILOT_CONCEPTS.find((c) => c.slug === slug);
 }
 
 /**
- * Finds a pilot concept by ID.
+ * Finds a pilot concept by ID (kept for backwards compatibility).
  */
 export function getPilotConceptById(id: string): Concept | undefined {
   return PILOT_CONCEPTS.find((c) => c.id === id);
@@ -449,8 +574,9 @@ export function getConceptConnections(conceptId: string): readonly ArticleConnec
   }
 
   const connections: ArticleConnection[] = [];
+  const allRelationships: readonly Relationship[] = [...SEED_RELATIONSHIPS, ...PILOT_RELATIONSHIPS];
 
-  for (const rel of PILOT_RELATIONSHIPS) {
+  for (const rel of allRelationships) {
     if (rel.sourceConceptId === conceptId) {
       const target = allKnownConcepts.get(rel.targetConceptId);
       if (target) {

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAllPilotArticles, loadPilotArticle, PILOT_ARTICLES_METADATA } from "@/data/preview";
+import { getAllPilotArticles, loadPilotArticle, ALL_ARTICLES_METADATA } from "@/data/preview";
 import { KnowledgeReader } from "@/features/knowledge-reader";
 
 interface Props {
@@ -9,14 +9,14 @@ interface Props {
 }
 
 export function generateStaticParams() {
-  return PILOT_ARTICLES_METADATA.map((art) => ({
+  return ALL_ARTICLES_METADATA.map((art) => ({
     slug: art.slug,
   }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const meta = PILOT_ARTICLES_METADATA.find((a) => a.slug === slug);
+  const meta = ALL_ARTICLES_METADATA.find((a) => a.slug === slug);
 
   if (!meta) {
     return {

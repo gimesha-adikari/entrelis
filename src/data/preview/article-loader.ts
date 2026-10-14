@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-  PILOT_ARTICLES_METADATA,
+  ALL_ARTICLES_METADATA,
   getConceptConnections,
-  getPilotConceptBySlug,
+  getConceptBySlug,
 } from "./pilot-data";
 import type { CitationRecord, HeadingItem, PilotArticle } from "./types";
 
@@ -106,14 +106,15 @@ export function parseSection7Citations(markdown: string): CitationRecord[] {
 }
 
 /**
- * Loads a pilot article from the filesystem by slug.
- * Returns null if the slug does not match an approved pilot candidate.
+ * Loads an article preview from the filesystem by slug.
+ * Supports all 13 articles (7 seed proposals and 6 pilot candidates).
+ * Returns null if the slug does not match an approved candidate or proposal.
  */
 export function loadPilotArticle(slug: string): PilotArticle | null {
-  const meta = PILOT_ARTICLES_METADATA.find((a) => a.slug === slug);
+  const meta = ALL_ARTICLES_METADATA.find((a) => a.slug === slug);
   if (!meta) return null;
 
-  const concept = getPilotConceptBySlug(slug);
+  const concept = getConceptBySlug(slug);
   if (!concept) return null;
 
   const filePath = path.join(process.cwd(), "src/data/preview/articles", `${slug}.md`);
@@ -137,11 +138,11 @@ export function loadPilotArticle(slug: string): PilotArticle | null {
 }
 
 /**
- * Loads all six pilot articles.
+ * Loads all 13 knowledge preview articles (7 seed proposals + 6 pilot candidates).
  */
 export function getAllPilotArticles(): PilotArticle[] {
   const articles: PilotArticle[] = [];
-  for (const meta of PILOT_ARTICLES_METADATA) {
+  for (const meta of ALL_ARTICLES_METADATA) {
     const article = loadPilotArticle(meta.slug);
     if (article) {
       articles.push(article);
@@ -149,3 +150,6 @@ export function getAllPilotArticles(): PilotArticle[] {
   }
   return articles;
 }
+
+export const loadArticle = loadPilotArticle;
+export const getAllArticles = getAllPilotArticles;

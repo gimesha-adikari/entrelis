@@ -122,6 +122,44 @@
   align-items: center;
 }
 
+.backToUniverseLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  margin-right: var(--space-2);
+  transition: all var(--motion-duration-fast);
+  white-space: nowrap;
+}
+
+.backToUniverseLink:hover,
+.backToUniverseLink:focus-visible {
+  border-color: var(--color-accent);
+  background-color: var(--color-bg-elevated);
+  color: #93c5fd;
+}
+
+.backArrow {
+  font-size: 0.85rem;
+}
+
+.backText {
+  display: inline;
+}
+
+@media (max-width: 640px) {
+  .backText {
+    display: none;
+  }
+}
+
 .tocToggleButton {
   display: inline-flex;
   align-items: center;
@@ -158,6 +196,11 @@
   padding: var(--space-3) var(--space-6);
 }
 
+.editorialBannerSeed {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.04) 100%);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+}
+
 .editorialBannerInner {
   max-width: 1360px;
   margin: 0 auto;
@@ -185,6 +228,12 @@
   border: 1px solid rgba(245, 158, 11, 0.35);
   white-space: nowrap;
   align-self: flex-start;
+}
+
+.editorialBadgeSeed {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .editorialText {
@@ -327,6 +376,29 @@
 .articleMetaLine {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tierLabelSeed {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #93c5fd;
+  letter-spacing: 0.04em;
+}
+
+.tierLabelPilot {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #fbbf24;
+  letter-spacing: 0.04em;
 }
 
 /* TOC Section */
@@ -390,6 +462,27 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
+.breadcrumbBar {
+  margin-bottom: var(--space-3);
+}
+
+.breadcrumbBackLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-accent);
+  text-decoration: none;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  transition: color var(--motion-duration-fast);
+}
+
+.breadcrumbBackLink:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
 .tagRow {
   display: flex;
   flex-wrap: wrap;
@@ -406,6 +499,30 @@
   background-color: rgba(255, 255, 255, 0.05);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.seedBadgeTag {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pilotBadgeTag {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

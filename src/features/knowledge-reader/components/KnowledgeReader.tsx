@@ -69,6 +69,11 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
   }, []);
 
   const currentArticle = allArticles.find((a) => a.slug === activeSlug) ?? initialArticle;
+  const isSeed = currentArticle.tier === "seed";
+  const backUrl = isSeed ? `/concept/${currentArticle.slug}` : "/";
+  const backLabel = isSeed
+    ? `Return to ${currentArticle.title} in Universe`
+    : "Return to Universe";
 
   // Keep document title in sync with active article
   useEffect(() => {
@@ -137,6 +142,18 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
           </div>
 
           <div className={styles.topBarActions}>
+            <Link
+              href={backUrl}
+              className={styles.backToUniverseLink}
+              data-testid="back-to-universe-link"
+              aria-label={backLabel}
+            >
+              <span className={styles.backArrow} aria-hidden="true">
+                ←
+              </span>
+              <span className={styles.backText}>Back to Universe</span>
+            </Link>
+
             <button
               type="button"
               className={styles.tocToggleButton}
@@ -155,19 +172,35 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
 
       {/* Editorial Safety Banner */}
       <aside
-        className={styles.editorialBanner}
+        className={`${styles.editorialBanner} ${isSeed ? styles.editorialBannerSeed : ""}`}
         aria-label="Editorial draft disclaimer"
         data-testid="editorial-safety-banner"
       >
         <div className={styles.editorialBannerInner}>
-          <span className={styles.editorialBadge} aria-hidden="true">
-            DRAFT PREVIEW · AWAITING EDITORIAL APPROVAL
+          <span
+            className={`${styles.editorialBadge} ${isSeed ? styles.editorialBadgeSeed : ""}`}
+            aria-hidden="true"
+          >
+            {isSeed
+              ? "EDITORIAL PROPOSAL · SEED CONCEPT"
+              : "DRAFT PREVIEW · AWAITING EDITORIAL APPROVAL"}
           </span>
           <p className={styles.editorialText}>
-            This educational knowledge article is part of the Milestone 2 Batch 01 Pilot. All
-            candidate concepts and relationships are strictly held at{" "}
-            <code>reviewStatus: &quot;needs-review&quot;</code> and are not yet published to the
-            production knowledge graph.
+            {isSeed ? (
+              <>
+                This educational knowledge article is a proposed long-form reading experience for
+                the published seed concept <strong>&quot;{currentArticle.title}&quot;</strong>. The
+                concept itself is part of the published foundation in the universe knowledge graph,
+                while this article is an editorial proposal under review.
+              </>
+            ) : (
+              <>
+                This educational knowledge article is part of the Milestone 2 Batch 01 Pilot. All
+                candidate concepts and relationships are strictly held at{" "}
+                <code>reviewStatus: &quot;needs-review&quot;</code> and are not yet published to the
+                production knowledge graph.
+              </>
+            )}
           </p>
         </div>
       </aside>
@@ -181,7 +214,7 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
           data-testid="reader-sidebar"
         >
           <div className={styles.sidebarHeader}>
-            <h2 className={styles.sidebarHeading}>Pilot Articles (6)</h2>
+            <h2 className={styles.sidebarHeading}>Knowledge Articles ({allArticles.length})</h2>
             <button
               type="button"
               className={styles.closeDrawerButton}
@@ -195,6 +228,7 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
           <ul className={styles.articleList}>
             {allArticles.map((art, idx) => {
               const isActive = art.slug === currentArticle.slug;
+              const isArtSeed = art.tier === "seed";
               return (
                 <li key={art.slug} className={styles.articleListItem}>
                   <button
@@ -206,10 +240,16 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
                     aria-current={isActive ? "page" : undefined}
                     data-testid={`article-nav-button-${art.slug}`}
                   >
-                    <span className={styles.articleNum}>0{idx + 1}</span>
+                    <span className={styles.articleNum}>
+                      {idx < 9 ? `0${idx + 1}` : `${idx + 1}`}
+                    </span>
                     <div className={styles.articleMetaCol}>
                       <span className={styles.articleTitle}>{art.title}</span>
                       <span className={styles.articleMetaLine}>
+                        <span className={isArtSeed ? styles.tierLabelSeed : styles.tierLabelPilot}>
+                          {isArtSeed ? "Seed" : "Pilot"}
+                        </span>
+                        {" · "}
                         {art.wordCount.toLocaleString()} words · {art.readingTimeMinutes} min
                       </span>
                     </div>
@@ -255,12 +295,26 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
         <main className={styles.readingPane} data-testid="reading-pane">
           {/* Article Header Ribbon */}
           <div className={styles.articleHeader}>
+            <div className={styles.breadcrumbBar}>
+              <Link
+                href={backUrl}
+                className={styles.breadcrumbBackLink}
+                aria-label={backLabel}
+              >
+                <span aria-hidden="true">←</span>
+                <span>Back to Universe</span>
+              </Link>
+            </div>
+
             <div className={styles.tagRow}>
               {currentArticle.domains.map((dom) => (
                 <span key={dom} className={styles.domainTag}>
                   {dom}
                 </span>
               ))}
+              <span className={isSeed ? styles.seedBadgeTag : styles.pilotBadgeTag}>
+                {isSeed ? "Seed Concept (Published)" : "Pilot Candidate (Draft)"}
+              </span>
               <span className={styles.statusBadge}>{currentArticle.reviewStatus}</span>
             </div>
 

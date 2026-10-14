@@ -24,17 +24,43 @@ describe("KnowledgeReader Component", () => {
     window.history.pushState(null, "", "/");
   });
 
-  it("renders the reader preview root and editorial safety banner", () => {
+  it("renders the reader preview root and editorial safety banner for seed concept proposal", () => {
     render(<KnowledgeReader initialArticle={initialArticle} allArticles={articles} />);
 
     expect(screen.getByTestId("knowledge-reader-root")).toBeDefined();
+    const banner = screen.getByTestId("editorial-safety-banner");
+    expect(banner).toBeDefined();
+    expect(banner.textContent).toContain("EDITORIAL PROPOSAL · SEED CONCEPT");
+    expect(banner.textContent).toContain("Rust");
+  });
+
+  it("renders draft safety banner for pilot candidates", () => {
+    const isaArticle = articles.find((a) => a.slug === "instruction-set-architecture")!;
+    render(<KnowledgeReader initialArticle={isaArticle} allArticles={articles} />);
+
     const banner = screen.getByTestId("editorial-safety-banner");
     expect(banner).toBeDefined();
     expect(banner.textContent).toContain("DRAFT PREVIEW · AWAITING EDITORIAL APPROVAL");
     expect(banner.textContent).toContain('reviewStatus: "needs-review"');
   });
 
-  it("successfully renders each of the six pilot articles without errors", () => {
+  it("renders Back to Universe link returning to /concept/[slug] for seed concepts and / for pilot candidates", () => {
+    const rustArticle = articles.find((a) => a.slug === "rust")!;
+    const { unmount } = render(
+      <KnowledgeReader initialArticle={rustArticle} allArticles={articles} />
+    );
+    const rustBackLink = screen.getByTestId("back-to-universe-link");
+    expect(rustBackLink.getAttribute("href")).toBe("/concept/rust");
+    unmount();
+
+    const vmArticle = articles.find((a) => a.slug === "virtual-memory")!;
+    render(<KnowledgeReader initialArticle={vmArticle} allArticles={articles} />);
+    const vmBackLink = screen.getByTestId("back-to-universe-link");
+    expect(vmBackLink.getAttribute("href")).toBe("/");
+  });
+
+  it("successfully renders each of the 13 preview articles without errors", () => {
+    expect(articles).toHaveLength(13);
     for (const art of articles) {
       const { unmount } = render(<KnowledgeReader initialArticle={art} allArticles={articles} />);
       expect(screen.getByRole("heading", { level: 1, name: art.title })).toBeDefined();
@@ -43,11 +69,12 @@ describe("KnowledgeReader Component", () => {
     }
   });
 
-  it("renders sidebar with all six pilot articles", () => {
+  it("renders sidebar with all 13 articles", () => {
     render(<KnowledgeReader initialArticle={initialArticle} allArticles={articles} />);
 
     const sidebar = screen.getByTestId("reader-sidebar");
     expect(sidebar).toBeDefined();
+    expect(screen.getByRole("heading", { level: 2, name: "Knowledge Articles (13)" })).toBeDefined();
 
     for (const art of articles) {
       const button = screen.getByTestId(`article-nav-button-${art.slug}`);
@@ -59,10 +86,8 @@ describe("KnowledgeReader Component", () => {
   it("switches to another article when clicking sidebar navigation button", () => {
     render(<KnowledgeReader initialArticle={initialArticle} allArticles={articles} />);
 
-    // Initial article is Instruction Set Architecture
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Instruction Set Architecture" })
-    ).toBeDefined();
+    // Initial article is Rust
+    expect(screen.getByRole("heading", { level: 1, name: "Rust" })).toBeDefined();
 
     // Click Virtual Memory in the sidebar
     const vmButton = screen.getByTestId("article-nav-button-virtual-memory");
@@ -74,9 +99,10 @@ describe("KnowledgeReader Component", () => {
   });
 
   it("opens CitationPopover when clicking an inline citation badge and closes on escape", () => {
-    render(<KnowledgeReader initialArticle={initialArticle} allArticles={articles} />);
+    const isaArticle = articles.find((a) => a.slug === "instruction-set-architecture")!;
+    render(<KnowledgeReader initialArticle={isaArticle} allArticles={articles} />);
 
-    // Initial article has citation badge [1]
+    // ISA article has citation badge [1]
     const badges = screen.getAllByTestId("citation-badge-1");
     expect(badges.length).toBeGreaterThan(0);
 
@@ -207,7 +233,7 @@ describe("KnowledgeReader Component", () => {
     const pushStateSpy = vi.spyOn(window.history, "pushState");
     render(<KnowledgeReader initialArticle={initialArticle} allArticles={articles} />);
 
-    expect(document.title).toContain("Instruction Set Architecture");
+    expect(document.title).toContain("Rust");
 
     // Click Virtual Memory in the sidebar
     const vmButton = screen.getByTestId("article-nav-button-virtual-memory");

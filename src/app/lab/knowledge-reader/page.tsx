@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAllPilotArticles, PILOT_ARTICLES_METADATA } from "@/data/preview";
+import { getAllPilotArticles, ALL_ARTICLES_METADATA } from "@/data/preview";
 import { KnowledgeReader } from "@/features/knowledge-reader";
 
 interface Props {
@@ -13,9 +13,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const requestedArticle =
     typeof resolvedSearchParams.article === "string" ? resolvedSearchParams.article : undefined;
 
-  const defaultMeta = PILOT_ARTICLES_METADATA[0];
+  const defaultMeta = ALL_ARTICLES_METADATA[0];
   const meta = requestedArticle
-    ? (PILOT_ARTICLES_METADATA.find((a) => a.slug === requestedArticle) ?? defaultMeta)
+    ? (ALL_ARTICLES_METADATA.find((a) => a.slug === requestedArticle) ?? defaultMeta)
     : defaultMeta;
 
   const title = meta

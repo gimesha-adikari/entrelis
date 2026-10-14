@@ -48,6 +48,7 @@ export interface PilotArticleMetadata {
   readonly wordCount: number;
   readonly readingTimeMinutes: number;
   readonly reviewStatus: ReviewStatus;
+  readonly tier?: ConceptTier;
 }
 
 export interface PilotArticle extends PilotArticleMetadata {

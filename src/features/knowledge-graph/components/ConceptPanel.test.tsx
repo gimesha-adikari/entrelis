@@ -5,7 +5,7 @@ import { SEED_DATASET } from "@/data/seed";
 import type { Concept, KnowledgeDataset, Relationship, Source } from "@/domain/knowledge/types";
 
 describe("ConceptPanel Knowledge Observatory", () => {
-  it("renders selected concept title, domain classification, and short description", () => {
+  it("renders selected concept title, domain classification, Level 1 overview, and Learn more link", () => {
     const rustConcept = SEED_DATASET.concepts.find((c) => c.slug === "rust")!;
     render(<ConceptPanel concept={rustConcept} dataset={SEED_DATASET} onSelectConcept={vi.fn()} />);
 
@@ -16,11 +16,37 @@ describe("ConceptPanel Knowledge Observatory", () => {
         "A systems programming language that combines low-level hardware control with compile-time safety guarantees."
       )
     ).toBeDefined();
-    expect(
-      screen.getByText(
-        "In Safe Rust, ownership, borrowing, and the type system prevent many classes of memory-safety and concurrency errors without requiring an automated garbage collector. Unsafe Rust permits lower-level operations whose safety invariants must be upheld manually by the programmer."
-      )
-    ).toBeDefined();
+
+    // Enhanced 2-paragraph Level 1 overview
+    const overviewContainer = screen.getByTestId("concept-overview");
+    expect(overviewContainer).toBeDefined();
+    expect(overviewContainer.textContent).toContain("Rust is a modern programming language");
+    expect(overviewContainer.textContent).toContain("Rust solves this dilemma");
+
+    // Level 1 -> Level 2 Learn more link
+    const learnMoreLink = screen.getByTestId("learn-more-link");
+    expect(learnMoreLink).toBeDefined();
+    expect(learnMoreLink.getAttribute("href")).toBe("/lab/knowledge-reader/rust");
+    expect(learnMoreLink.textContent).toContain("Learn more");
+  });
+
+  it("falls back to concept.description when no enhanced overview is present and omits learn more if no article exists", () => {
+    const customConcept: Concept = {
+      id: "concept-custom-fallback",
+      slug: "custom-fallback",
+      name: "Custom Fallback Concept",
+      shortDescription: "Short summary.",
+      description: "Fallback description paragraph.",
+      domains: ["testing"],
+      tags: [],
+      sourceIds: [],
+      reviewStatus: "reviewed",
+    };
+    render(<ConceptPanel concept={customConcept} dataset={SEED_DATASET} onSelectConcept={vi.fn()} />);
+
+    expect(screen.getByText("Fallback description paragraph.")).toBeDefined();
+    expect(screen.queryByTestId("concept-overview")).toBeNull();
+    expect(screen.queryByTestId("learn-more-link")).toBeNull();
   });
 
   it("renders honest review status without inflated claims", () => {

@@ -31,9 +31,7 @@ describe("Knowledge Reader Lab Route Pages", () => {
     render(pageComponent);
 
     expect(screen.getByTestId("knowledge-reader-root")).toBeDefined();
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Instruction Set Architecture" })
-    ).toBeDefined();
+    expect(screen.getByRole("heading", { level: 1, name: "Rust" })).toBeDefined();
   });
 
   it("renders requested article when query parameter is provided", async () => {
@@ -50,7 +48,7 @@ describe("Knowledge Reader Lab Route Pages", () => {
     const defaultMeta = await generatePageMetadata({
       searchParams: Promise.resolve({}),
     });
-    expect(defaultMeta.title).toContain("Instruction Set Architecture");
+    expect(defaultMeta.title).toContain("Rust");
     expect(defaultMeta.title).toContain("Knowledge Reader Preview");
 
     const customMeta = await generatePageMetadata({
@@ -59,10 +57,17 @@ describe("Knowledge Reader Lab Route Pages", () => {
     expect(customMeta.title).toContain("File Systems");
   });
 
-  it("generates static params containing all 6 pilot slugs for [slug] route", () => {
+  it("generates static params containing all 13 article slugs for [slug] route", () => {
     const params = generateStaticParams();
-    expect(params).toHaveLength(6);
+    expect(params).toHaveLength(13);
     expect(params.map((p) => p.slug)).toEqual([
+      "rust",
+      "ownership",
+      "memory",
+      "stack-and-heap",
+      "operating-systems",
+      "cpus",
+      "transistors",
       "instruction-set-architecture",
       "virtual-memory",
       "file-systems",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useEffect, useState, forwardRef } from "react";
+import Link from "next/link";
 import type {
   Concept,
   KnowledgeDataset,
@@ -12,6 +13,7 @@ import type {
 import { getOrCreateKnowledgeGraphIndex, type KnowledgeGraphIndex } from "../knowledge-index";
 import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import { isSafeUrl } from "@/domain/knowledge/validation";
+import { getConceptOverview, hasArticleForSlug } from "@/data/preview/concept-overviews";
 import styles from "./KnowledgeGraph.module.css";
 
 export type ProjectedVariant =
@@ -238,6 +240,8 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
   const primaryDomain = concept.domains[0];
   const reviewStatusLabel = REVIEW_STATUS_LABELS[concept.reviewStatus] ?? "Reviewed";
   const archetypeKey = celestialIdentity?.archetype ?? "volcanic-rocky";
+  const overview = getConceptOverview(concept.id);
+  const hasArticle = hasArticleForSlug(concept.slug);
 
   return (
     <aside
@@ -419,9 +423,35 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
           </span>
         </div>
 
-        {/* Full Long-Form Description */}
-        {concept.description && (
+        {/* Concept Overview / Description */}
+        {overview ? (
+          <div className={styles.conceptOverviewSection} data-testid="concept-overview">
+            {overview.paragraphs.map((p, idx) => (
+              <p key={idx} className={styles.conceptOverviewParagraph}>
+                {p}
+              </p>
+            ))}
+          </div>
+        ) : concept.description ? (
           <p className={styles.conceptDescription}>{concept.description}</p>
+        ) : null}
+
+        {/* Level 1 -> Level 2 Learn More Navigation */}
+        {hasArticle && (
+          <div className={styles.learnMoreContainer}>
+            <Link
+              href={`/lab/knowledge-reader/${concept.slug}`}
+              className={styles.learnMoreLink}
+              onClick={(e) => e.stopPropagation()}
+              data-testid="learn-more-link"
+              aria-label={`Read full article on ${concept.name}`}
+            >
+              <span>Learn more</span>
+              <span className={styles.learnMoreArrow} aria-hidden="true">
+                →
+              </span>
+            </Link>
+          </div>
         )}
 
         {/* Region B: Knowledge Connections */}

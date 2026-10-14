@@ -92,7 +92,8 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     // Ownership → Memory (outgoing, manages)
     expect(screen.getByText("uses")).toBeDefined();
     expect(screen.getByText("manages")).toBeDefined();
-    expect(screen.getAllByText("→").length).toBe(2);
+    // 2 relationship path arrows (Rust → Ownership, Ownership → Memory) + 1 Learn more link arrow
+    expect(screen.getAllByText("→").length).toBe(3);
 
     // Incoming has Rust as clickable connection, Ownership as current
     expect(screen.getByRole("button", { name: /Explore connected concept: Rust/i })).toBeDefined();

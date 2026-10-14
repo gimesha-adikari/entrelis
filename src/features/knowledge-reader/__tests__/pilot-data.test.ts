@@ -3,6 +3,8 @@ import {
   PILOT_CONCEPTS,
   PILOT_RELATIONSHIPS,
   PILOT_ARTICLES_METADATA,
+  SEED_ARTICLES_METADATA,
+  ALL_ARTICLES_METADATA,
   getPilotConceptBySlug,
   getPilotConceptById,
   getConceptConnections,
@@ -10,6 +12,8 @@ import {
   getAllPilotArticles,
   parseHeadings,
   parseSection7Citations,
+  getConceptOverview,
+  hasArticleForSlug,
 } from "@/data/preview";
 import { SEED_CONCEPTS } from "@/data/seed";
 
@@ -42,11 +46,18 @@ describe("Pilot Data & Article Loader", () => {
     }
   });
 
-  it("loads all six pilot articles from isolated storage with non-empty markdown", () => {
+  it("loads all 13 knowledge preview articles from isolated storage with non-empty markdown", () => {
     const articles = getAllPilotArticles();
-    expect(articles).toHaveLength(6);
+    expect(articles).toHaveLength(13);
 
     const expectedSlugs = [
+      "rust",
+      "ownership",
+      "memory",
+      "stack-and-heap",
+      "operating-systems",
+      "cpus",
+      "transistors",
       "instruction-set-architecture",
       "virtual-memory",
       "file-systems",
@@ -120,5 +131,51 @@ Some text.
     expect(citations[0]?.url).toBe("https://example.com/spec");
     expect(citations[0]?.evidenceTier).toBe("Tier 1 (Open Standard)");
     expect(citations[0]?.supportedClaims).toBe("Core definitions.");
+  });
+
+  it("verifies SEED_ARTICLES_METADATA and ALL_ARTICLES_METADATA catalogs", () => {
+    expect(SEED_ARTICLES_METADATA).toHaveLength(7);
+    expect(PILOT_ARTICLES_METADATA).toHaveLength(6);
+    expect(ALL_ARTICLES_METADATA).toHaveLength(13);
+
+    for (const seedMeta of SEED_ARTICLES_METADATA) {
+      expect(seedMeta.tier).toBe("seed");
+      expect(seedMeta.reviewStatus).toBe("reviewed");
+    }
+
+    for (const pilotMeta of PILOT_ARTICLES_METADATA) {
+      expect(pilotMeta.tier).toBe("pilot");
+      expect(pilotMeta.reviewStatus).toBe("needs-review");
+    }
+  });
+
+  it("provides 2-paragraph Level 1 overviews strictly adhering to 80-130 words for all 7 seed concepts", () => {
+    for (const seed of SEED_CONCEPTS) {
+      const overview = getConceptOverview(seed.id);
+      expect(overview).toBeDefined();
+      expect(overview?.paragraphs).toHaveLength(2);
+      expect(overview?.wordCount).toBeGreaterThanOrEqual(80);
+      expect(overview?.wordCount).toBeLessThanOrEqual(130);
+      // Verify actual word count of paragraphs matches recorded count
+      const text = overview!.paragraphs.join(" ");
+      const words = text.trim().split(/\s+/).length;
+      expect(words).toBeGreaterThanOrEqual(80);
+      expect(words).toBeLessThanOrEqual(130);
+    }
+
+    expect(getConceptOverview("concept-unknown")).toBeUndefined();
+  });
+
+  it("correctly identifies available articles via hasArticleForSlug", () => {
+    // All 7 seed concepts have articles
+    for (const seed of SEED_CONCEPTS) {
+      expect(hasArticleForSlug(seed.slug)).toBe(true);
+    }
+    // All 6 pilot candidates have articles
+    for (const pilot of PILOT_CONCEPTS) {
+      expect(hasArticleForSlug(pilot.slug)).toBe(true);
+    }
+    // Unknown slug returns false
+    expect(hasArticleForSlug("quantum-computing")).toBe(false);
   });
 });

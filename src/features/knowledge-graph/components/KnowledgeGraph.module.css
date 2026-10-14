@@ -1166,9 +1166,66 @@
   font-size: 0.83rem;
   color: #94a3b8;
   line-height: 1.65;
-  margin: 0 0 var(--space-6) 0;
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin: 0 0 var(--space-4) 0;
+  padding-bottom: var(--space-3);
+}
+
+.conceptOverviewSection {
+  margin: 0 0 var(--space-3) 0;
+}
+
+.conceptOverviewParagraph {
+  font-size: 0.86rem;
+  color: #cbd5e1;
+  line-height: 1.68;
+  margin: 0 0 var(--space-3) 0;
+}
+
+.conceptOverviewParagraph:last-child {
+  margin-bottom: 0;
+}
+
+.learnMoreContainer {
+  margin: var(--space-3) 0 var(--space-6) 0;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.learnMoreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #38bdf8;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  transition: all var(--motion-duration-fast, 150ms) ease;
+}
+
+.learnMoreLink:hover {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #a5f3fc;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
+  transform: translateY(-1px);
+}
+
+.learnMoreLink:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.learnMoreArrow {
+  font-size: 0.92rem;
+  transition: transform var(--motion-duration-fast, 150ms) ease;
+}
+
+.learnMoreLink:hover .learnMoreArrow {
+  transform: translateX(3px);
 }
 
 .sectionHeader {
