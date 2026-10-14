@@ -1,39 +1,177 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import type { KnowledgeDataset, Concept } from "@/domain/knowledge/types";
 import { SEED_DATASET } from "@/data/seed";
+import { getOrCreateKnowledgeGraphIndex } from "../knowledge-index";
+import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import GraphCanvas from "./GraphCanvas";
-import ConceptPanel from "./ConceptPanel";
+import ConceptPanel, { type ProjectedVariant } from "./ConceptPanel";
+import CelestialProjectionBridge, { type ProjectionAnchor } from "./CelestialProjectionBridge";
 import styles from "./KnowledgeGraph.module.css";
 
 interface Props {
   dataset?: KnowledgeDataset;
   initialSlug?: string;
+  initialVariant?: ProjectedVariant;
+}
+
+function parseVariantFromSearch(search: string, fallback: ProjectedVariant): ProjectedVariant {
+  const params = new URLSearchParams(search);
+  const v = params.get("variant");
+  if (v === "b" || v === "continuous") return "continuous";
+  if (v === "a" || v === "anchored") return "anchored";
+  if (v === "1" || v === "meridian") return "meridian";
+  if (v === "2" || v === "corona") return "corona";
+  if (v === "3" || v === "codex") return "codex";
+  if (v === "4" || v === "hybrid") return "hybrid";
+  return fallback;
+}
+
+function subscribeToLocation(callback: () => void) {
+  window.addEventListener("popstate", callback);
+  return () => window.removeEventListener("popstate", callback);
+}
+
+function subscribeToResize(callback: () => void) {
+  window.addEventListener("resize", callback);
+  return () => window.removeEventListener("resize", callback);
+}
+
+const FIELD_WIDTH_KEY = "entrelis:field-width";
+
+export function getResponsiveFieldWidthLimits(viewportWidth: number): {
+  min: number;
+  max: number;
+  defaultWidth: number;
+} {
+  if (viewportWidth <= 768) {
+    return { min: viewportWidth, max: viewportWidth, defaultWidth: viewportWidth };
+  }
+  // On wide screens (>= 1440): min 360, max 700, default 480
+  // On smaller desktops (e.g. 1024 or 1280): dynamically limit max width so celestial universe retains at least 46% exploration space
+  const max = Math.min(700, Math.max(380, Math.floor(viewportWidth * 0.54)));
+  const min = Math.min(360, Math.floor(viewportWidth * 0.35));
+  const defaultWidth = Math.min(max, Math.max(min, Math.round(viewportWidth * 0.38)));
+  return { min: Math.max(320, min), max, defaultWidth };
+}
+
+function subscribeToFieldWidth(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener("storage", callback);
+  window.addEventListener("entrelis:field-width-change", callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("entrelis:field-width-change", callback);
+  };
+}
+
+function getFieldWidthSnapshot(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = localStorage.getItem(FIELD_WIDTH_KEY);
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+  } catch {}
+  return null;
 }
 
 export default function KnowledgeGraphExperience({
   dataset = SEED_DATASET,
   initialSlug = "rust",
+  initialVariant = "anchored",
 }: Props) {
   const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
+  const [variantOverride, setVariantOverride] = useState<ProjectedVariant | null>(null);
+  const [focusPos, setFocusPos] = useState<ProjectionAnchor | null>(null);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+  const [userCustomWidth, setUserCustomWidth] = useState<number | null>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
-  // Find the active concept, falling back cleanly to rust
+  // Synchronize URL search params safely with external store (zero SSR hydration mismatch or cascading render)
+  const urlVariant = useSyncExternalStore(
+    subscribeToLocation,
+    () => (typeof window !== "undefined" ? parseVariantFromSearch(window.location.search, initialVariant) : initialVariant),
+    () => initialVariant
+  );
+  const variant = variantOverride ?? urlVariant;
+
+  const showDevSwitcher = useSyncExternalStore(
+    subscribeToLocation,
+    () => (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("switcher") === "true" : false),
+    () => false
+  );
+
+  const windowWidth = useSyncExternalStore(
+    subscribeToResize,
+    () => (typeof window !== "undefined" ? window.innerWidth : 1440),
+    () => 1440
+  );
+
+  const storedWidth = useSyncExternalStore(
+    subscribeToFieldWidth,
+    getFieldWidthSnapshot,
+    () => null
+  );
+
+  const isMobile = windowWidth <= 768;
+
+  const widthLimits = useMemo(() => getResponsiveFieldWidthLimits(windowWidth), [windowWidth]);
+
+  // Derive active field width reactively from userCustomWidth -> storedWidth -> defaultWidth
+  const rawWidth = userCustomWidth ?? storedWidth ?? widthLimits.defaultWidth;
+  const fieldWidth = Math.min(widthLimits.max, Math.max(widthLimits.min, rawWidth));
+
+  const handleFieldWidthChange = useCallback((newWidth: number) => {
+    const currentLimits = getResponsiveFieldWidthLimits(
+      typeof window !== "undefined" ? window.innerWidth : 1440
+    );
+    const clamped = Math.min(currentLimits.max, Math.max(currentLimits.min, Math.round(newWidth)));
+    setUserCustomWidth(clamped);
+    try {
+      localStorage.setItem(FIELD_WIDTH_KEY, String(clamped));
+      window.dispatchEvent(new Event("entrelis:field-width-change"));
+    } catch {}
+  }, []);
+
+  const handleSelectVariant = useCallback((newVariant: ProjectedVariant) => {
+    setVariantOverride(newVariant);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("variant", newVariant);
+      window.history.replaceState(window.history.state, "", url.toString());
+    }
+  }, []);
+
+  // Memoize knowledge index once per dataset reference
+  const index = useMemo(() => getOrCreateKnowledgeGraphIndex(dataset), [dataset]);
+
+  // Find the active concept using O(1) index lookup
   const selectedConcept = useMemo<Concept | null>(() => {
-    const found = dataset.concepts.find((c) => c.slug === selectedSlug);
-    if (found) return found;
-    return dataset.concepts.find((c) => c.slug === "rust") ?? dataset.concepts[0] ?? null;
-  }, [dataset.concepts, selectedSlug]);
+    return (
+      index.conceptBySlug.get(selectedSlug) ??
+      index.conceptBySlug.get("rust") ??
+      index.conceptById.values().next().value ??
+      null
+    );
+  }, [index, selectedSlug]);
+
+  const celestialIdentity = useMemo(() => {
+    if (!selectedConcept) return null;
+    return getConceptCelestialIdentity(selectedConcept.slug);
+  }, [selectedConcept]);
 
   /**
    * Synchronize selection changes with browser history and URL.
-   *
-   * Architecture note on native History API:
-   * We intentionally use window.history.pushState and popstate rather than full router transitions:
-   * 1. URLs remain shareable and deep-linkable (/concept/<slug>).
-   * 2. Direct App Router routes work cleanly on initial load, static SSG generation, and reload.
-   * 3. In-graph client exploration preserves the active canvas simulation and spatial camera
-   *    without unmounting components, flashing, or recreating physics layouts.
    */
   const selectConcept = useCallback((slug: string) => {
     setSelectedSlug(slug);
@@ -93,16 +231,75 @@ export default function KnowledgeGraphExperience({
         <p className={styles.brandTagline}>Everything is connected</p>
       </header>
 
-      {/* Main 2D Canvas viewport */}
-      <GraphCanvas
-        dataset={dataset}
-        selectedConceptSlug={selectedSlug}
-        onSelectConcept={selectConcept}
-        onResetCamera={handleResetCamera}
-      />
+      {/* Exploration Variant Switcher Pill - only displayed in dev mode with ?switcher=true */}
+      {showDevSwitcher && (
+        <aside className={styles.variantSwitcher} aria-label="Visual Exploration Variant Switcher">
+          <span className={styles.variantSwitcherLabel}>Option C Field:</span>
+          <div className={styles.variantBtnGroup} role="radiogroup" aria-label="Projected Field Variant">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={variant === "anchored"}
+              className={`${styles.variantBtn} ${variant === "anchored" ? styles.variantBtnActive : ""}`}
+              onClick={() => handleSelectVariant("anchored")}
+              title="Direction A: Planet-Anchored Knowledge Projection"
+            >
+              A · Anchored
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={variant === "continuous"}
+              className={`${styles.variantBtn} ${variant === "continuous" ? styles.variantBtnActive : ""}`}
+              onClick={() => handleSelectVariant("continuous")}
+              title="Direction B: Continuous Cosmic Reading Field"
+            >
+              B · Continuous
+            </button>
+          </div>
+        </aside>
+      )}
 
-      {/* Semantic Right / Lower Detail Panel */}
-      <ConceptPanel concept={selectedConcept} dataset={dataset} onSelectConcept={selectConcept} />
+      <main className={styles.mainContent}>
+        {/* Main 2D Canvas viewport */}
+        <GraphCanvas
+          dataset={dataset}
+          index={index}
+          selectedConceptSlug={selectedSlug}
+          onSelectConcept={selectConcept}
+          onResetCamera={handleResetCamera}
+          onFocusPositionChange={setFocusPos}
+          knowledgeFieldWidth={!isMobile ? fieldWidth : undefined}
+        />
+
+        {/* Dynamic Celestial Projection Field Bridge */}
+        {variant === "anchored" && (
+          <CelestialProjectionBridge
+            focusPos={focusPos}
+            archetype={celestialIdentity?.archetype}
+            rings={celestialIdentity?.rings}
+            panelRef={panelRef}
+            isMobile={isMobile}
+            isMobileExpanded={isMobileExpanded}
+          />
+        )}
+
+        {/* Semantic Right / Lower Detail Panel */}
+        <ConceptPanel
+          ref={panelRef}
+          concept={selectedConcept}
+          dataset={dataset}
+          index={index}
+          onSelectConcept={selectConcept}
+          variant={variant}
+          isMobileExpanded={isMobileExpanded}
+          onToggleMobileExpanded={() => setIsMobileExpanded((prev) => !prev)}
+          fieldWidth={fieldWidth}
+          minFieldWidth={widthLimits.min}
+          maxFieldWidth={widthLimits.max}
+          onFieldWidthChange={handleFieldWidthChange}
+        />
+      </main>
     </div>
   );
 }

@@ -3,9 +3,23 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import GraphCanvas from "../components/GraphCanvas";
 import { SEED_DATASET } from "@/data/seed";
 import * as hitTestModule from "../rendering/hit-test";
+import type { UniverseNode } from "../scene/types";
 
 describe("GraphCanvas Touch Gesture Engine", () => {
   const onSelectConcept = vi.fn();
+
+  const mockOwnershipNode: UniverseNode = {
+    id: "concept-ownership",
+    slug: "ownership",
+    name: "Ownership",
+    concept: SEED_DATASET.concepts[1]!,
+    role: "primary",
+    visualMass: 0.65,
+    radius: 14,
+    x: 0,
+    y: 0,
+    opacity: 1,
+  };
 
   beforeEach(() => {
     onSelectConcept.mockClear();
@@ -13,15 +27,7 @@ describe("GraphCanvas Touch Gesture Engine", () => {
   });
 
   it("selects concept on short one-finger tap", () => {
-    // Spy on hitTestNode to simulate hitting a node at the tap coordinate
-    vi.spyOn(hitTestModule, "hitTestNode").mockReturnValue({
-      id: "concept-ownership",
-      slug: "ownership",
-      name: "Ownership",
-      concept: SEED_DATASET.concepts[1]!,
-      x: 0,
-      y: 0,
-    });
+    vi.spyOn(hitTestModule, "hitTestUniverseNode").mockReturnValue(mockOwnershipNode);
 
     const { container } = render(
       <GraphCanvas
@@ -48,14 +54,7 @@ describe("GraphCanvas Touch Gesture Engine", () => {
   });
 
   it("does not select concept on one-finger drag/pan", () => {
-    vi.spyOn(hitTestModule, "hitTestNode").mockReturnValue({
-      id: "concept-ownership",
-      slug: "ownership",
-      name: "Ownership",
-      concept: SEED_DATASET.concepts[1]!,
-      x: 0,
-      y: 0,
-    });
+    vi.spyOn(hitTestModule, "hitTestUniverseNode").mockReturnValue(mockOwnershipNode);
 
     const { container } = render(
       <GraphCanvas
@@ -87,14 +86,7 @@ describe("GraphCanvas Touch Gesture Engine", () => {
   });
 
   it("does not select concept during or after two-touch pinch zoom", () => {
-    vi.spyOn(hitTestModule, "hitTestNode").mockReturnValue({
-      id: "concept-ownership",
-      slug: "ownership",
-      name: "Ownership",
-      concept: SEED_DATASET.concepts[1]!,
-      x: 0,
-      y: 0,
-    });
+    vi.spyOn(hitTestModule, "hitTestUniverseNode").mockReturnValue(mockOwnershipNode);
 
     const { container } = render(
       <GraphCanvas
@@ -132,14 +124,7 @@ describe("GraphCanvas Touch Gesture Engine", () => {
   });
 
   it("safely resets gesture state on touch cancel", () => {
-    vi.spyOn(hitTestModule, "hitTestNode").mockReturnValue({
-      id: "concept-ownership",
-      slug: "ownership",
-      name: "Ownership",
-      concept: SEED_DATASET.concepts[1]!,
-      x: 0,
-      y: 0,
-    });
+    vi.spyOn(hitTestModule, "hitTestUniverseNode").mockReturnValue(mockOwnershipNode);
 
     const { container } = render(
       <GraphCanvas

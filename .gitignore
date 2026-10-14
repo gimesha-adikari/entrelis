@@ -23,6 +23,9 @@
 *.pem
 AGENTS.md
 CLAUDE.md
+.idea/
+*.zip
+/screenshots/
 
 # debug
 npm-debug.log*
@@ -39,3 +42,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.superpowers/
+

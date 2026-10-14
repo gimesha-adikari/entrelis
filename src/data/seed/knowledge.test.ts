@@ -286,6 +286,15 @@ describe("Knowledge Validation Guardrails", () => {
     expect(result.errors.some((e) => e.code === "EMPTY_REQUIRED_FIELD")).toBe(true);
   });
 
+  it("rejects sources with non-http(s) URL schemes (SEC-02)", () => {
+    const dataset = createDataset({
+      sources: [{ ...validBaseSource, url: "javascript:alert(1)" }],
+    });
+    const result = validateDataset(dataset);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.code === "INVALID_SOURCE_URL_SCHEME")).toBe(true);
+  });
+
   it("throws KnowledgeValidationError when asserting on invalid dataset", () => {
     const dataset = createDataset({
       relationships: [{ ...validBaseRelationship, sourceIds: [] }],
