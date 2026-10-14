@@ -26,7 +26,7 @@ To deliver a strictly connected, educationally navigable pilot release without f
 Rather than characterizing the evidence as universally open access, this dossier explicitly categorizes source provenance into three transparent tiers:
 1. **Directly Reviewed Open-Access Standards & Textbooks:**
    - `src-riscv-spec`: Andrew Waterman & Krste Asanović (eds.), *The RISC-V Instruction Set Manual, Volume I: Unprivileged Architecture* (RISC-V International open standard).
-   - `src-ostep`: Remzi H. Arpaci-Dusseau & Andrea C. Arpaci-Dusseau, *Operating Systems: Three Easy Pieces* (UW-Madison open courseware).
+   - `src-arpaci-ostep`: Remzi H. Arpaci-Dusseau & Andrea C. Arpaci-Dusseau, *Operating Systems: Three Easy Pieces* (UW-Madison open courseware).
    - `src-posix-base-spec`: The IEEE and The Open Group, *POSIX.1-2017 / IEEE Std 1003.1-2017 Base Specifications* (Open Group public standard).
    - `src-intel-sdm`: Intel Corporation, *Intel® 64 and IA-32 Architectures Software Developer's Manuals* (Intel developer portal open documentation).
 2. **Copyrighted Academic Textbooks (Table of Contents & Chapter-Level Syllabus Verified):**
@@ -50,7 +50,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 
 #### Proposed Educational Wording
 - **Short Description:** The abstract interface between software and hardware that defines supported instructions, registers, addressing modes, and memory models.
-- **Full Explanation:** An Instruction Set Architecture (ISA) establishes the programmer-visible contract between software and a central processor. Distinct from the underlying silicon microarchitecture (which governs physical pipeline depth, superscalar execution, and cache topology), modern ISAs explicitly partition the unprivileged user-level instruction set—defining integer/floating-point registers, instruction encodings, and addressing modes for application compilers—from separate privileged architecture specifications that define execution privilege modes (machine, supervisor, user), control and status registers, interrupt handling, and address translation hardware.
+- **Full Explanation:** An Instruction Set Architecture (ISA) establishes the programmer-visible contract between software and a central processor. Distinct from the underlying silicon microarchitecture (which governs physical pipeline depth, superscalar execution, and cache topology), modern ISA specifications explicitly distinguish unprivileged and privileged layers: the unprivileged ISA (such as RISC-V Volume I) defines base integer and optional extension instructions, user registers, instruction encodings, and the memory consistency model for application software, while the privileged architecture (specified in a separate volume) defines execution privilege modes, control and status registers, interrupt/exception handling, and virtual memory address translation hardware.
 
 #### Authoritative References & Evidence Links
 1. `src-riscv-spec`: Andrew Waterman, Krste Asanović (eds.). *The RISC-V Instruction Set Manual, Volume I: Unprivileged Architecture*. RISC-V International, Document Version 20191213, 2019-12.  
@@ -59,7 +59,7 @@ Rather than characterizing the evidence as universally open access, this dossier
    - **Verification Status:** `DIRECT-FULL-TEXT-VERIFIED`
    - **Access Restrictions:** Open Access (RISC-V International official standard)
    - **Exact Location:** Preface, pp. i–iv; Chapter 1 "Introduction", pp. 1–6; Chapter 2 "RV32I Base Integer Instruction Set", pp. 13–28.
-   - **Supported Claim:** Formal definition of ISA as the hardware/software interface contract; separation of architectural specification from microarchitectural implementation.
+   - **Supported Claim:** Formal definition of unprivileged ISA as the application software interface contract (base integer instructions, user registers, instruction encodings, and memory model), explicitly noting that privileged architecture (modes, CSRs, interrupts, and address translation) is specified in a separate companion volume.
 2. `src-patterson-hennessy-cod`: David A. Patterson, John L. Hennessy. *Computer Organization and Design: The Hardware/Software Interface* (MIPS 6th Edition). Morgan Kaufmann / Elsevier, 2020. ISBN: 978-0-12-820109-1.  
    - **URL:** [https://www.elsevier.com/books/computer-organization-and-design-mips-edition/patterson/978-0-12-820109-1](https://www.elsevier.com/books/computer-organization-and-design-mips-edition/patterson/978-0-12-820109-1)
    - **Evidence Type:** Academic Textbook (TOC & Chapter Headings Verified)
@@ -70,15 +70,14 @@ Rather than characterizing the evidence as universally open access, this dossier
 #### Graph Relationships
 ##### Immediately Active Pilot Relationships (Both Endpoints in Pilot + Seed Subset)
 - `concept-cpus --(uses)--> concept-instruction-set-architecture` (`rel-cpus-instruction-set-architecture`, Strength: `primary`): Physical processor pipelines interpret and execute the binary instruction encodings specified by the ISA.
-- `concept-machine-code --(implemented-with)--> concept-instruction-set-architecture` (`rel-machine-code-instruction-set-architecture`, Strength: `primary`): Executable machine code binary bit patterns directly implement the instruction formats, opcodes, and addressing modes defined by the processor's ISA.
+- `concept-machine-code --(related-to)--> concept-instruction-set-architecture` (`rel-machine-code-instruction-set-architecture`, Strength: `primary`): Machine code binary bit patterns directly represent the instruction formats, opcodes, and addressing modes specified by a processor's instruction set architecture.
 
 ##### Future Wave Forward Connections (Activate upon subsequent wave imports)
 - `concept-compilers --(uses)--> concept-instruction-set-architecture` (Wave 1 Compilers)
-- `concept-assembly --(implemented-with)--> concept-instruction-set-architecture` (Wave 1 Assembly)
 
 #### Known Limitations & Pedagogical Nuances
 - **Microarchitecture vs. ISA:** Learners frequently confuse the ISA (the abstract specification, e.g., x86-64, ARMv9, RISC-V) with the microarchitecture (the concrete physical implementation, e.g., Intel Golden Cove, AMD Zen 4). Multiple distinct microarchitectures implement the exact same ISA.
-- **Privileged vs. Unprivileged Architecture:** Application software targets the unprivileged ISA; operating system kernels require the privileged architecture specification (governing page tables, control/status registers, timers, and trap vectoring).
+- **Privileged vs. Unprivileged Architecture:** Application software targets the unprivileged ISA specification (e.g., RISC-V Volume I), which covers user-visible instruction encodings and register state. System software and operating system kernels require the separate privileged architecture specification (e.g., RISC-V Volume II), which governs privilege modes (Machine, Supervisor, User), control/status registers (CSRs), exception/trap handling, and hardware page table address translation.
 
 #### Editorial Decision & Sign-off
 - [ ] **Approve for Import** (promote to `reviewed`)
@@ -98,7 +97,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 
 #### Proposed Educational Wording
 - **Short Description:** An architectural memory management scheme that provides an idealized, contiguous abstraction of storage, isolating process address spaces and mapping them to physical storage.
-- **Full Explanation:** Virtual memory provides an idealized, contiguous private address space for each executing process, decoupling program addresses from physical RAM locations. Managed jointly through CPU memory management units (MMUs) and operating system page tables, virtual memory translates virtual page addresses into physical frames, enforces memory protection boundaries, and isolates concurrent processes. While secondary backing-store paging allows systems to overcommit memory, swapping inactive pages to disk is an optional operating system memory reclamation policy rather than an inherent architectural requirement of virtual memory.
+- **Full Explanation:** Virtual memory provides an idealized, contiguous private address space abstraction for each executing process, decoupling program addresses from physical RAM locations. The architecture separates structural roles: the operating system kernel constructs and manages multi-level page tables, virtual memory areas, and page allocation policies, while dedicated CPU memory management units (MMUs) with translation lookaside buffers (TLBs) perform fast hardware address translation and memory protection checks on every memory access. While secondary backing-store paging allows systems to overcommit memory, swapping inactive pages to disk is an optional operating system memory reclamation policy rather than an inherent architectural requirement of virtual memory.
 
 #### Authoritative References & Evidence Links
 1. `src-arpaci-ostep`: Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau. *Operating Systems: Three Easy Pieces*. Arpaci-Dusseau Books, Version 1.10, 2023.  
@@ -130,7 +129,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 - `concept-virtual-memory --(depends-on)--> concept-cpus` (`rel-virtual-memory-cpus`, Strength: `primary`): Fast virtual-to-physical address translation relies on dedicated hardware memory management units (MMUs) and translation lookaside buffers (TLBs) integrated within CPUs.
 
 #### Known Limitations & Pedagogical Nuances
-- **Hardware vs. Software Responsibility:** A common misconception is that virtual memory translation is performed by software. Hardware MMUs translate addresses on every single CPU memory access using TLBs; the operating system kernel is invoked only during page faults, context switches, or page table modifications.
+- **Abstraction vs. Kernel Management vs. Hardware Translation:** A critical architectural distinction must be maintained between three levels: (1) the virtual memory *abstraction* (the uniform, contiguous private address space presented to user-level processes), (2) the *operating system kernel* role (allocating address ranges, constructing multi-level page table structures, handling page faults, and implementing page reclamation policies), and (3) the *hardware MMU* role (translating virtual addresses to physical frames on every CPU memory access using TLBs without software intervention during normal execution).
 - **Disk Swapping is Optional:** While textbooks often introduce virtual memory alongside disk paging, many modern consumer operating systems (e.g., Apple iOS, Android, and embedded real-time systems) do not swap anonymous memory to disk due to flash wear and latency; they rely instead on memory compression (zram) and aggressive process termination.
 
 #### Editorial Decision & Sign-off
@@ -192,7 +191,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 
 #### Proposed Educational Wording
 - **Short Description:** The compositional property of systems where multiple computational task lifetimes overlap in time, distinct from simultaneous parallel hardware execution.
-- **Full Explanation:** Concurrency is the composition and structural organization of independently executing computations whose execution lifetimes overlap in time. Fundamentally distinct from parallelism—which requires multiple physical hardware cores executing instructions simultaneously—concurrency addresses how a system handles many tasks at once (often interleaved on a single core via scheduling and context switching). Coordinating shared mutable state across concurrent threads or asynchronous tasks requires synchronization primitives (such as mutexes, condition variables, and atomics) to prevent race conditions and enforce memory ordering.
+- **Full Explanation:** Concurrency is the composition and structural organization of independently executing computations whose execution lifetimes overlap in time. Fundamentally distinct from parallelism—which involves simultaneous execution across multiple processing resources (such as multiple CPU cores, hardware execution units, SIMD/vector units, or GPUs)—concurrency addresses how a system handles many tasks at once (often interleaved on a single core via scheduling and context switching). Coordinating shared mutable state across concurrent threads or asynchronous tasks requires synchronization primitives (such as mutexes, condition variables, and atomics) to prevent race conditions and enforce memory ordering.
 
 #### Authoritative References & Evidence Links
 1. `src-arpaci-ostep`: Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau. *Operating Systems: Three Easy Pieces*. Arpaci-Dusseau Books, 2023.  
@@ -212,14 +211,14 @@ Rather than characterizing the evidence as universally open access, this dossier
 
 #### Graph Relationships
 ##### Immediately Active Pilot Relationships (Both Endpoints in Pilot + Seed Subset)
-- `concept-concurrency --(depends-on)--> concept-operating-systems` (`rel-concurrency-operating-systems`, Strength: `primary`): Thread-level concurrency depends on the operating system kernel for thread scheduling, context switching, and inter-thread synchronization primitives.
+- `concept-concurrency --(depends-on)--> concept-operating-systems` (`rel-concurrency-operating-systems`, Strength: `primary`): OS-managed thread concurrency depends on the operating system kernel for thread scheduling, preemptive context switching, and inter-thread synchronization primitives, though concurrency itself can also be realized in bare-metal environments or user-space runtimes.
 - `concept-asynchronous-io --(related-to)--> concept-concurrency` (`rel-asynchronous-io-concurrency`, Strength: `primary`): Asynchronous I/O enables efficient concurrent application architectures by overlapping I/O wait latency across operations without allocating a dedicated operating system thread per connection.
 
 ##### Future Wave Forward Connections (Activate upon subsequent wave imports)
 - `concept-distributed-systems --(includes)--> concept-concurrency` (Wave 1 Distributed Systems)
 
 #### Known Limitations & Pedagogical Nuances
-- **Concurrency vs. Parallelism:** A foundational conceptual distinction: concurrency is about system structure (managing many tasks at once via interleaved execution intervals), whereas parallelism is about physical execution (doing many tasks simultaneously on distinct hardware CPU cores). As Rob Pike noted: *"Concurrency is about dealing with lots of things at once. Parallelism is about doing lots of things at once."* Concurrency can occur on a single-core CPU; parallelism requires hardware concurrency.
+- **Concurrency vs. Parallelism:** A foundational conceptual distinction: concurrency is about system structure (managing many tasks at once whose lifetimes overlap, often interleaved via scheduling), whereas parallelism is about physical simultaneous execution across multiple processing resources (such as multiple CPU cores, hardware execution units, SIMD/vector units, or GPUs). As Rob Pike noted: *"Concurrency is about dealing with lots of things at once. Parallelism is about doing lots of things at once."* Concurrency can occur on a single-core CPU; parallelism requires simultaneous hardware execution resources.
 
 #### Editorial Decision & Sign-off
 - [ ] **Approve for Import** (promote to `reviewed`)
@@ -239,7 +238,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 
 #### Proposed Educational Wording
 - **Short Description:** A non-blocking input/output processing mechanism allowing an execution thread to initiate I/O operations and proceed with other work before data transfer completes.
-- **Full Explanation:** Asynchronous I/O decouples the initiation of an input/output request from its eventual completion, allowing an execution thread to continue computational progress without blocking on high-latency storage or network hardware. Distinct from synchronous I/O multiplexing readiness notifications (such as Linux epoll or BSD kqueue, which merely signal when a file descriptor can be read without blocking), true asynchronous completion models (such as Linux io_uring, Windows IOCP, or POSIX AIO) transfer data in the background and notify the application only upon the complete arrival or delivery of the requested buffer.
+- **Full Explanation:** Asynchronous I/O decouples the initiation of an input/output request from its eventual completion, allowing an execution thread to continue computational progress without blocking on high-latency storage or network operations. Distinct from synchronous I/O multiplexing readiness notifications (such as Linux epoll or BSD kqueue, which signal when a file descriptor can be read or written without blocking), asynchronous completion models (such as Linux io_uring, Windows IOCP, or POSIX AIO) allow I/O requests to execute in the background—whether serviced by kernel submission rings, completion ports, or runtime threads—notifying the application upon actual completion of the data transfer.
 
 #### Authoritative References & Evidence Links
 1. `src-posix-base-spec`: The IEEE and The Open Group. *The Open Group Base Specifications Issue 7 / IEEE Std 1003.1-2017*.  
@@ -259,7 +258,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 - `concept-asynchronous-io --(related-to)--> concept-concurrency` (`rel-asynchronous-io-concurrency`, Strength: `primary`): Asynchronous I/O enables efficient concurrent application architectures by overlapping I/O wait latency across operations without allocating a dedicated operating system thread per connection.
 
 #### Known Limitations & Pedagogical Nuances
-- **Readiness vs. Completion Models:** Developers frequently conflate readiness notification (e.g., `select`, `poll`, `epoll`, `kqueue`), where the OS tells you a descriptor is ready to be synchronously read, with asynchronous completion (e.g., POSIX `aio_read`, Linux `io_uring`, Windows IOCP), where the OS kernel or DMA engine actually performs the buffer copy in the background and delivers a completion event.
+- **Readiness Notification vs. Asynchronous Completion:** Systems programming distinguishes two primary non-blocking paradigms: (1) *Readiness notification* (e.g., select, poll, epoll, kqueue), where the operating system informs the application that a file descriptor is ready for non-blocking synchronous transfer, leaving the application thread to perform the actual read/write system call; and (2) *Asynchronous completion* (e.g., Linux io_uring, Windows IOCP, POSIX AIO), where an I/O operation is initiated to proceed in the background—whether serviced by kernel rings, completion ports, or runtime helper threads depending on the platform implementation—and completion is signaled once the data transfer has actually finished.
 
 #### Editorial Decision & Sign-off
 - [ ] **Approve for Import** (promote to `reviewed`)
@@ -299,12 +298,11 @@ Rather than characterizing the evidence as universally open access, this dossier
 
 #### Graph Relationships
 ##### Immediately Active Pilot Relationships (Both Endpoints in Pilot + Seed Subset)
-- `concept-machine-code --(depends-on)--> concept-cpus` (`rel-machine-code-cpus`, Strength: `primary`): Machine code instructions are decoded and executed directly by CPU arithmetic logic units, registers, and execution pipelines.
-- `concept-machine-code --(implemented-with)--> concept-instruction-set-architecture` (`rel-machine-code-instruction-set-architecture`, Strength: `primary`): Machine code binary bit patterns directly implement the instruction formats, opcodes, and addressing modes defined by the processor's instruction set architecture.
+- `concept-machine-code --(depends-on)--> concept-cpus` (`rel-machine-code-cpus`, Strength: `primary`): The physical execution of machine code instructions depends on a compatible central processing unit whose hardware decoders, arithmetic logic units, and execution pipelines interpret the binary bitstream.
+- `concept-machine-code --(related-to)--> concept-instruction-set-architecture` (`rel-machine-code-instruction-set-architecture`, Strength: `primary`): Machine code binary bit patterns directly represent the instruction formats, opcodes, and addressing modes specified by a processor's instruction set architecture.
 
 ##### Future Wave Forward Connections (Activate upon subsequent wave imports)
 - `concept-compilers --(leads-to)--> concept-machine-code` (`rel-compilers-machine-code`, Strength: `primary`): Compilers translate high-level language source code through intermediate optimization passes to emit target machine code.
-- `concept-assembly --(leads-to)--> concept-machine-code` (Wave 1 Assembly)
 
 #### Known Limitations & Pedagogical Nuances
 - **Machine Code vs. Assembly Language:** Learners often treat assembly language and machine code as synonyms. Assembly language consists of human-readable alphanumeric mnemonics (e.g., `mov rax, rbx`), whereas machine code consists strictly of numeric binary bit patterns (e.g., `48 89 D8`) directly decoded by hardware.
@@ -340,7 +338,7 @@ Rather than characterizing the evidence as universally open access, this dossier
 | `rel-operating-systems-memory` | `concept-operating-systems` | `manages` | `concept-memory` | `strong` | Seed Curated |
 | `rel-rust-memory` | `concept-rust` | `related-to` | `concept-memory` | `supporting` | Seed Curated |
 | `rel-cpus-instruction-set-architecture` | `concept-cpus` | `uses` | `concept-instruction-set-architecture` | `primary` | `CHAPTER-TOC-AND-METADATA-CONFIRMED` |
-| `rel-machine-code-instruction-set-architecture` | `concept-machine-code` | `implemented-with` | `concept-instruction-set-architecture` | `primary` | `CHAPTER-TOC-AND-METADATA-CONFIRMED` |
+| `rel-machine-code-instruction-set-architecture` | `concept-machine-code` | `related-to` | `concept-instruction-set-architecture` | `primary` | `CHAPTER-TOC-AND-METADATA-CONFIRMED` |
 | `rel-machine-code-cpus` | `concept-machine-code` | `depends-on` | `concept-cpus` | `primary` | `CHAPTER-TOC-AND-METADATA-CONFIRMED` |
 | `rel-operating-systems-virtual-memory` | `concept-operating-systems` | `manages` | `concept-virtual-memory` | `primary` | `DIRECT-FULL-TEXT-VERIFIED` |
 | `rel-virtual-memory-operating-systems` | `concept-virtual-memory` | `part-of` | `concept-operating-systems` | `primary` | `DIRECT-FULL-TEXT-VERIFIED` |

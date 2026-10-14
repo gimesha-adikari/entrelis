@@ -561,6 +561,35 @@ if (!fs.existsSync(pilotDossierPath)) {
     }
   }
 
+  // Dossier-wide ID validation: scan all source, concept, and relationship tokens across the entire document
+  const cleanDossierText = dossierContent.replace(/\b\d+-concept-[a-z0-9-]+\.json\b/g, '');
+  const dossierSrcIds = new Set(cleanDossierText.match(/src-[a-z0-9-]+/g) || []);
+  const dossierConceptIds = new Set(cleanDossierText.match(/concept-[a-z0-9-]+/g) || []);
+  const dossierRelIds = new Set(cleanDossierText.match(/rel-[a-z0-9-]+/g) || []);
+
+  let dossierTokenErrors = 0;
+  for (const sid of dossierSrcIds) {
+    if (!sourceMap.has(sid)) {
+      logFail(`Dossier text references unregistered source ID: '${sid}'`);
+      dossierTokenErrors++;
+    }
+  }
+  for (const cid of dossierConceptIds) {
+    if (!conceptMap.has(cid)) {
+      logFail(`Dossier text references unregistered concept ID: '${cid}'`);
+      dossierTokenErrors++;
+    }
+  }
+  for (const rid of dossierRelIds) {
+    if (!relMap.has(rid)) {
+      logFail(`Dossier text references unregistered relationship ID: '${rid}'`);
+      dossierTokenErrors++;
+    }
+  }
+  if (dossierTokenErrors === 0) {
+    logPass(`All tokens across dossier (${dossierSrcIds.size} sources, ${dossierConceptIds.size} concepts, ${dossierRelIds.size} relationships) are 100% valid registry/catalog identifiers.`);
+  }
+
   logPass(`Pilot Batch 01 verified: 6 connected candidates, 13-node single connected component, 19 internal edges, 100% catalog and ledger alignment.`);
 }
 

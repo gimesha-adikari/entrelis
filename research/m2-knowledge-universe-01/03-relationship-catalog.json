@@ -56,7 +56,7 @@
     "sourceConceptId": "concept-machine-code",
     "targetConceptId": "concept-cpus",
     "type": "depends-on",
-    "explanation": "Machine code instructions are decoded and executed directly by CPU arithmetic logic units, registers, and execution pipelines.",
+    "explanation": "The physical execution of machine code instructions depends on a compatible central processing unit whose hardware decoders, arithmetic logic units, and execution pipelines interpret the binary bitstream.",
     "strength": "primary",
     "sourceIds": [
       "src-patterson-hennessy-cod",
@@ -108,7 +108,7 @@
     "sourceConceptId": "concept-concurrency",
     "targetConceptId": "concept-operating-systems",
     "type": "depends-on",
-    "explanation": "Thread-level concurrency depends on the operating system kernel for thread scheduling, context switching, and inter-thread synchronization primitives.",
+    "explanation": "OS-managed thread concurrency depends on the operating system kernel for thread scheduling, preemptive context switching, and inter-thread synchronization primitives, though concurrency itself can also be realized in bare-metal environments or user-space runtimes.",
     "strength": "primary",
     "sourceIds": [
       "src-arpaci-ostep",
@@ -1541,8 +1541,8 @@
     "id": "rel-machine-code-instruction-set-architecture",
     "sourceConceptId": "concept-machine-code",
     "targetConceptId": "concept-instruction-set-architecture",
-    "type": "implemented-with",
-    "explanation": "Machine code binary bit patterns directly implement the instruction formats, opcodes, and addressing modes defined by the processor's instruction set architecture.",
+    "type": "related-to",
+    "explanation": "Machine code binary bit patterns directly represent the instruction formats, opcodes, and addressing modes specified by a processor's instruction set architecture.",
     "strength": "primary",
     "sourceIds": [
       "src-patterson-hennessy-cod",

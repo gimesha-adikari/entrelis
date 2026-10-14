@@ -452,7 +452,7 @@
       "slug": "instruction-set-architecture",
       "name": "Instruction Set Architecture",
       "shortDescription": "The abstract interface between software and hardware that defines supported instructions, registers, addressing modes, and memory models.",
-      "description": "An Instruction Set Architecture (ISA) establishes the programmer-visible contract between software and a central processor. Distinct from the underlying silicon microarchitecture (which governs physical pipeline depth, superscalar execution, and cache topology), modern ISAs explicitly partition the unprivileged user-level instruction set—defining integer/floating-point registers, instruction encodings, and addressing modes for application compilers—from separate privileged architecture specifications that define execution privilege modes (machine, supervisor, user), control and status registers, interrupt handling, and address translation hardware.",
+      "description": "An Instruction Set Architecture (ISA) establishes the programmer-visible contract between software and a central processor. Distinct from the underlying silicon microarchitecture (which governs physical pipeline depth, superscalar execution, and cache topology), modern ISA specifications explicitly distinguish unprivileged and privileged layers: the unprivileged ISA (such as RISC-V Volume I) defines base integer and optional extension instructions, user registers, instruction encodings, and the memory consistency model for application software, while the privileged architecture (specified in a separate volume) defines execution privilege modes, control and status registers, interrupt/exception handling, and virtual memory address translation hardware.",
       "domains": [
         "computer-architecture",
         "hardware"
@@ -479,7 +479,7 @@
       "slug": "virtual-memory",
       "name": "Virtual Memory",
       "shortDescription": "An architectural memory management scheme that provides an idealized, contiguous abstraction of storage, isolating process address spaces and mapping them to physical storage.",
-      "description": "Virtual memory provides an idealized, contiguous private address space for each executing process, decoupling program addresses from physical RAM locations. Managed jointly through CPU memory management units (MMUs) and operating system page tables, virtual memory translates virtual page addresses into physical frames, enforces memory protection boundaries, and isolates concurrent processes. While secondary backing-store paging allows systems to overcommit memory, swapping inactive pages to disk is an optional operating system memory reclamation policy rather than an inherent architectural requirement of virtual memory.",
+      "description": "Virtual memory provides an idealized, contiguous private address space abstraction for each executing process, decoupling program addresses from physical RAM locations. The architecture separates structural roles: the operating system kernel constructs and manages multi-level page tables, virtual memory areas, and page allocation policies, while dedicated CPU memory management units (MMUs) with translation lookaside buffers (TLBs) perform fast hardware address translation and memory protection checks on every memory access. While secondary backing-store paging allows systems to overcommit memory, swapping inactive pages to disk is an optional operating system memory reclamation policy rather than an inherent architectural requirement of virtual memory.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -506,7 +506,7 @@
       "slug": "concurrency",
       "name": "Concurrency",
       "shortDescription": "The compositional property of systems where multiple computational task lifetimes overlap in time, distinct from simultaneous parallel hardware execution.",
-      "description": "Concurrency is the composition and structural organization of independently executing computations whose execution lifetimes overlap in time. Fundamentally distinct from parallelism—which requires multiple physical hardware cores executing instructions simultaneously—concurrency addresses how a system handles many tasks at once (often interleaved on a single core via scheduling and context switching). Coordinating shared mutable state across concurrent threads or asynchronous tasks requires synchronization primitives (such as mutexes, condition variables, and atomics) to prevent race conditions and enforce memory ordering.",
+      "description": "Concurrency is the composition and structural organization of independently executing computations whose execution lifetimes overlap in time. Fundamentally distinct from parallelism—which involves simultaneous execution across multiple processing resources (such as multiple CPU cores, hardware execution units, SIMD/vector units, or GPUs)—concurrency addresses how a system handles many tasks at once (often interleaved on a single core via scheduling and context switching). Coordinating shared mutable state across concurrent threads or asynchronous tasks requires synchronization primitives (such as mutexes, condition variables, and atomics) to prevent race conditions and enforce memory ordering.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -804,7 +804,7 @@
       "slug": "asynchronous-io",
       "name": "Asynchronous I/O",
       "shortDescription": "A non-blocking input/output processing mechanism allowing an execution thread to initiate I/O operations and proceed with other work before data transfer completes.",
-      "description": "Asynchronous I/O decouples the initiation of an input/output request from its eventual completion, allowing an execution thread to continue computational progress without blocking on high-latency storage or network hardware. Distinct from synchronous I/O multiplexing readiness notifications (such as Linux epoll or BSD kqueue, which merely signal when a file descriptor can be read without blocking), true asynchronous completion models (such as Linux io_uring, Windows IOCP, or POSIX AIO) transfer data in the background and notify the application only upon the complete arrival or delivery of the requested buffer.",
+      "description": "Asynchronous I/O decouples the initiation of an input/output request from its eventual completion, allowing an execution thread to continue computational progress without blocking on high-latency storage or network operations. Distinct from synchronous I/O multiplexing readiness notifications (such as Linux epoll or BSD kqueue, which signal when a file descriptor can be read or written without blocking), asynchronous completion models (such as Linux io_uring, Windows IOCP, or POSIX AIO) allow I/O requests to execute in the background—whether serviced by kernel submission rings, completion ports, or runtime threads—notifying the application upon actual completion of the data transfer.",
       "domains": [
         "computer-science",
         "systems-architecture"
@@ -969,7 +969,7 @@
       "sourceConceptId": "concept-machine-code",
       "targetConceptId": "concept-cpus",
       "type": "depends-on",
-      "explanation": "Machine code instructions are decoded and executed directly by CPU arithmetic logic units, registers, and execution pipelines.",
+      "explanation": "The physical execution of machine code instructions depends on a compatible central processing unit whose hardware decoders, arithmetic logic units, and execution pipelines interpret the binary bitstream.",
       "strength": "primary",
       "sourceIds": [
         "src-patterson-hennessy-cod",
@@ -1021,7 +1021,7 @@
       "sourceConceptId": "concept-concurrency",
       "targetConceptId": "concept-operating-systems",
       "type": "depends-on",
-      "explanation": "Thread-level concurrency depends on the operating system kernel for thread scheduling, context switching, and inter-thread synchronization primitives.",
+      "explanation": "OS-managed thread concurrency depends on the operating system kernel for thread scheduling, preemptive context switching, and inter-thread synchronization primitives, though concurrency itself can also be realized in bare-metal environments or user-space runtimes.",
       "strength": "primary",
       "sourceIds": [
         "src-arpaci-ostep",

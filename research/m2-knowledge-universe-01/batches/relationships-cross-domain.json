@@ -19,8 +19,8 @@
       "id": "rel-machine-code-instruction-set-architecture",
       "sourceConceptId": "concept-machine-code",
       "targetConceptId": "concept-instruction-set-architecture",
-      "type": "implemented-with",
-      "explanation": "Machine code binary bit patterns directly implement the instruction formats, opcodes, and addressing modes defined by the processor's instruction set architecture.",
+      "type": "related-to",
+      "explanation": "Machine code binary bit patterns directly represent the instruction formats, opcodes, and addressing modes specified by a processor's instruction set architecture.",
       "strength": "primary",
       "sourceIds": [
         "src-patterson-hennessy-cod",
