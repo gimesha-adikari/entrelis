@@ -41,7 +41,7 @@ Rather than inventing weak or speculative relationships to force disconnected do
 | **Isolated Nodes (Degree 0)** | **6** (`turing`, `linalg`, `em`, `learning`, `wmem`, `press`) | **0** | **100% resolved** |
 | **Leaf Nodes (Degree 1)** | 11 | **0** (all nodes degree $\ge 2$) | **100% resolved** |
 | **Connected Components** | 8 disjoint components | **1 single component** | **Unified Graph** |
-| **Direct Seed Adjacencies** | 9 of 25 (36.0%) | **15 of 26 (57.7%)** | +60.3% direct anchor |
+| **Direct Seed Adjacencies** | 9 of 25 (36.0%) | **16 of 26 (61.5%)** | +77.8% direct anchor |
 | **Prerequisite Completeness** | Broken (isolated islands) | **100% complete bridging cycles** | Robust navigation |
 
 ---

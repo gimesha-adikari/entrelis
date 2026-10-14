@@ -157,12 +157,37 @@ Documenting all three counting methodologies ensures that cross-domain claims ar
 ### 4.4 First-Wave Import Connectivity
 - **Previous 25-Node Plan:** Contained 6 completely isolated nodes (Degree 0) and 16 nodes lacking direct seed adjacency, resulting in 8 fragmented components.
 - **Recalculated 26-Node Plan:** Subgraph of 33 nodes (7 seed + 26 candidates), 61 relationships, **1 single connected component (Size: 33)**, **0 isolated nodes**, **0 degree-1 leaf nodes**. All 26 nodes possess at least two connections to other nodes in the active subgraph.
+- **Direct Seed Adjacency Breakdown:** **16 candidate nodes (61.5%)** possess direct adjacency to one or more production seed nodes via 21 directed edges (`asynchronous-io`, `compilers`, `concurrency`, `data-structures`, `file-systems`, `garbage-collection`, `instruction-set-architecture`, `integrated-circuit`, `logic-gates`, `machine-code`, `microprocessor-revolution`, `semiconductors`, `transistor-invention`, `type-systems`, `virtual-memory`, `von-neumann-architecture`).
+- **Bridging Depth Breakdown:** **10 candidate nodes (38.5%)** form tight 1-hop cyclic bridges that complete foundational domains (`algorithms`, `boolean-logic`, `formal-logic`, `computability-theory`, `alan-turing`, `solid-state-physics`, `atoms`, `electrons`, `history-of-computing`, `database-systems`).
 
 ---
 
-## 5. Audit Conclusion & Editorial Sign-off Invariants
+## 5. Machine-Readable Evidence Ledger Audit (`10-wave-1-evidence-ledger.json`)
+
+To establish auditable provenance before any publication or database migration, 97 distinct factual assertions across the 26 Wave 1 candidate concepts and 61 active relationships were audited in [`10-wave-1-evidence-ledger.json`](file:///home/gimesha/My_Projects/entrelis/research/m2-knowledge-universe-01/10-wave-1-evidence-ledger.json):
+
+1. **Directly Source-Verified Claims (88 claims / 90.7%):**
+   - **`DIRECT-CHAPTER-CONFIRMED` (49 claims):** Specific chapter, section, and page numbers verified against official publisher tables of contents, companion sites, and academic syllabi (CLRS 4th ed, Dragon Book, TAPL, CS:APP, OSTEP, Hennessy & Patterson COD, Knuth TAOCP, Silberschatz, Ashcroft & Mermin, Sze, Jones GC Handbook).
+   - **`DIRECT-FULL-TEXT-VERIFIED` (21 claims):** Complete primary text, official technical standard, or open-access documentation verified online (POSIX.1-2017, RISC-V Spec, Intel SDM, The Rust Book, OSTEP, Stanford Encyclopedia of Philosophy, Particle Data Group).
+   - **`ARCHIVE-DIGITIZED-CONFIRMED` (18 claims):** Digitized historical manuscripts, IEEE milestone plaques, or archival primary papers verified in institutional repositories (IEEE History Center ETHW, Project Gutenberg Boole 1854, Shannon 1938 relay thesis, Von Neumann 1945 EDVAC report reprint).
+2. **Partially Verified Claims (6 claims / 6.2%):**
+   - Claims where the core technical mechanism is verified, but secondary historical attribution or retrospective significance involves scholarly debate:
+     - `concept-von-neumann-architecture`: John von Neumann was sole author of the 1945 EDVAC report, but historians (Stern, Goldstine) note J. Presper Eckert and John Mauchly originated key stored-program concepts during ENIAC construction.
+     - `concept-integrated-circuit`: Jack Kilby (TI, 1958) built the first germanium IC with flying wires, while Robert Noyce (Fairchild, 1959) invented the planar silicon IC with evaporated interconnects used in modern chips.
+     - `concept-transistor-invention`: 1947 Bell Labs breakthrough was a point-contact germanium transistor; junction and silicon transistors followed in 1948–1954.
+     - Retrospective historical status claims for Turing 1936, Von Neumann 1945, and Microprocessor Revolution in computing history.
+3. **Claims Awaiting Stronger Evidence / Paywall Access (3 claims / 3.1%):**
+   - Primary seminal survey or papers behind commercial publisher paywalls where title, abstract, and secondary textbook corroboration were verified, but full original text requires institutional retrieval:
+     - `claim-concept-virtual-memory-def` (Peter Denning, 1970 ACM Computing Surveys)
+     - `claim-concept-concurrency-happens-before` (Leslie Lamport, 1978 Communications of the ACM)
+     - `claim-concept-database-systems-relational` (E. F. Codd, 1970 Communications of the ACM)
+
+---
+
+## 6. Audit Conclusion & Editorial Sign-off Invariants
 
 1. All 120 candidate nodes and 211 relationships pass programmatic relational-integrity validation (`validateKnowledgeDataset`).
 2. All 96 sources maintain verified URLs, active catalog links, or permanent DOIs/ISBNs.
 3. All candidate records in `04-concept-candidates.json` and `03-relationship-catalog.json` are maintained strictly at `reviewStatus: "needs-review"`.
 4. The recalculated Wave 1 import plan (`07-prioritized-import-plan.md` and `09-wave-1-editorial-package.md`) provides a fully connected, topologically stable starting wave for Milestone 2.
+5. Factual assertions in Wave 1 are grounded with transparent, auditable evidence locations in `10-wave-1-evidence-ledger.json`.

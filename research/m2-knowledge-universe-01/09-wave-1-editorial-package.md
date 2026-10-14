@@ -153,8 +153,8 @@ flowchart TD
 - **Connected Components:** 1 (Size: 33 nodes)
 - **Isolated Nodes (Degree 0):** 0
 - **Leaf Nodes (Degree 1):** 0 (every single candidate possesses at least 2 active connections)
-- **Direct Seed Adjacency:** 15 candidates connect directly to one or more seed concepts (57.7%)
-- **Bridging Depth:** 11 candidates connect directly to seed-adjacent candidates, completing vital 1-hop causal cycles (Logic, Computability, Atoms, Electronics, Database Systems, Asynchronous I/O).
+- **Direct Seed Adjacency:** **16 candidates** connect directly to one or more seed concepts (61.5%) via 21 directed edges.
+- **Bridging Depth:** **10 candidates** connect directly to seed-adjacent candidates (38.5%), completing vital 1-hop causal cycles (Logic, Computability, Atoms, Electronics, Database Systems, History of Computing).
 
 ---
 
@@ -731,7 +731,24 @@ The combined seed-plus-Wave-1 subgraph contains four pairs of nodes connected bi
 
 ---
 
-## 5. Summary & Sign-off Checklist for Human Editors
+## 5. Machine-Readable Evidence Ledger (`10-wave-1-evidence-ledger.json`)
+
+To ensure every claim is auditable and transparent, all factual assertions across the 26 candidate concepts and 61 active Wave 1 relationships have been compiled into a machine-readable ledger at [`10-wave-1-evidence-ledger.json`](file:///home/gimesha/My_Projects/entrelis/research/m2-knowledge-universe-01/10-wave-1-evidence-ledger.json).
+
+### 5.1 Verification Outcome Distribution (97 Total Claims Assessed)
+
+| Verification Result | Count | Pct | Method & Access Characterization |
+|---|---|---|---|
+| **`DIRECT-CHAPTER-CONFIRMED`** | 49 | 50.5% | Specific chapter, section, and page numbers confirmed against official publisher tables of contents, companion sites, and recognized university syllabi (CLRS, Dragon Book, TAPL, CS:APP, OSTEP, Hennessy & Patterson, Knuth, Silberschatz, Ashcroft & Mermin, Sze). |
+| **`DIRECT-FULL-TEXT-VERIFIED`** | 21 | 21.6% | Complete primary text, official technical standard, or open-access documentation directly verified online (POSIX.1-2017, RISC-V Spec, Intel SDM, The Rust Book, OSTEP, Stanford Encyclopedia of Philosophy, Particle Data Group). |
+| **`ARCHIVE-DIGITIZED-CONFIRMED`** | 18 | 18.6% | Digitized historical manuscripts, IEEE milestone plaques, or archival primary papers verified in institutional repositories (IEEE History Center ETHW, Project Gutenberg Boole 1854, Shannon 1938 relay thesis, Von Neumann 1945 EDVAC report reprint). |
+| **`PARTIALLY-VERIFIED`** | 6 | 6.2% | Core technical claims confirmed, but historical attribution, patent priority, or retrospective historical significance involves scholarly nuance (Eckert-Mauchly vs. Von Neumann EDVAC attribution; Kilby vs. Noyce IC patent dispute; 1947 point-contact vs. later junction transistors; Turing 1936 retrospective computing history status). |
+| **`AWAITING-STRONGER-EVIDENCE`** | 3 | 3.1% | Primary seminal paper is behind commercial publisher paywalls (Denning 1970 Virtual Memory, Lamport 1978 Clocks, Codd 1970 Relational Model in ACM Digital Library). Abstract, citation, and secondary textbook corroboration confirmed; full original paper requires institutional retrieval. |
+| **Total Evaluated Claims** | **97** | **100.0%** | |
+
+---
+
+## 6. Summary & Sign-off Checklist for Human Editors
 
 The 26 candidate nodes detailed above are packaged for initial database import under Milestone 2. 
 
@@ -740,4 +757,5 @@ Before running database migration or changing review statuses from `needs-review
 - [ ] Verify that the 26 node JSON objects in `04-concept-candidates.json` correspond exactly to the slugs and titles in this package.
 - [ ] Confirm that all 53 relationship entries in `03-relationship-catalog.json` preserve the corrected directional types (`includes`, `depends-on`, `related-to`).
 - [ ] Ensure that `02-source-registry.json` maintains the updated MIT Press catalog URL for CLRS 4th Edition (`src-cormen-clrs`).
+- [ ] Cross-check the 97 claims in `10-wave-1-evidence-ledger.json` against editorial guidelines.
 - [ ] Verify that graph layout rendering tools can visualize the 33-node connected component without layout collisions or orphaned visual nodes.
