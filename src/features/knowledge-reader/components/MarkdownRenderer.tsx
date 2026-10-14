@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import katex from "katex";
 import type { CitationRecord } from "@/data/preview/types";
 import { isSafeUrl } from "@/domain/knowledge/validation";
 import styles from "./MarkdownRenderer.module.css";
@@ -17,7 +18,8 @@ type InlineToken =
   | { type: "link"; text: string; url: string }
   | { type: "bold"; text: string }
   | { type: "italic"; text: string }
-  | { type: "code"; text: string };
+  | { type: "code"; text: string }
+  | { type: "math"; math: string };
 
 type Block =
   | { type: "heading"; level: number; text: string; id: string }
@@ -30,7 +32,7 @@ type Block =
   | { type: "paragraph"; text: string };
 
 /**
- * Tokenizes an inline string into citations, bold, italic, inline code, and links.
+ * Tokenizes an inline string into citations, bold, italic, inline code, links, and math notation.
  */
 function parseInline(text: string): InlineToken[] {
   const tokens: InlineToken[] = [];
@@ -44,10 +46,12 @@ function parseInline(text: string): InlineToken[] {
   // 8: Bold text
   // 9: Code `text`
   // 10: Code text
-  // 11: Italic *text*
-  // 12: Italic text
+  // 11: Math $text$
+  // 12: Math text
+  // 13: Italic *text*
+  // 14: Italic text
   const pattern =
-    /(\[(\d+)\]\(([^)]+)\))|(\[([^\]]+)\]\(([^)]+)\))|(\*\*([^*]+)\*\*)|(`([^`]+)`)|(\*([^*]+)\*)/g;
+    /(\[(\d+)\]\(([^)]+)\))|(\[([^\]]+)\]\(([^)]+)\))|(\*\*([^*]+)\*\*)|(`([^`]+)`)|(\$([^\$\n]+)\$)|(\*([^*]+)\*)/g;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -84,8 +88,13 @@ function parseInline(text: string): InlineToken[] {
       });
     } else if (match[11] && match[12]) {
       tokens.push({
+        type: "math",
+        math: match[12],
+      });
+    } else if (match[13] && match[14]) {
+      tokens.push({
         type: "italic",
-        text: match[12],
+        text: match[14],
       });
     }
 
@@ -296,7 +305,7 @@ export function MarkdownRenderer({
 
   const blocks = parseBlocks(markdown);
 
-  function renderInline(text: string, keyPrefix: string) {
+  function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
     const tokens = parseInline(text);
     return tokens.map((token, idx) => {
       const key = `${keyPrefix}-${idx}`;
@@ -306,13 +315,13 @@ export function MarkdownRenderer({
         case "bold":
           return (
             <strong key={key} className={styles.strong}>
-              {token.text}
+              {renderInline(token.text, `${key}-b`)}
             </strong>
           );
         case "italic":
           return (
             <em key={key} className={styles.em}>
-              {token.text}
+              {renderInline(token.text, `${key}-i`)}
             </em>
           );
         case "code":
@@ -321,11 +330,38 @@ export function MarkdownRenderer({
               {token.text}
             </code>
           );
+        case "math": {
+          let mathHtml = "";
+          try {
+            mathHtml = katex.renderToString(token.math, {
+              throwOnError: false,
+              displayMode: false,
+            });
+          } catch {
+            mathHtml = "";
+          }
+          return (
+            <span
+              key={key}
+              className={styles.math}
+              data-testid="math-notation"
+              dangerouslySetInnerHTML={{ __html: mathHtml }}
+            />
+          );
+        }
         case "citation": {
-          const rec = citationMap.get(token.number) ?? {
+          const rec = citationMap.get(token.number);
+          const passageUrl = token.url?.trim() ?? "";
+          const passageSafe = isSafeUrl(passageUrl);
+          const canonicalSafe = rec?.url && isSafeUrl(rec.url) ? rec.url : undefined;
+          const effectiveUrl = passageSafe ? passageUrl : (canonicalSafe ?? "");
+
+          const citationRecord: CitationRecord = {
+            ...(rec ?? {}),
             index: token.number,
-            title: `Source Reference [${token.number}]`,
-            url: token.url,
+            title: rec?.title ?? `Source Reference [${token.number}]`,
+            url: effectiveUrl,
+            ...(canonicalSafe && canonicalSafe !== effectiveUrl ? { canonicalUrl: canonicalSafe } : {}),
           };
 
           return (
@@ -333,9 +369,10 @@ export function MarkdownRenderer({
               <button
                 type="button"
                 className={styles.citationBadge}
-                onClick={() => onCitationClick?.(rec)}
-                aria-label={`Citation [${token.number}]: ${rec.title}`}
+                onClick={() => onCitationClick?.(citationRecord)}
+                aria-label={`Citation [${token.number}]: ${citationRecord.title}`}
                 data-testid={`citation-badge-${token.number}`}
+                data-citation-url={citationRecord.url}
               >
                 [{token.number}]
               </button>
@@ -375,27 +412,27 @@ export function MarkdownRenderer({
             if (block.level === 1) {
               return (
                 <h1 key={key} id={block.id} className={styles.h1}>
-                  {block.text}
+                  {renderInline(block.text, key)}
                 </h1>
               );
             }
             if (block.level === 2) {
               return (
                 <h2 key={key} id={block.id} className={styles.h2}>
-                  {block.text}
+                  {renderInline(block.text, key)}
                 </h2>
               );
             }
             if (block.level === 3) {
               return (
                 <h3 key={key} id={block.id} className={styles.h3}>
-                  {block.text}
+                  {renderInline(block.text, key)}
                 </h3>
               );
             }
             return (
               <h4 key={key} id={block.id} className={styles.h4}>
-                {block.text}
+                {renderInline(block.text, key)}
               </h4>
             );
           }

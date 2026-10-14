@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import type { CitationRecord } from "@/data/preview/types";
 import { isSafeUrl } from "@/domain/knowledge/validation";
 import styles from "./CitationPopover.module.css";
@@ -8,38 +8,101 @@ import styles from "./CitationPopover.module.css";
 interface CitationPopoverProps {
   readonly citation: CitationRecord | null;
   readonly onClose: () => void;
+  readonly triggerElement?: HTMLElement | null;
 }
 
-export function CitationPopover({ citation, onClose }: CitationPopoverProps) {
+export function CitationPopover({ citation, onClose, triggerElement }: CitationPopoverProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
-  // Close on Escape key
+  // Store trigger element when citation opens
+  useEffect(() => {
+    if (citation) {
+      triggerRef.current =
+        triggerElement ??
+        (typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null);
+      // Focus the close button or dialog container
+      if (closeButtonRef.current) {
+        closeButtonRef.current.focus();
+      } else if (dialogRef.current) {
+        dialogRef.current.focus();
+      }
+    }
+  }, [citation, triggerElement]);
+
+  const handleClose = useCallback(() => {
+    const elToFocus = triggerRef.current;
+    onClose();
+    if (elToFocus && typeof elToFocus.focus === "function") {
+      setTimeout(() => {
+        elToFocus.focus();
+      }, 0);
+    }
+  }, [onClose]);
+
+  // Focus trap and Escape key handling
   useEffect(() => {
     if (!citation) return;
 
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        onClose();
+        e.preventDefault();
+        handleClose();
+        return;
+      }
+
+      if (e.key === "Tab") {
+        if (!dialogRef.current) return;
+        const focusableElements = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), a[href]:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        );
+
+        if (focusableElements.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusableElements[0];
+        const last = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (
+            document.activeElement === first ||
+            !dialogRef.current.contains(document.activeElement)
+          ) {
+            e.preventDefault();
+            last?.focus();
+          }
+        } else {
+          if (
+            document.activeElement === last ||
+            !dialogRef.current.contains(document.activeElement)
+          ) {
+            e.preventDefault();
+            first?.focus();
+          }
+        }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [citation, onClose]);
-
-  // Trap focus / focus on mount
-  useEffect(() => {
-    if (citation && dialogRef.current) {
-      dialogRef.current.focus();
-    }
-  }, [citation]);
+  }, [citation, handleClose]);
 
   if (!citation) return null;
 
   const hasSafeUrl = isSafeUrl(citation.url);
+  const hasSafeCanonical = Boolean(
+    citation.canonicalUrl &&
+      citation.canonicalUrl !== citation.url &&
+      isSafeUrl(citation.canonicalUrl)
+  );
 
   return (
-    <div className={styles.backdrop} onClick={onClose} data-testid="citation-popover-backdrop">
+    <div className={styles.backdrop} onClick={handleClose} data-testid="citation-popover-backdrop">
       <div
         ref={dialogRef}
         className={styles.popover}
@@ -59,9 +122,10 @@ export function CitationPopover({ citation, onClose }: CitationPopoverProps) {
             )}
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close citation details"
           >
             ✕
@@ -80,22 +144,41 @@ export function CitationPopover({ citation, onClose }: CitationPopoverProps) {
         )}
 
         <div className={styles.footer}>
-          {hasSafeUrl ? (
-            <a
-              href={citation.url}
-              target="_blank"
-              rel="noreferrer noopener"
-              className={styles.sourceButton}
-            >
-              <span>Open Authoritative Source</span>
-              <span className={styles.arrow} aria-hidden="true">
-                ↗
-              </span>
-            </a>
-          ) : (
-            <span className={styles.disabledLink}>Source link unavailable</span>
-          )}
-          <button type="button" className={styles.dismissButton} onClick={onClose}>
+          <div className={styles.footerActions}>
+            {hasSafeUrl ? (
+              <a
+                href={citation.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className={styles.sourceButton}
+                data-testid="citation-popover-source-url"
+              >
+                <span>Open Authoritative Source</span>
+                <span className={styles.arrow} aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            ) : (
+              <span className={styles.disabledLink}>Source link unavailable</span>
+            )}
+
+            {hasSafeCanonical && (
+              <a
+                href={citation.canonicalUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className={styles.canonicalLink}
+                data-testid="citation-popover-canonical-url"
+              >
+                <span>Main Reference</span>
+                <span className={styles.arrow} aria-hidden="true">
+                  ↗
+                </span>
+              </a>
+            )}
+          </div>
+
+          <button type="button" className={styles.dismissButton} onClick={handleClose}>
             Dismiss
           </button>
         </div>

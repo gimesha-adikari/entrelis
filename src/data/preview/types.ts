@@ -25,6 +25,7 @@ export interface CitationRecord {
   readonly sourceId?: string;
   readonly title: string;
   readonly url: string;
+  readonly canonicalUrl?: string;
   readonly publisher?: string;
   readonly author?: string;
   readonly evidenceTier?: string;

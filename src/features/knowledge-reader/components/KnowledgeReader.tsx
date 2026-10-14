@@ -18,24 +18,41 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
 
   const [activeSlug, setActiveSlug] = useState<string>(initialArticle.slug);
   const [activeCitation, setActiveCitation] = useState<CitationRecord | null>(null);
+  const [activeTrigger, setActiveTrigger] = useState<HTMLElement | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Sync with URL query parameter on mount and browser navigation
+  // Sync with URL (both pathname /lab/knowledge-reader/[slug] and query param ?article=) on mount and browser navigation
   useEffect(() => {
-    function syncFromUrl() {
-      if (typeof window === "undefined") return;
+    function getSlugFromLocation(): string | null {
+      if (typeof window === "undefined") return null;
+      const pathname = window.location.pathname;
+      const pathMatch = pathname.match(/^\/lab\/knowledge-reader\/([a-z0-9-]+)\/?$/);
+      if (pathMatch && pathMatch[1]) {
+        return pathMatch[1];
+      }
       const params = new URLSearchParams(window.location.search);
       const articleParam = params.get("article");
-      if (articleParam && allArticles.some((a) => a.slug === articleParam)) {
-        setActiveSlug(articleParam);
+      if (articleParam) {
+        return articleParam;
       }
+      return null;
+    }
+
+    function syncFromUrl() {
+      if (typeof window === "undefined") return;
+      const urlSlug = getSlugFromLocation();
+      if (urlSlug && allArticles.some((a) => a.slug === urlSlug)) {
+        setActiveSlug(urlSlug);
+        return;
+      }
+      setActiveSlug(initialArticle.slug);
     }
 
     syncFromUrl();
     window.addEventListener("popstate", syncFromUrl);
     return () => window.removeEventListener("popstate", syncFromUrl);
-  }, [allArticles]);
+  }, [allArticles, initialArticle.slug]);
 
   // Track scroll progress for reading progress bar
   useEffect(() => {
@@ -53,6 +70,13 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
 
   const currentArticle = allArticles.find((a) => a.slug === activeSlug) ?? initialArticle;
 
+  // Keep document title in sync with active article
+  useEffect(() => {
+    if (typeof document !== "undefined" && currentArticle) {
+      document.title = `${currentArticle.title} — Knowledge Reader Preview | Entrelis Lab`;
+    }
+  }, [currentArticle]);
+
   const currentIndex = allArticles.findIndex((a) => a.slug === currentArticle.slug);
   const prevArticle = currentIndex > 0 ? allArticles[currentIndex - 1] : null;
   const nextArticle = currentIndex < allArticles.length - 1 ? allArticles[currentIndex + 1] : null;
@@ -64,7 +88,14 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
 
     startTransition(() => {
       if (typeof window !== "undefined") {
-        window.history.pushState(null, "", `/lab/knowledge-reader?article=${slug}`);
+        const isQueryStyle =
+          window.location.pathname === "/lab/knowledge-reader" &&
+          window.location.search.includes("article=");
+        const targetUrl = isQueryStyle
+          ? `/lab/knowledge-reader?article=${slug}`
+          : `/lab/knowledge-reader/${slug}`;
+
+        window.history.pushState(null, "", targetUrl);
       }
     });
   }
@@ -241,7 +272,7 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
               <span>·</span>
               <span>{currentArticle.readingTimeMinutes} min read</span>
               <span>·</span>
-              <span>{currentArticle.citations.length} Verified Sources Cited</span>
+              <span>{currentArticle.citations.length} Sources referenced</span>
             </div>
           </div>
 
@@ -250,7 +281,12 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
             <MarkdownRenderer
               markdown={currentArticle.markdownContent.replace(/^#\s+[^\n]+\n*/, "")}
               citations={currentArticle.citations}
-              onCitationClick={(citation) => setActiveCitation(citation)}
+              onCitationClick={(citation) => {
+                setActiveTrigger(
+                  typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null
+                );
+                setActiveCitation(citation);
+              }}
             />
           </div>
 
@@ -293,7 +329,14 @@ export function KnowledgeReader({ initialArticle, allArticles }: KnowledgeReader
       </div>
 
       {/* Interactive Citation Popover */}
-      <CitationPopover citation={activeCitation} onClose={() => setActiveCitation(null)} />
+      <CitationPopover
+        citation={activeCitation}
+        triggerElement={activeTrigger}
+        onClose={() => {
+          setActiveCitation(null);
+          setActiveTrigger(null);
+        }}
+      />
     </div>
   );
 }

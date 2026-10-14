@@ -30,7 +30,7 @@ export function KnowledgeConnections({
           <h2 className={styles.sectionTitle}>Connected Concepts in the Universe</h2>
         </div>
         <p className={styles.sectionDesc}>
-          Verified graph relationships linking this topic to the broader knowledge architecture.
+          Research-proposed connections linking this topic to the broader knowledge architecture.
           Pilot concepts are preview drafts; seed concepts are part of the published foundation.
         </p>
       </div>
