@@ -1,0 +1,3191 @@
+[
+  {
+    "id": "concept-compilers",
+    "slug": "compilers",
+    "name": "Compilers",
+    "shortDescription": "Software systems that translate human-readable source code in high-level programming languages into lower-level target representations such as machine code or bytecode.",
+    "description": "Compilers translate structured source code into executable instructions through a multi-stage pipeline: lexical analysis tokenizes characters, syntax parsing builds abstract syntax trees (ASTs), semantic analysis enforces typing invariants, intermediate representations (IR) decouple frontends from backends, and optimization passes transform code for execution efficiency before emitting native machine code or bytecode.",
+    "domains": [
+      "computer-science",
+      "programming-languages"
+    ],
+    "tags": [
+      "parsing",
+      "lexical-analysis",
+      "code-generation",
+      "optimization",
+      "intermediate-representation"
+    ],
+    "sourceIds": [
+      "src-dragon-book",
+      "src-cooper-compiler"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Language Compilers",
+      "Language Translators"
+    ]
+  },
+  {
+    "id": "concept-type-systems",
+    "slug": "type-systems",
+    "name": "Type Systems",
+    "shortDescription": "Tractable syntactic methods for proving the absence of certain program behaviors by classifying phrases according to the kinds of values they compute.",
+    "description": "Type systems define formal logical rules that evaluate source expressions before or during execution. By associating data values and functions with static types, compilers verify memory layouts, enforce access permissions, verify interface contracts, and formally prove soundness properties—such as progress (well-typed programs do not get stuck) and preservation (evaluating an expression preserves its type).",
+    "domains": [
+      "computer-science",
+      "programming-languages"
+    ],
+    "tags": [
+      "type-safety",
+      "static-typing",
+      "type-inference",
+      "semantics",
+      "formal-methods"
+    ],
+    "sourceIds": [
+      "src-pierce-tapl"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Type Theory",
+      "Static Type Systems"
+    ]
+  },
+  {
+    "id": "concept-machine-code",
+    "slug": "machine-code",
+    "name": "Machine Code",
+    "shortDescription": "The lowest-level stream of raw binary instructions executed directly by a computer's central processing unit.",
+    "description": "Machine code represents software in its purest physical execution format: binary patterns of opcodes, register specifiers, and memory offsets decoded directly by CPU execution units. High-level abstractions are stripped away, leaving arithmetic operations, memory loads, stores, and conditional jumps that manipulate hardware state registers and physical or virtual address spaces.",
+    "domains": [
+      "computer-science",
+      "computer-architecture",
+      "hardware"
+    ],
+    "tags": [
+      "binary-instructions",
+      "opcodes",
+      "execution",
+      "assembly",
+      "microarchitecture"
+    ],
+    "sourceIds": [
+      "src-patterson-hennessy-cod",
+      "src-intel-sdm"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Machine Language",
+      "Native Code",
+      "Binary Code"
+    ]
+  },
+  {
+    "id": "concept-instruction-set-architecture",
+    "slug": "instruction-set-architecture",
+    "name": "Instruction Set Architecture",
+    "shortDescription": "The abstract interface between software and hardware that defines supported instructions, registers, addressing modes, and memory models.",
+    "description": "An Instruction Set Architecture (ISA) establishes the programmer-visible contract of a processor. It defines the word size, available architectural registers, binary instruction encoding formats, interrupt models, and memory consistency semantics, allowing software compilers to generate target code independently of whether the underlying silicon microarchitecture uses out-of-order execution, deep pipelining, or multithreading.",
+    "domains": [
+      "computer-architecture",
+      "hardware"
+    ],
+    "tags": [
+      "isa",
+      "risc",
+      "cisc",
+      "microarchitecture",
+      "hardware-software-interface"
+    ],
+    "sourceIds": [
+      "src-patterson-hennessy-cod",
+      "src-riscv-spec"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "ISA",
+      "Processor Architecture"
+    ]
+  },
+  {
+    "id": "concept-virtual-memory",
+    "slug": "virtual-memory",
+    "name": "Virtual Memory",
+    "shortDescription": "An architectural memory management scheme that provides an idealized, contiguous abstraction of storage, isolating process address spaces and mapping them to physical storage.",
+    "description": "Virtual memory decouples the address space seen by an application from the physical RAM installed in a computer. Using hardware memory management units (MMUs) and operating system page tables, virtual memory translates virtual page addresses into physical frames, isolates concurrent processes into protected address spaces, prevents invalid memory accesses, and allows programs to exceed physical memory limits via paging.",
+    "domains": [
+      "computer-science",
+      "systems-architecture"
+    ],
+    "tags": [
+      "paging",
+      "mmu",
+      "page-tables",
+      "address-translation",
+      "memory-protection"
+    ],
+    "sourceIds": [
+      "src-denning-virtual-memory",
+      "src-arpaci-ostep"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Paging",
+      "Virtual Addressing"
+    ]
+  },
+  {
+    "id": "concept-concurrency",
+    "slug": "concurrency",
+    "name": "Concurrency",
+    "shortDescription": "The composition and execution of multiple computational tasks whose lifetimes overlap, enabling non-sequential progress and parallel execution.",
+    "description": "Concurrency coordinates overlapping computational sequences over time. In single-core environments, concurrency is achieved through preemptive time-slicing and context switching, while in multicore architectures, tasks execute physically in parallel. Safe concurrency requires synchronization primitives (such as mutexes, semaphores, and atomic operations) to prevent data races and avoid deadlocks.",
+    "domains": [
+      "computer-science",
+      "systems-architecture"
+    ],
+    "tags": [
+      "multithreading",
+      "parallelism",
+      "synchronization",
+      "deadlock",
+      "race-conditions"
+    ],
+    "sourceIds": [
+      "src-lamport-clocks-1978",
+      "src-herlihy-multiprocessor"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Multithreading",
+      "Concurrent Programming"
+    ]
+  },
+  {
+    "id": "concept-computer-networks",
+    "slug": "computer-networks",
+    "name": "Computer Networks",
+    "shortDescription": "Interconnected collections of autonomous computing devices that exchange digital data using shared communication protocols and physical transmission media.",
+    "description": "Computer networks link disparate hardware nodes to exchange digital signals across copper wire, fiber optics, or radio frequencies. Organized through layered protocol models such as TCP/IP, networks partition continuous data streams into addressed packets, dynamically route packets through switching nodes, recover from transmission errors, and govern end-to-end flow and congestion control.",
+    "domains": [
+      "computer-science",
+      "systems-architecture",
+      "telecommunications"
+    ],
+    "tags": [
+      "protocols",
+      "packet-switching",
+      "tcp-ip",
+      "routing",
+      "osi-model"
+    ],
+    "sourceIds": [
+      "src-kurose-ross",
+      "src-tanenbaum-networks"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Networking",
+      "Digital Telecommunications"
+    ]
+  },
+  {
+    "id": "concept-distributed-systems",
+    "slug": "distributed-systems",
+    "name": "Distributed Systems",
+    "shortDescription": "Collections of independent computers that communicate over a network and coordinate their actions by passing messages, appearing to users as a coherent single system.",
+    "description": "Distributed systems coordinate physically separated computing nodes that share no physical memory or central clock. To maintain coherent global state across unreliable networks, distributed architectures employ message-passing protocols, logical clocks, failure detectors, consensus algorithms (such as Paxos and Raft), and replication strategies that balance consistency, availability, and partition tolerance.",
+    "domains": [
+      "computer-science",
+      "systems-architecture"
+    ],
+    "tags": [
+      "consensus",
+      "fault-tolerance",
+      "replication",
+      "cap-theorem",
+      "message-passing"
+    ],
+    "sourceIds": [
+      "src-tanenbaum-distributed",
+      "src-lamport-clocks-1978"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Distributed Computing"
+    ]
+  },
+  {
+    "id": "concept-cryptography",
+    "slug": "cryptography",
+    "name": "Cryptography",
+    "shortDescription": "The mathematical and algorithmic discipline of securing communication and computation in the presence of adversarial third parties.",
+    "description": "Modern cryptography relies on computational hardness assumptions (such as the discrete logarithm or factoring problem) to guarantee confidentiality, integrity, authenticity, and non-repudiation. Core primitives include symmetric block ciphers (such as AES) for bulk encryption, asymmetric key pairs (such as RSA or elliptic curve cryptography) for key exchange and digital signatures, and cryptographic hash functions for tamper detection.",
+    "domains": [
+      "computer-science",
+      "mathematics",
+      "security"
+    ],
+    "tags": [
+      "encryption",
+      "ciphers",
+      "public-key",
+      "hashing",
+      "digital-signatures"
+    ],
+    "sourceIds": [
+      "src-katz-lindell-crypto",
+      "src-nist-fips-197"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Cryptographic Systems",
+      "Information Security"
+    ]
+  },
+  {
+    "id": "concept-algorithms",
+    "slug": "algorithms",
+    "name": "Algorithms",
+    "shortDescription": "Finite, well-defined sequences of computational instructions that take inputs, perform unambiguous operations, and terminate to produce desired outputs.",
+    "description": "An algorithm provides a step-by-step mathematical recipe for solving a computational problem. Analyzed via asymptotic notation (Big-O, Big-Theta) to quantify scaling behavior in time and space, algorithms employ fundamental algorithmic paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals to optimize resource utilization.",
+    "domains": [
+      "computer-science",
+      "mathematics"
+    ],
+    "tags": [
+      "asymptotic-analysis",
+      "computability",
+      "sorting",
+      "graph-algorithms",
+      "optimization"
+    ],
+    "sourceIds": [
+      "src-cormen-clrs",
+      "src-knuth-taocp-v1"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Computational Algorithms"
+    ]
+  },
+  {
+    "id": "concept-data-structures",
+    "slug": "data-structures",
+    "name": "Data Structures",
+    "shortDescription": "Specialized formats for organizing, storing, and indexing data in memory to enable efficient access, modification, and algorithmic manipulation.",
+    "description": "Data structures provide concrete memory layouts that dictate how data elements relate to one another. From contiguous linear arrays and linked nodes to binary search trees, hash tables, and spatial graphs, selecting an appropriate data structure establishes the fundamental time and space trade-offs for searching, inserting, and traversing application data.",
+    "domains": [
+      "computer-science",
+      "software-engineering"
+    ],
+    "tags": [
+      "arrays",
+      "trees",
+      "hash-tables",
+      "graphs",
+      "memory-layout"
+    ],
+    "sourceIds": [
+      "src-cormen-clrs",
+      "src-knuth-taocp-v1"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Data Formats",
+      "In-Memory Structures"
+    ]
+  },
+  {
+    "id": "concept-logic-gates",
+    "slug": "logic-gates",
+    "name": "Logic Gates",
+    "shortDescription": "Idealized physical devices implementing Boolean functions that transform one or more binary electrical inputs into a single binary output.",
+    "description": "Logic gates physically realize Boolean logic functions (AND, OR, NOT, NAND, NOR, XOR) in electronic hardware. Combining transistors into gate topologies creates combinational circuits (such as half-adders and multiplexers) and sequential storage circuits (such as flip-flops and latches) that together form arithmetic logic units (ALUs) and processor control registers.",
+    "domains": [
+      "computer-architecture",
+      "electronics",
+      "hardware"
+    ],
+    "tags": [
+      "boolean-algebra",
+      "nand",
+      "nor",
+      "digital-circuits",
+      "switching"
+    ],
+    "sourceIds": [
+      "src-shannon-1938-relay",
+      "src-patterson-hennessy-cod"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Digital Logic Gates",
+      "Boolean Gates"
+    ]
+  },
+  {
+    "id": "concept-semiconductors",
+    "slug": "semiconductors",
+    "name": "Semiconductors",
+    "shortDescription": "Materials whose electrical conductivity lies between conductors and insulators, enabling controlled modulation of electrical current via doping and electric fields.",
+    "description": "Semiconductors (most prominently silicon and gallium arsenide) exhibit an energy bandgap that prevents free conduction at absolute zero but permits electron excitation at ambient temperatures. By introducing dopant impurities to create surplus mobile electrons (n-type) or electron vacancies (p-type holes), semiconductor junctions form diodes and transistors whose conductivity is modulated by electric voltages.",
+    "domains": [
+      "physics",
+      "materials-science",
+      "electronics"
+    ],
+    "tags": [
+      "bandgap",
+      "silicon",
+      "doping",
+      "carrier-transport",
+      "solid-state"
+    ],
+    "sourceIds": [
+      "src-sze-semiconductor",
+      "src-streetman-solid-state"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Semiconductor Materials",
+      "Solid-State Semiconductors"
+    ]
+  },
+  {
+    "id": "concept-garbage-collection",
+    "slug": "garbage-collection",
+    "name": "Garbage Collection",
+    "shortDescription": "An automated memory management discipline where a runtime system identifies and reclaims dynamically allocated heap memory that is no longer reachable by the program.",
+    "description": "Garbage collection relieves developers from manual allocation tracking by automatically detecting unreachable objects on the heap. Using techniques such as mark-and-sweep, generational scavenging, and reference counting with cycle detection, the runtime environment periodically reclaims memory, trading off predictable latency and CPU overhead against the elimination of dangling pointers and use-after-free bugs.",
+    "domains": [
+      "computer-science",
+      "programming-languages"
+    ],
+    "tags": [
+      "runtime-systems",
+      "heap-reclamation",
+      "tracing",
+      "reference-counting",
+      "memory-management"
+    ],
+    "sourceIds": [
+      "src-jones-gc-handbook"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "GC",
+      "Automatic Memory Management"
+    ]
+  },
+  {
+    "id": "concept-file-systems",
+    "slug": "file-systems",
+    "name": "File Systems",
+    "shortDescription": "Operating system abstractions that manage how persistent storage is structured, indexed, retrieved, and protected as hierarchical files and directories.",
+    "description": "File systems bridge volatile main memory and block-oriented persistent storage (such as NVMe SSDs or magnetic hard drives). By organizing bytes into named streams, mapping logical file offsets to disk blocks via metadata structures (such as inodes or extents), providing directory hierarchies, and maintaining write journals, file systems guarantee data durability and crash consistency.",
+    "domains": [
+      "computer-science",
+      "systems-architecture"
+    ],
+    "tags": [
+      "inodes",
+      "storage",
+      "metadata",
+      "journaling",
+      "directories"
+    ],
+    "sourceIds": [
+      "src-arpaci-ostep",
+      "src-tanenbaum-mos"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Filesystem",
+      "Persistent Storage Systems"
+    ]
+  },
+  {
+    "id": "concept-functional-programming",
+    "slug": "functional-programming",
+    "name": "Functional Programming",
+    "shortDescription": "A programming paradigm that treats computation as the evaluation of mathematical functions, avoiding mutable state and side effects.",
+    "description": "Functional programming grounds program design in mathematical lambda calculus. By emphasizing first-class and higher-order functions, immutable data structures, declarative transformations, and referential transparency (where expressions can be replaced by their values without altering behavior), functional languages facilitate algebraic reasoning, modular composition, and lock-free concurrency.",
+    "domains": [
+      "computer-science",
+      "programming-languages"
+    ],
+    "tags": [
+      "immutability",
+      "pure-functions",
+      "higher-order-functions",
+      "lambda-calculus",
+      "declarative"
+    ],
+    "sourceIds": [
+      "src-backus-1978-fp",
+      "src-pierce-tapl"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "FP",
+      "Functional Paradigm"
+    ]
+  },
+  {
+    "id": "concept-asynchronous-io",
+    "slug": "asynchronous-io",
+    "name": "Asynchronous I/O",
+    "shortDescription": "A non-blocking input/output processing mechanism allowing an execution thread to initiate I/O operations and proceed with other work before data transfer completes.",
+    "description": "Asynchronous I/O eliminates blocking system call overhead by decoupling the initiation of an I/O request (such as reading a socket or writing a file) from its eventual completion. Operating system event demultiplexers (such as Linux epoll, BSD kqueue, or Windows IOCP) notify an application's event loop when descriptors become ready, enabling single threads to efficiently handle tens of thousands of concurrent connections.",
+    "domains": [
+      "computer-science",
+      "systems-architecture"
+    ],
+    "tags": [
+      "non-blocking",
+      "event-loop",
+      "epoll",
+      "io-multiplexing",
+      "system-calls"
+    ],
+    "sourceIds": [
+      "src-posix-base-spec",
+      "src-arpaci-ostep"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Async I/O",
+      "Non-blocking I/O",
+      "Event-Driven I/O"
+    ]
+  },
+  {
+    "id": "concept-computer-graphics",
+    "slug": "computer-graphics",
+    "name": "Computer Graphics",
+    "shortDescription": "The subfield of computer science focused on computationally generating, manipulating, and rendering visual images, 3D geometry, and animations.",
+    "description": "Computer graphics translates mathematical descriptions of 3D virtual scenes into 2D rasterized pixel grids or simulated photon paths. Modern graphics systems leverage linear algebra transformations, projection matrices, lighting approximations (Phong, physically based rendering), and parallel hardware graphics processing units (GPUs) executing programmable vertex and fragment shaders.",
+    "domains": [
+      "computer-science",
+      "computer-graphics"
+    ],
+    "tags": [
+      "rendering",
+      "rasterization",
+      "ray-tracing",
+      "shaders",
+      "gpu-pipeline"
+    ],
+    "sourceIds": [
+      "src-foley-graphics",
+      "src-shirley-graphics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Digital Imaging",
+      "3D Rendering"
+    ]
+  },
+  {
+    "id": "concept-open-source",
+    "slug": "open-source",
+    "name": "Open Source Software",
+    "shortDescription": "A collaborative software development and licensing model where source code is made publicly available for inspection, modification, and redistribution under permissive or copyleft licenses.",
+    "description": "Open source software establishes a public commons of code governed by legal licenses (such as MIT, Apache 2.0, or GPL) that guarantee transparency, inspectability, and the right to fork and improve tools. This paradigm transforms software engineering from isolated corporate silos into global collaborative ecosystems, underpinning foundational internet protocols, operating systems, and developer tools.",
+    "domains": [
+      "computer-science",
+      "software-engineering",
+      "civilization"
+    ],
+    "tags": [
+      "licensing",
+      "collaboration",
+      "permissive-license",
+      "copyleft",
+      "public-software"
+    ],
+    "sourceIds": [
+      "src-osi-definition",
+      "src-raymond-cathedral"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "FOSS",
+      "FLOSS",
+      "Open Source"
+    ]
+  },
+  {
+    "id": "concept-database-systems",
+    "slug": "database-systems",
+    "name": "Database Systems",
+    "shortDescription": "Software systems designed to systematically define, store, query, and maintain structured data collections while guaranteeing transactional consistency and durability.",
+    "description": "Database management systems (DBMS) provide structured data storage independent of physical file layouts. Through declarative query languages (such as SQL) grounded in relational algebra, indexing data structures (B+ trees, LSM trees), write-ahead logging (WAL), and concurrency control (two-phase locking or multi-version concurrency control), database systems enforce ACID transaction properties across concurrent access.",
+    "domains": [
+      "computer-science",
+      "systems-architecture"
+    ],
+    "tags": [
+      "relational-model",
+      "acid",
+      "sql",
+      "transactions",
+      "indexing"
+    ],
+    "sourceIds": [
+      "src-silberschatz-db",
+      "src-codd-1970-relational"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "DBMS",
+      "Database Management Systems"
+    ]
+  },
+  {
+    "id": "concept-artificial-intelligence",
+    "slug": "artificial-intelligence",
+    "name": "Artificial Intelligence",
+    "shortDescription": "The multidisciplinary scientific field focused on developing computational agents capable of perceiving environments, synthesizing knowledge, and choosing rational actions to achieve goals.",
+    "description": "Artificial intelligence studies the computational principles underlying intelligent behavior. Historically spanning symbolic knowledge representation, automated theorem proving, heuristic search, probabilistic modeling, and connectionist learning, modern AI centers on designing agents that operate under uncertainty, infer latent patterns from data, and generalize across diverse tasks.",
+    "domains": [
+      "artificial-intelligence",
+      "computer-science"
+    ],
+    "tags": [
+      "intelligent-agents",
+      "machine-learning",
+      "cognitive-systems",
+      "rationality",
+      "heuristics"
+    ],
+    "sourceIds": [
+      "src-russell-norvig-aima"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "AI",
+      "Computational Intelligence"
+    ]
+  },
+  {
+    "id": "concept-machine-learning",
+    "slug": "machine-learning",
+    "name": "Machine Learning",
+    "shortDescription": "A subfield of artificial intelligence where algorithmic systems automatically improve performance on specific tasks through exposure to empirical data without explicit rule programming.",
+    "description": "Machine learning formulates task execution as a statistical estimation problem. Rather than executing handcrafted deterministic logic, machine learning models estimate mapping functions from input features to target predictions by minimizing empirical loss over training datasets using supervised, unsupervised, or reinforcement learning paradigms.",
+    "domains": [
+      "artificial-intelligence",
+      "mathematics"
+    ],
+    "tags": [
+      "supervised-learning",
+      "unsupervised-learning",
+      "generalization",
+      "data-driven",
+      "statistical-learning"
+    ],
+    "sourceIds": [
+      "src-russell-norvig-aima",
+      "src-vapnik-statistical-learning"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "ML",
+      "Statistical Machine Learning"
+    ]
+  },
+  {
+    "id": "concept-artificial-neural-networks",
+    "slug": "artificial-neural-networks",
+    "name": "Artificial Neural Networks",
+    "shortDescription": "Computational models composed of interconnected processing units that compute weighted sums and apply nonlinear activations to learn complex functional transformations.",
+    "description": "Originally inspired by structural metaphors of biological neurons, artificial neural networks arrange parameterized nodes into layers. Each node computes a dot product of inputs and learnable synaptic weights, adds a bias term, and evaluates a nonlinear activation function (such as ReLU or sigmoid), allowing deep compositions of layers to act as universal function approximators.",
+    "domains": [
+      "artificial-intelligence",
+      "computer-science"
+    ],
+    "tags": [
+      "connectionism",
+      "activation-functions",
+      "perceptrons",
+      "layers",
+      "function-approximation"
+    ],
+    "sourceIds": [
+      "src-goodfellow-deep-learning",
+      "src-rumelhart-1986-nature"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "ANN",
+      "Neural Networks",
+      "Connectionist Models"
+    ]
+  },
+  {
+    "id": "concept-deep-learning",
+    "slug": "deep-learning",
+    "name": "Deep Learning",
+    "shortDescription": "A class of machine learning methods based on artificial neural networks with multiple representation layers that learn hierarchical feature abstractions directly from raw inputs.",
+    "description": "Deep learning eliminates manual feature engineering by passing raw input signals through cascaded nonlinear processing layers. Lower layers learn elementary spatial or temporal motifs (such as edges or frequencies), intermediate layers compose these into parts, and higher layers assemble abstract semantic representations capable of state-of-the-art perception and generative modeling.",
+    "domains": [
+      "artificial-intelligence",
+      "computer-science"
+    ],
+    "tags": [
+      "representation-learning",
+      "deep-networks",
+      "hierarchical-features",
+      "backprop",
+      "transformers"
+    ],
+    "sourceIds": [
+      "src-goodfellow-deep-learning"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Deep Neural Networks",
+      "Hierarchical Feature Learning"
+    ]
+  },
+  {
+    "id": "concept-backpropagation",
+    "slug": "backpropagation",
+    "name": "Backpropagation",
+    "shortDescription": "An algorithmic application of the multivariate chain rule that efficiently computes the gradient of an objective loss function with respect to every weight in a neural network.",
+    "description": "Backpropagation executes in two phases: during the forward pass, activations propagate from input to output layers to compute a scalar loss; during the backward pass, partial derivatives of the loss with respect to layer outputs propagate in reverse, systematically accumulating gradients at each parameterized weight via reverse-mode automatic differentiation.",
+    "domains": [
+      "artificial-intelligence",
+      "mathematics"
+    ],
+    "tags": [
+      "reverse-mode-differentiation",
+      "chain-rule",
+      "gradients",
+      "optimization",
+      "neural-networks"
+    ],
+    "sourceIds": [
+      "src-rumelhart-1986-nature",
+      "src-goodfellow-deep-learning"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Backprop",
+      "Error Backpropagation",
+      "Reverse-Mode AD"
+    ]
+  },
+  {
+    "id": "concept-gradient-descent",
+    "slug": "gradient-descent",
+    "name": "Gradient Descent",
+    "shortDescription": "A first-order iterative optimization algorithm that locates local function minima by taking steps proportional to the negative of the objective function gradient.",
+    "description": "Gradient descent iteratively updates parameter vectors in the direction of steepest descent. In stochastic and mini-batch variants (SGD), parameter updates are computed over random training subsets, combined with momentum and adaptive learning rate schedules (such as Adam) to navigate high-dimensional non-convex loss surfaces efficiently.",
+    "domains": [
+      "mathematics",
+      "artificial-intelligence"
+    ],
+    "tags": [
+      "optimization",
+      "first-order-methods",
+      "sgd",
+      "learning-rate",
+      "convexity"
+    ],
+    "sourceIds": [
+      "src-boyd-convex-optimization",
+      "src-goodfellow-deep-learning"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Steepest Descent",
+      "Stochastic Gradient Descent",
+      "SGD"
+    ]
+  },
+  {
+    "id": "concept-linear-algebra",
+    "slug": "linear-algebra",
+    "name": "Linear Algebra",
+    "shortDescription": "The branch of mathematics concerning vector spaces, linear mappings, matrices, and systems of linear equations.",
+    "description": "Linear algebra formalizes geometric transformations and multidimensional datasets through vectors, matrices, and linear operators. Core concepts including span, basis, rank, orthogonality, matrix decompositions (eigen-decomposition, SVD), and tensor operations provide the underlying mathematical language for quantum physics, graphics, and modern machine learning.",
+    "domains": [
+      "mathematics"
+    ],
+    "tags": [
+      "vector-spaces",
+      "matrices",
+      "eigenvalues",
+      "svd",
+      "tensors"
+    ],
+    "sourceIds": [
+      "src-strang-linear-algebra"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Matrix Algebra",
+      "Vector Space Theory"
+    ]
+  },
+  {
+    "id": "concept-probability-theory",
+    "slug": "probability-theory",
+    "name": "Probability Theory",
+    "shortDescription": "The mathematical framework dedicated to the formal analysis, quantification, and calculus of random phenomena, uncertainty, and chance.",
+    "description": "Probability theory axiomatizes uncertainty through sample spaces, event algebras, and probability measures. Governing continuous and discrete random variables, joint distributions, conditional probabilities, and asymptotic behaviors via the Law of Large Numbers and Central Limit Theorem, it underpins statistical inference, thermodynamics, and quantum mechanics.",
+    "domains": [
+      "mathematics"
+    ],
+    "tags": [
+      "random-variables",
+      "distributions",
+      "expectation",
+      "bayes-theorem",
+      "stochastic-processes"
+    ],
+    "sourceIds": [
+      "src-bertsekas-probability"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Theory of Probability",
+      "Calculus of Chance"
+    ]
+  },
+  {
+    "id": "concept-statistics",
+    "slug": "statistics",
+    "name": "Statistical Inference",
+    "shortDescription": "The discipline that develops mathematical methodologies for drawing rigorous conclusions, testing hypotheses, and quantifying uncertainties from empirical data samples.",
+    "description": "Statistical inference bridges empirical sample data and unobservable population processes. Through point estimation, confidence intervals, hypothesis testing, and maximum likelihood estimation, statistics provides formal mathematical guarantees that protect scientific research from mistaking random noise for genuine empirical phenomena.",
+    "domains": [
+      "mathematics"
+    ],
+    "tags": [
+      "inference",
+      "hypothesis-testing",
+      "estimation",
+      "p-values",
+      "maximum-likelihood"
+    ],
+    "sourceIds": [
+      "src-gelman-bda3",
+      "src-bertsekas-probability"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Mathematical Statistics",
+      "Statistical Theory"
+    ]
+  },
+  {
+    "id": "concept-information-theory",
+    "slug": "information-theory",
+    "name": "Information Theory",
+    "shortDescription": "The mathematical study of the quantification, storage, compression, and reliable transmission of information across noisy channels.",
+    "description": "Founded by Claude Shannon, information theory quantifies information using logarithmic measures of uncertainty (entropy). Key theorems demonstrate that data cannot be compressed beyond source entropy without loss and establish channel capacity—the maximum transmission rate at which information can be communicated with arbitrarily low error across noisy channels.",
+    "domains": [
+      "mathematics",
+      "computer-science"
+    ],
+    "tags": [
+      "shannon-entropy",
+      "channel-capacity",
+      "data-compression",
+      "bits",
+      "coding-theory"
+    ],
+    "sourceIds": [
+      "src-shannon-1948-communication"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Shannon Information Theory",
+      "Communication Theory"
+    ]
+  },
+  {
+    "id": "concept-computability-theory",
+    "slug": "computability-theory",
+    "name": "Computability Theory",
+    "shortDescription": "The theoretical foundation of computer science that classifies mathematical problems according to whether they can be resolved by algorithmic procedures.",
+    "description": "Computability theory formalizes what can and cannot be computed in principle, regardless of available physical time or memory. By defining abstract models of computation such as Turing machines, the Church-Turing thesis establishes that any effective calculation can be realized algorithmically, while proving the existence of undecidable problems such as the Halting Problem.",
+    "domains": [
+      "computer-science",
+      "mathematics"
+    ],
+    "tags": [
+      "turing-machines",
+      "undecidability",
+      "halting-problem",
+      "church-turing",
+      "formal-languages"
+    ],
+    "sourceIds": [
+      "src-sipser-computation",
+      "src-turing-1936-computable"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Recursion Theory",
+      "Theory of Computation"
+    ]
+  },
+  {
+    "id": "concept-alan-turing",
+    "slug": "alan-turing",
+    "name": "Alan Turing",
+    "shortDescription": "British mathematician, logician, and cryptanalyst widely recognized as a primary founder of modern theoretical computer science and artificial intelligence.",
+    "description": "Alan Turing formalized the conceptual foundation of digital computation in his 1936 paper introducing the Universal Turing Machine. During World War II, his cryptanalytic breakthroughs at Bletchley Park broke the Enigma cipher; later, he pioneered artificial intelligence inquiry by formulating the imitation game (Turing Test) and investigated morphogenesis in mathematical biology.",
+    "domains": [
+      "computer-science",
+      "mathematics",
+      "civilization"
+    ],
+    "tags": [
+      "turing-machine",
+      "cryptanalysis",
+      "turing-test",
+      "morphogenesis",
+      "pioneers"
+    ],
+    "sourceIds": [
+      "src-turing-1936-computable"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "A. M. Turing"
+    ]
+  },
+  {
+    "id": "concept-computational-complexity",
+    "slug": "computational-complexity",
+    "name": "Computational Complexity",
+    "shortDescription": "The study of the inherent resource costs (such as CPU cycles and storage space) required to solve computational problems algorithmically.",
+    "description": "Computational complexity theory categorizes problems into complexity classes based on asymptotic scaling. Contrasting problems solvable in deterministic polynomial time (P) with those verifiable in polynomial time (NP), complexity theory investigates deep open questions (such as P vs NP) and establishes NP-completeness through polynomial-time reductions.",
+    "domains": [
+      "computer-science",
+      "mathematics"
+    ],
+    "tags": [
+      "p-vs-np",
+      "np-completeness",
+      "complexity-classes",
+      "reductions",
+      "asymptotics"
+    ],
+    "sourceIds": [
+      "src-sipser-computation",
+      "src-arora-barak-complexity"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Complexity Theory",
+      "Resource Complexity"
+    ]
+  },
+  {
+    "id": "concept-boolean-logic",
+    "slug": "boolean-logic",
+    "name": "Boolean Logic",
+    "shortDescription": "A branch of algebraic logic where variables evaluate to one of two truth values (true or false) under operations of conjunction, disjunction, and negation.",
+    "description": "Formulated by George Boole, Boolean algebra translates classical philosophical logic into mathematical calculus. By establishing identities such as De Morgan's laws and distributive equivalences, Boolean logic provides the mathematical foundation for digital logic gate design, relational database queries, and conditional control flow in software.",
+    "domains": [
+      "mathematics",
+      "computer-science"
+    ],
+    "tags": [
+      "truth-values",
+      "boolean-algebra",
+      "conjunction",
+      "disjunction",
+      "de-morgan"
+    ],
+    "sourceIds": [
+      "src-boole-1854-laws",
+      "src-shannon-1938-relay"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Boolean Algebra",
+      "Propositional Logic"
+    ]
+  },
+  {
+    "id": "concept-bayesian-inference",
+    "slug": "bayesian-inference",
+    "name": "Bayesian Inference",
+    "shortDescription": "A statistical method where evidence is used to update the subjective or objective probability distribution of a hypothesis according to Bayes' theorem.",
+    "description": "Bayesian inference treats model parameters not as fixed unknown constants, but as random variables possessing probability distributions. By combining prior probability beliefs with the likelihood of observed empirical data, Bayes' theorem yields a posterior distribution that fully reflects updated uncertainty.",
+    "domains": [
+      "mathematics",
+      "artificial-intelligence"
+    ],
+    "tags": [
+      "bayes-theorem",
+      "prior-distribution",
+      "posterior",
+      "mcmc",
+      "probabilistic-modeling"
+    ],
+    "sourceIds": [
+      "src-gelman-bda3",
+      "src-bertsekas-probability"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Bayesian Statistics",
+      "Posterior Updating"
+    ]
+  },
+  {
+    "id": "concept-reinforcement-learning",
+    "slug": "reinforcement-learning",
+    "name": "Reinforcement Learning",
+    "shortDescription": "An area of machine learning focused on training goal-directed software agents to take sequential actions in dynamic environments to maximize cumulative reward signals.",
+    "description": "Reinforcement learning formalizes trial-and-error decision making as a Markov Decision Process (MDP). Agents explore actions that transition environment states and yield scalar rewards, learning value functions or parameterized policies that balance immediate rewards against long-term discounted returns.",
+    "domains": [
+      "artificial-intelligence"
+    ],
+    "tags": [
+      "mdp",
+      "q-learning",
+      "policy-gradient",
+      "reward-signal",
+      "exploration-exploitation"
+    ],
+    "sourceIds": [
+      "src-sutton-barto-rl"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "RL",
+      "Reward-Based Learning"
+    ]
+  },
+  {
+    "id": "concept-natural-language-processing",
+    "slug": "natural-language-processing",
+    "name": "Natural Language Processing",
+    "shortDescription": "A subfield of artificial intelligence and computational linguistics dedicated to enabling computers to parse, interpret, understand, and generate human language.",
+    "description": "Natural language processing addresses the ambiguity and compositional complexity of human speech and text. Combining statistical linguistics with deep learning transformer architectures and self-attention mechanisms, modern NLP powers machine translation, sentiment analysis, syntactic parsing, and large language models.",
+    "domains": [
+      "artificial-intelligence",
+      "computer-science"
+    ],
+    "tags": [
+      "nlp",
+      "computational-linguistics",
+      "transformers",
+      "language-models",
+      "text-analysis"
+    ],
+    "sourceIds": [
+      "src-jurafsky-slp3"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "NLP",
+      "Computational Linguistics"
+    ]
+  },
+  {
+    "id": "concept-computer-vision",
+    "slug": "computer-vision",
+    "name": "Computer Vision",
+    "shortDescription": "The multidisciplinary field that develops algorithmic techniques allowing computers to automatically extract high-level semantic meaning from digital images and video.",
+    "description": "Computer vision models the inverse problem of optical image formation: reconstructing 3D scene geometry, identifying object boundaries, tracking motion vectors, and categorizing object semantics from 2D pixel grids using convolutional networks and vision transformers.",
+    "domains": [
+      "artificial-intelligence",
+      "computer-science"
+    ],
+    "tags": [
+      "image-recognition",
+      "object-detection",
+      "convolutional-networks",
+      "segmentation",
+      "scene-understanding"
+    ],
+    "sourceIds": [
+      "src-szeliski-computer-vision"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "CV",
+      "Visual Perception Computing"
+    ]
+  },
+  {
+    "id": "concept-loss-functions",
+    "slug": "loss-functions",
+    "name": "Loss Functions",
+    "shortDescription": "Mathematical functions that map predicted values and true target observations onto a non-negative scalar representing the discrepancy or cost of an algorithm's error.",
+    "description": "Loss functions (such as mean squared error, cross-entropy, and hinge loss) formalize learning objectives as mathematical optimization targets. Under empirical risk minimization, minimizing expected loss across a dataset drives model parameters toward configurations that best explain the observed training distributions.",
+    "domains": [
+      "mathematics",
+      "artificial-intelligence"
+    ],
+    "tags": [
+      "objective-function",
+      "cross-entropy",
+      "mean-squared-error",
+      "cost-function",
+      "empirical-risk"
+    ],
+    "sourceIds": [
+      "src-goodfellow-deep-learning",
+      "src-vapnik-statistical-learning"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Cost Functions",
+      "Objective Functions",
+      "Error Criteria"
+    ]
+  },
+  {
+    "id": "concept-mathematical-optimization",
+    "slug": "mathematical-optimization",
+    "name": "Mathematical Optimization",
+    "shortDescription": "The branch of applied mathematics focused on selecting the best element from a set of available alternatives with respect to defined objective criteria and constraints.",
+    "description": "Optimization formalizes finding extrema (minima or maxima) of mathematical functions subject to equality and inequality constraints. Ranging from linear and quadratic programming to nonlinear convex optimization and global non-convex heuristics, optimization algorithms solve resource allocation, engineering design, and parameter fitting problems.",
+    "domains": [
+      "mathematics"
+    ],
+    "tags": [
+      "convex-optimization",
+      "duality",
+      "constraints",
+      "extrema",
+      "operations-research"
+    ],
+    "sourceIds": [
+      "src-boyd-convex-optimization"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Mathematical Programming",
+      "Optimization Theory"
+    ]
+  },
+  {
+    "id": "concept-atoms",
+    "slug": "atoms",
+    "name": "Atoms",
+    "shortDescription": "The fundamental constituent units of ordinary chemical matter, composed of a dense atomic nucleus of protons and neutrons surrounded by an electron cloud.",
+    "description": "Atoms constitute the elemental building blocks of the periodic table. Governed by quantum electrodynamics, the discrete energy states of atomic electrons determine chemical bonding properties, emission spectra, and the electrical conductivity of materials, bridging microscopic particle physics and macroscopic matter.",
+    "domains": [
+      "physics",
+      "chemistry"
+    ],
+    "tags": [
+      "nucleus",
+      "protons",
+      "neutrons",
+      "electron-cloud",
+      "quantum-states"
+    ],
+    "sourceIds": [
+      "src-griffiths-quantum",
+      "src-pdg-standard-model"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Atomic Structure",
+      "Chemical Atoms"
+    ]
+  },
+  {
+    "id": "concept-electromagnetism",
+    "slug": "electromagnetism",
+    "name": "Electromagnetism",
+    "shortDescription": "One of the four fundamental interactions of physics, governing the interactions of electrically charged particles via electric and magnetic fields.",
+    "description": "Synthesized mathematically by James Clerk Maxwell, electromagnetism unifies electric charge and magnetic forces. Propagating at the speed of light as transverse electromagnetic waves, it governs atomic electron shells, chemical reactions, optics, and all modern electrical and wireless communication technologies.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "maxwell-equations",
+      "electric-fields",
+      "magnetic-fields",
+      "lorentz-force",
+      "electrodynamics"
+    ],
+    "sourceIds": [
+      "src-jackson-electrodynamics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Classical Electrodynamics",
+      "Electromagnetic Force"
+    ]
+  },
+  {
+    "id": "concept-quantum-mechanics",
+    "slug": "quantum-mechanics",
+    "name": "Quantum Mechanics",
+    "shortDescription": "The fundamental physical theory describing nature at atomic and subatomic scales, where physical properties are quantized and observables are represented by operators.",
+    "description": "Quantum mechanics departs from classical determinism by describing physical systems via complex wave functions whose squared moduli represent probability densities. Governed by the Schrödinger equation, Heisenberg's uncertainty principle, and superposition, quantum mechanics explains atomic stability, chemical bonds, and semiconductor solid-state physics.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "wave-function",
+      "schrodinger-equation",
+      "uncertainty-principle",
+      "superposition",
+      "quantization"
+    ],
+    "sourceIds": [
+      "src-griffiths-quantum"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Quantum Theory",
+      "Quantum Physics"
+    ]
+  },
+  {
+    "id": "concept-special-relativity",
+    "slug": "special-relativity",
+    "name": "Special Relativity",
+    "shortDescription": "The physical theory of measurement in inertial frames of reference, establishing the constancy of the speed of light and the unification of space and time into four-dimensional spacetime.",
+    "description": "Formulated by Albert Einstein, special relativity eliminates absolute time by showing that spatial intervals and temporal durations vary between observers according to Lorentz transformations. It derives time dilation, length contraction, relativistic momentum, and the equivalence of mass and energy expressed in E = mc².",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "spacetime",
+      "lorentz-transformation",
+      "speed-of-light",
+      "mass-energy-equivalence",
+      "time-dilation"
+    ],
+    "sourceIds": [
+      "src-einstein-1905-relativity"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "STR",
+      "Special Theory of Relativity"
+    ]
+  },
+  {
+    "id": "concept-general-relativity",
+    "slug": "general-relativity",
+    "name": "General Relativity",
+    "shortDescription": "The geometric theory of gravitation, describing gravity as the curvature of four-dimensional spacetime caused by mass, momentum, and radiation.",
+    "description": "General relativity replaces Newton's concept of gravitational force with the curvature of pseudo-Riemannian spacetime manifolds. Formulated through Einstein's field equations, it demonstrates that mass-energy dictates spacetime geometry while curved geometry dictates the motion of freely falling matter, successfully predicting gravitational lensing, time dilation, black holes, and gravitational waves.",
+    "domains": [
+      "physics",
+      "astronomy"
+    ],
+    "tags": [
+      "spacetime-curvature",
+      "einstein-field-equations",
+      "gravitational-lensing",
+      "equivalence-principle",
+      "gravitational-waves"
+    ],
+    "sourceIds": [
+      "src-einstein-1916-gr",
+      "src-eht-m87-2019"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "GR",
+      "General Theory of Relativity",
+      "Einsteinian Gravitation"
+    ]
+  },
+  {
+    "id": "concept-gravity",
+    "slug": "gravity",
+    "name": "Gravity",
+    "shortDescription": "A universal fundamental interaction whereby all objects with mass or energy are attracted toward one another, shaping planetary orbits and large-scale cosmic structure.",
+    "description": "Gravity is the dominant force across astronomical scales. Approximated with extraordinary precision by Newton's inverse-square law for non-relativistic systems and accurately formalized by general relativity as spacetime curvature, gravity governs planetary motions, star formation, galaxy clusters, and the expansion of the cosmos.",
+    "domains": [
+      "physics",
+      "astronomy"
+    ],
+    "tags": [
+      "gravitational-interaction",
+      "orbital-motion",
+      "celestial-mechanics",
+      "kepler-laws",
+      "spacetime"
+    ],
+    "sourceIds": [
+      "src-einstein-1916-gr",
+      "src-curtis-orbital-mechanics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Gravitational Force",
+      "Gravitation"
+    ]
+  },
+  {
+    "id": "concept-thermodynamics",
+    "slug": "thermodynamics",
+    "name": "Thermodynamics",
+    "shortDescription": "The branch of physics that investigates the relationships between heat, work, temperature, and energy in macroscopic physical systems.",
+    "description": "Axiomatized by four core laws, thermodynamics establishes empirical boundaries on physical processes: the conservation of energy (First Law), the non-decrease of total entropy in isolated systems (Second Law), and the unattainability of absolute zero (Third Law), dictating maximum heat engine efficiency and chemical equilibrium conditions.",
+    "domains": [
+      "physics",
+      "chemistry"
+    ],
+    "tags": [
+      "heat",
+      "work",
+      "carnot-efficiency",
+      "laws-of-thermodynamics",
+      "equilibrium"
+    ],
+    "sourceIds": [
+      "src-callen-thermodynamics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Classical Thermodynamics",
+      "Macroscopic Thermodynamics"
+    ]
+  },
+  {
+    "id": "concept-entropy-physics",
+    "slug": "entropy-physics",
+    "name": "Entropy & Statistical Mechanics",
+    "shortDescription": "A thermodynamic measure of molecular disorder and microscopic configuration multiplicity, determining the thermodynamic arrow of time and spontaneous process irreversibility.",
+    "description": "Bridging macroscopic thermodynamics and microscopic atomic states, statistical mechanics defines entropy via Boltzmann's relation (S = k ln W) as the logarithm of the number of microstates accessible to a system. The Second Law of Thermodynamics dictates that entropy increases in closed systems, providing a physical basis for temporal irreversibility.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "boltzmann-entropy",
+      "statistical-mechanics",
+      "arrow-of-time",
+      "microstates",
+      "second-law"
+    ],
+    "sourceIds": [
+      "src-callen-thermodynamics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Thermodynamic Entropy",
+      "Statistical Entropy"
+    ]
+  },
+  {
+    "id": "concept-stars",
+    "slug": "stars",
+    "name": "Stars & Stellar Evolution",
+    "shortDescription": "Luminous celestial spheres of plasma held together by self-gravity, generating energy via internal nuclear fusion reactions throughout lifecycle stages.",
+    "description": "Stars maintain structural stability through hydrostatic equilibrium—balancing inward gravitational collapse against outward thermal and radiation pressure from core nuclear fusion. Throughout their lifecycles, stars synthesize heavy elements through stellar nucleosynthesis before ending as white dwarfs, neutron stars, or black holes.",
+    "domains": [
+      "astronomy",
+      "physics"
+    ],
+    "tags": [
+      "stellar-evolution",
+      "hydrostatic-equilibrium",
+      "nucleosynthesis",
+      "supernovae",
+      "plasma"
+    ],
+    "sourceIds": [
+      "src-carroll-ostlie-astrophysics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Stellar Physics",
+      "Stellar Evolution"
+    ]
+  },
+  {
+    "id": "concept-nuclear-fusion",
+    "slug": "nuclear-fusion",
+    "name": "Nuclear Fusion",
+    "shortDescription": "A nuclear process where two lighter atomic nuclei combine to form a heavier nucleus, releasing immense energy due to the nuclear mass defect.",
+    "description": "When atomic nuclei overcome electrostatic Coulomb repulsion at extreme temperatures and pressures (such as in stellar cores), the strong nuclear force binds them together. The resulting nucleus has a lower rest mass than its constituents, converting the mass defect directly into kinetic and radiative energy according to E = mc².",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "thermonuclear",
+      "plasma-physics",
+      "binding-energy",
+      "coulomb-barrier",
+      "stellar-cores"
+    ],
+    "sourceIds": [
+      "src-carroll-ostlie-astrophysics",
+      "src-pdg-standard-model"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Thermonuclear Fusion"
+    ]
+  },
+  {
+    "id": "concept-black-holes",
+    "slug": "black-holes",
+    "name": "Black Holes",
+    "shortDescription": "Regions of spacetime where gravitational curvature becomes so extreme that nothing—including electromagnetic radiation—can escape from within their event horizons.",
+    "description": "Predicted as exact vacuum solutions to Einstein's field equations (Schwarzschild and Kerr metrics), black holes form primarily from the catastrophic gravitational collapse of massive stars. Characterized exclusively by mass, spin, and electric charge (the no-hair theorem), they feature an outer event horizon and a central spacetime singularity.",
+    "domains": [
+      "physics",
+      "astronomy"
+    ],
+    "tags": [
+      "event-horizon",
+      "singularity",
+      "general-relativity",
+      "gravitational-collapse",
+      "astrophysics"
+    ],
+    "sourceIds": [
+      "src-eht-m87-2019",
+      "src-einstein-1916-gr"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Gravitational Singularities",
+      "Collapsars"
+    ]
+  },
+  {
+    "id": "concept-cosmology",
+    "slug": "cosmology",
+    "name": "Cosmology & The Big Bang",
+    "shortDescription": "The scientific branch of astrophysics dedicated to investigating the large-scale origin, structure, expansion, evolution, and ultimate fate of the universe.",
+    "description": "Modern cosmology is formulated around the Lambda-Cold Dark Matter (Lambda-CDM) model within general relativity. Tracking cosmic evolution from an initial hot, dense expansion approximately 13.8 billion years ago, observational cosmology utilizes the cosmic microwave background (CMB), baryon acoustic oscillations, and galactic red-shifts to quantify dark matter, dark energy, and cosmic geometry.",
+    "domains": [
+      "physics",
+      "astronomy"
+    ],
+    "tags": [
+      "big-bang",
+      "cosmic-microwave-background",
+      "lambda-cdm",
+      "dark-energy",
+      "dark-matter"
+    ],
+    "sourceIds": [
+      "src-nasa-wmap-cosmology",
+      "src-carroll-ostlie-astrophysics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Physical Cosmology",
+      "Big Bang Cosmology"
+    ]
+  },
+  {
+    "id": "concept-photons",
+    "slug": "photons",
+    "name": "Photons",
+    "shortDescription": "The gauge bosons that mediate the electromagnetic interaction, representing discrete elementary quanta of light and electromagnetic radiation.",
+    "description": "Possessing zero invariant mass and traveling at the speed of light in vacuum, photons exhibit dual wave-particle behaviors. Each photon carries an energy proportional to its frequency (E = hf) and a definite relativistic momentum (p = h/lambda), interacting with atomic electrons via absorption, emission, and scattering processes described by quantum electrodynamics.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "light-quanta",
+      "gauge-boson",
+      "photoelectric-effect",
+      "planck-constant",
+      "electromagnetic-radiation"
+    ],
+    "sourceIds": [
+      "src-einstein-1905-photoelectric",
+      "src-pdg-standard-model"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Light Quanta",
+      "Electromagnetic Quanta"
+    ]
+  },
+  {
+    "id": "concept-electrons",
+    "slug": "electrons",
+    "name": "Electrons",
+    "shortDescription": "Stable subatomic leptons with negative elementary electric charge that constitute atomic electron shells and act as mobile charge carriers in electricity.",
+    "description": "Electrons are fundamental spin-1/2 fermions subject to the Pauli exclusion principle. In isolated atoms, electrons occupy quantized energy orbitals; in crystalline solids, their energy levels broaden into conduction and valence bands, governing electrical conductivity, chemical reactivity, and semiconductor electronics.",
+    "domains": [
+      "physics",
+      "electronics"
+    ],
+    "tags": [
+      "leptons",
+      "charge-carriers",
+      "fermions",
+      "pauli-exclusion",
+      "electricity"
+    ],
+    "sourceIds": [
+      "src-pdg-standard-model",
+      "src-ashcroft-mermin-solid-state"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Electronic Charge Carriers"
+    ]
+  },
+  {
+    "id": "concept-solid-state-physics",
+    "slug": "solid-state-physics",
+    "name": "Solid-State Physics",
+    "shortDescription": "The branch of condensed matter physics that studies how macroscopic properties of solid materials emerge from atomic-scale crystal structures and electron quantum states.",
+    "description": "Solid-state physics applies quantum mechanics and statistical mechanics to periodic crystal lattices. Through Bloch's theorem, crystal symmetries, and energy band theory, it explains why crystalline solids behave as conductors, insulators, or semiconductors, providing the theoretical blueprint for transistors, LEDs, and integrated microelectronics.",
+    "domains": [
+      "physics",
+      "materials-science"
+    ],
+    "tags": [
+      "band-theory",
+      "crystal-lattices",
+      "bloch-theorem",
+      "fermi-level",
+      "condensed-matter"
+    ],
+    "sourceIds": [
+      "src-ashcroft-mermin-solid-state"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Condensed Matter Physics",
+      "Band Theory of Solids"
+    ]
+  },
+  {
+    "id": "concept-energy-conservation",
+    "slug": "energy-conservation",
+    "name": "Conservation of Energy",
+    "shortDescription": "A fundamental physical principle stating that the total energy of an isolated system remains constant over time, being transformed from one form to another but never created or destroyed.",
+    "description": "Formalized as the First Law of Thermodynamics and derived mathematically via Noether's theorem from the time-translation symmetry of physical laws, conservation of energy applies universally across mechanical, thermal, electromagnetic, chemical, and nuclear processes.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "noether-theorem",
+      "first-law",
+      "symmetry",
+      "energy-transformation",
+      "isolated-systems"
+    ],
+    "sourceIds": [
+      "src-callen-thermodynamics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "First Law of Thermodynamics",
+      "Principle of Energy Conservation"
+    ]
+  },
+  {
+    "id": "concept-space-exploration",
+    "slug": "space-exploration",
+    "name": "Space Exploration & Orbital Mechanics",
+    "shortDescription": "The scientific and engineering endeavor of utilizing astronomical observation and robotic or human spacecraft to navigate beyond Earth's atmosphere.",
+    "description": "Space exploration applies celestial mechanics, rocketry, and telemetry to traverse outer space. Governed by Kepler's laws of planetary motion and Newton's laws of gravitation, spacecraft maneuver via Hohmann transfer orbits, gravity assists, and orbital insertions to explore the solar system and deploy satellite communication networks.",
+    "domains": [
+      "astronomy",
+      "aerospace"
+    ],
+    "tags": [
+      "rocketry",
+      "orbital-mechanics",
+      "satellites",
+      "kepler-laws",
+      "spaceflight"
+    ],
+    "sourceIds": [
+      "src-curtis-orbital-mechanics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Astronautics",
+      "Spaceflight"
+    ]
+  },
+  {
+    "id": "concept-quantum-entanglement",
+    "slug": "quantum-entanglement",
+    "name": "Quantum Entanglement",
+    "shortDescription": "A quantum phenomenon in which the quantum states of two or more particles become interconnected such that the state of each particle cannot be described independently.",
+    "description": "When particles interact and become entangled, their joint state vector resides in an inseparable Hilbert space. Measurements on one particle instantaneously correlate with measurements on its entangled partner regardless of spatial separation, violating classical Bell inequalities without permitting faster-than-light communication.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "bell-inequality",
+      "non-locality",
+      "quantum-information",
+      "epr-paradox",
+      "spin-correlation"
+    ],
+    "sourceIds": [
+      "src-bell-1964-epr",
+      "src-griffiths-quantum"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "EPR Correlation",
+      "Quantum Non-Locality"
+    ]
+  },
+  {
+    "id": "concept-wave-particle-duality",
+    "slug": "wave-particle-duality",
+    "name": "Wave-Particle Duality",
+    "shortDescription": "The fundamental quantum concept stating that all physical entities exhibit both wave-like and particle-like characteristics depending on the experimental measurement.",
+    "description": "Originally demonstrated for light through the photoelectric effect and interference experiments, Louis de Broglie extended wave-particle duality to material matter by establishing that every particle has an associated wavelength (lambda = h/p), confirmed empirically by electron diffraction in crystals.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "de-broglie",
+      "double-slit",
+      "electron-diffraction",
+      "complementarity",
+      "quantum-mechanics"
+    ],
+    "sourceIds": [
+      "src-de-broglie-1923-nature",
+      "src-einstein-1905-photoelectric"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Matter Waves",
+      "Complementarity Principle"
+    ]
+  },
+  {
+    "id": "concept-particle-physics",
+    "slug": "particle-physics",
+    "name": "Particle Physics & The Standard Model",
+    "shortDescription": "The branch of physics that studies the fundamental constituents of matter and radiation and the subatomic forces governing their interactions.",
+    "description": "Theoretical and experimental particle physics is encapsulated in the Standard Model—a quantum field theory with SU(3)xSU(2)xU(1) gauge symmetry. It categorizes matter into twelve fundamental fermions (six quarks and six leptons) interacting via gauge bosons (gluons, W/Z bosons, and photons) alongside the Higgs boson mechanism of electroweak symmetry breaking.",
+    "domains": [
+      "physics"
+    ],
+    "tags": [
+      "standard-model",
+      "quarks",
+      "leptons",
+      "higgs-boson",
+      "gauge-theories"
+    ],
+    "sourceIds": [
+      "src-pdg-standard-model"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "High-Energy Physics",
+      "Standard Model"
+    ]
+  },
+  {
+    "id": "concept-cells",
+    "slug": "cells",
+    "name": "Cells & Cellular Biology",
+    "shortDescription": "The fundamental structural, functional, and biological units of all known living organisms, bounded by lipid membranes and containing genetic material.",
+    "description": "According to cell theory, all living organisms consist of one or more cells arising from pre-existing cells. Enclosed by selective phospholipid bilayer membranes, cells maintain internal metabolic environments through specialized organelles (such as mitochondria, ribosomes, and nuclei in eukaryotes), converting nutrients into chemical energy via ATP.",
+    "domains": [
+      "biology"
+    ],
+    "tags": [
+      "cell-theory",
+      "organelles",
+      "membranes",
+      "eukaryotes",
+      "metabolism"
+    ],
+    "sourceIds": [
+      "src-alberts-mboc"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Cellular Biology",
+      "Living Cells"
+    ]
+  },
+  {
+    "id": "concept-dna",
+    "slug": "dna",
+    "name": "DNA & Genetic Code",
+    "shortDescription": "The double-stranded polymeric nucleic acid molecule that stores and transmits hereditary genetic instructions across generations in all cellular life.",
+    "description": "Deoxyribonucleic acid (DNA) forms an antiparallel double helix consisting of deoxyribose-phosphate backbones linked by complementary nitrogenous base pairs (adenine with thymine, cytosine with guanine). Sequences of these nucleotide triplets (codons) encode the primary structure of cellular proteins according to the universal genetic code.",
+    "domains": [
+      "biology",
+      "genetics"
+    ],
+    "tags": [
+      "double-helix",
+      "nucleotides",
+      "base-pairing",
+      "heredity",
+      "molecular-biology"
+    ],
+    "sourceIds": [
+      "src-watson-crick-1953-dna",
+      "src-alberts-mboc"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Deoxyribonucleic Acid",
+      "Genetic Code"
+    ]
+  },
+  {
+    "id": "concept-genes",
+    "slug": "genes",
+    "name": "Genes & Gene Expression",
+    "shortDescription": "Distinct nucleotide sequences within DNA that encode instructions for synthesizing functional RNA molecules or polypeptide chains.",
+    "description": "Genes represent the functional physical and molecular units of heredity. Governed by the central dogma of molecular biology, genetic expression proceeds via transcription of DNA into messenger RNA (mRNA) by RNA polymerase, followed by translation of mRNA transcripts into functional proteins by ribosomal complexes.",
+    "domains": [
+      "biology",
+      "genetics"
+    ],
+    "tags": [
+      "transcription",
+      "translation",
+      "mrna",
+      "genotype",
+      "phenotype"
+    ],
+    "sourceIds": [
+      "src-alberts-mboc"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Genetic Units",
+      "Gene Expression"
+    ]
+  },
+  {
+    "id": "concept-evolution",
+    "slug": "evolution",
+    "name": "Evolution & Modern Synthesis",
+    "shortDescription": "The biological process of change in the heritable characteristics of biological populations over successive generations.",
+    "description": "Formulated by Charles Darwin and unified with Mendelian genetics in the Modern Evolutionary Synthesis, evolution explains how biodiversity emerges. Driven by mutation, genetic drift, gene flow, and natural selection, evolutionary trajectories across geological time account for the shared ancestry and adaptive diversity of terrestrial life.",
+    "domains": [
+      "biology",
+      "evolutionary-biology"
+    ],
+    "tags": [
+      "modern-synthesis",
+      "adaptation",
+      "speciation",
+      "common-descent",
+      "population-genetics"
+    ],
+    "sourceIds": [
+      "src-futuyma-evolution",
+      "src-darwin-1859-origin"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Biological Evolution",
+      "Modern Evolutionary Synthesis"
+    ]
+  },
+  {
+    "id": "concept-natural-selection",
+    "slug": "natural-selection",
+    "name": "Natural Selection",
+    "shortDescription": "The differential survival and reproduction of individuals due to phenotypic differences, acting as the primary mechanism of biological adaptation.",
+    "description": "Natural selection operates whenever organisms in a population exhibit phenotypic variation, differential reproductive fitness in a given ecological environment, and heritability of fitness-conferring traits. Over generations, advantageous alleles increase in frequency, producing anatomical, physiological, and behavioral adaptations.",
+    "domains": [
+      "biology",
+      "evolutionary-biology"
+    ],
+    "tags": [
+      "fitness",
+      "differential-reproduction",
+      "adaptation",
+      "heritability",
+      "selection-pressure"
+    ],
+    "sourceIds": [
+      "src-darwin-1859-origin",
+      "src-futuyma-evolution"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Darwinian Selection",
+      "Adaptive Selection"
+    ]
+  },
+  {
+    "id": "concept-biological-neurons",
+    "slug": "biological-neurons",
+    "name": "Biological Neurons",
+    "shortDescription": "Electrically excitable specialized cells of the nervous system that process, integrate, and transmit information via electrical and chemical signals.",
+    "description": "Biological neurons comprise a cell body (soma), an extensive dendritic tree that receives synaptic inputs, and a single axon that propagates all-or-none action potentials to downstream targets. Complex dendritic branching performs analog spatial and temporal summation of synaptic inputs prior to spike generation at the axon initial segment.",
+    "domains": [
+      "neuroscience",
+      "biology"
+    ],
+    "tags": [
+      "nerve-cells",
+      "axons",
+      "dendrites",
+      "soma",
+      "neural-signaling"
+    ],
+    "sourceIds": [
+      "src-kandel-principles-neural",
+      "src-purves-neuroscience"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Nerve Cells",
+      "Neurons"
+    ]
+  },
+  {
+    "id": "concept-synapses",
+    "slug": "synapses",
+    "name": "Synapses & Neurotransmission",
+    "shortDescription": "Specialized junctional structures where an electrical signal in a presynaptic neuron triggers the chemical release of neurotransmitters to modulate a postsynaptic cell.",
+    "description": "When an action potential invades a presynaptic nerve terminal, voltage-gated calcium channels open, inducing exocytosis of neurotransmitter-filled vesicles into the synaptic cleft. Neurotransmitters diffuse across the nanometer gap to bind postsynaptic ionotropic or metabotropic receptors, producing excitatory (EPSP) or inhibitory (IPSP) postsynaptic potentials.",
+    "domains": [
+      "neuroscience",
+      "biology"
+    ],
+    "tags": [
+      "synaptic-cleft",
+      "vesicles",
+      "neurotransmitters",
+      "postsynaptic-potential",
+      "receptors"
+    ],
+    "sourceIds": [
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Synaptic Junctions",
+      "Chemical Synapses"
+    ]
+  },
+  {
+    "id": "concept-neuroplasticity",
+    "slug": "neuroplasticity",
+    "name": "Neuroplasticity",
+    "shortDescription": "The biological capacity of the nervous system to modify its structural organization and functional connectivity in response to experience, learning, or injury.",
+    "description": "Far from being hardwired, neural circuits continuously reorganize through synaptic plasticity mechanisms such as Long-Term Potentiation (LTP) and Long-Term Depression (LTD). By inserting or internalizing postsynaptic AMPA receptors and remodeling dendritic spines, neural networks physically encode memories and adapt behavioral outputs.",
+    "domains": [
+      "neuroscience",
+      "psychology"
+    ],
+    "tags": [
+      "ltp",
+      "synaptic-plasticity",
+      "dendritic-spines",
+      "learning-mechanism",
+      "reorganization"
+    ],
+    "sourceIds": [
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Neural Plasticity",
+      "Synaptic Plasticity"
+    ]
+  },
+  {
+    "id": "concept-action-potentials",
+    "slug": "action-potentials",
+    "name": "Action Potentials & Ion Channels",
+    "shortDescription": "Rapid, transient, all-or-none electrical impulses that propagate along axonal membranes, driven by voltage-gated ion channels.",
+    "description": "When membrane depolarization exceeds a critical threshold, voltage-gated sodium channels open rapidly, allowing sodium influx that drives membrane potential toward +40 mV. Subsequent sodium channel inactivation and delayed opening of voltage-gated potassium channels permit potassium efflux, rapidly repolarizing and hyperpolarizing the axon.",
+    "domains": [
+      "neuroscience",
+      "biophysics"
+    ],
+    "tags": [
+      "depolarization",
+      "voltage-gated-channels",
+      "sodium-potassium",
+      "hodgkin-huxley",
+      "nerve-impulse"
+    ],
+    "sourceIds": [
+      "src-hodgkin-huxley-1952",
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Action Potential",
+      "Nerve Spikes",
+      "Axonal Impulses"
+    ]
+  },
+  {
+    "id": "concept-human-brain",
+    "slug": "human-brain",
+    "name": "Human Brain & Cerebral Cortex",
+    "shortDescription": "The central organ of the human nervous system, consisting of approximately 86 billion neurons interconnected within a deeply folded cerebral cortex and subcortical nuclei.",
+    "description": "The human brain coordinates motor activity, sensory integration, homeostasis, language, and abstract thought. Divided into bilateral hemispheres containing frontal, parietal, temporal, and occipital lobes, the six-layered neocortex enables hierarchical cognitive processing, supported by dense subcortical loops involving the basal ganglia and thalamus.",
+    "domains": [
+      "neuroscience",
+      "anatomy"
+    ],
+    "tags": [
+      "cerebral-cortex",
+      "neocortex",
+      "hemispheres",
+      "central-nervous-system",
+      "cognition"
+    ],
+    "sourceIds": [
+      "src-purves-neuroscience",
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Cerebrum",
+      "Cerebral Cortex",
+      "Encephalon"
+    ]
+  },
+  {
+    "id": "concept-visual-perception",
+    "slug": "visual-perception",
+    "name": "Visual Perception",
+    "shortDescription": "The biological process by which retinal photoreceptors transduce electromagnetic light waves into neural impulses, synthesized by the visual cortex into coherent scenes.",
+    "description": "Visual perception begins in the retina, where rods and cones transduce photons into electrical graded potentials. Ganglion cells transmit signals via the optic nerve through the lateral geniculate nucleus to primary visual cortex (V1), where receptive fields detect edge orientations, dividing into ventral ('what') and dorsal ('where') cortical processing streams.",
+    "domains": [
+      "neuroscience",
+      "psychology"
+    ],
+    "tags": [
+      "retina",
+      "photoreceptors",
+      "visual-cortex",
+      "ventral-stream",
+      "dorsal-stream"
+    ],
+    "sourceIds": [
+      "src-purves-neuroscience",
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Biological Vision",
+      "Visual Processing"
+    ]
+  },
+  {
+    "id": "concept-memory-consolidation",
+    "slug": "memory-consolidation",
+    "name": "Memory Consolidation & Hippocampus",
+    "shortDescription": "The neurobiological process that transforms labile, newly acquired short-term memories into stable, enduring long-term cortical memory traces.",
+    "description": "Immediate declarative memory depends critically on the hippocampal formation in the medial temporal lobe. Through systems consolidation, repeated synchronous replay during slow-wave sleep progressively redistributes synaptic traces from the hippocampus to distributed neocortical circuits, rendering memories independent of the hippocampus.",
+    "domains": [
+      "neuroscience",
+      "psychology"
+    ],
+    "tags": [
+      "hippocampus",
+      "declarative-memory",
+      "systems-consolidation",
+      "synaptic-replay",
+      "long-term-memory"
+    ],
+    "sourceIds": [
+      "src-scoville-milner-1957",
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Memory Consolidation",
+      "Hippocampal Consolidation"
+    ]
+  },
+  {
+    "id": "concept-consciousness-studies",
+    "slug": "consciousness-studies",
+    "name": "Consciousness Research",
+    "shortDescription": "The empirical and theoretical investigation into the subjective experiential states of awareness and their underlying neural correlates in the brain.",
+    "description": "Consciousness research bridges cognitive neuroscience and philosophy of mind to identify the neural correlates of consciousness (NCC)—the minimal neural mechanisms sufficient for a specific conscious percept. Modern investigations evaluate corticothalamic synchrony, recurrent processing, and integrated information theory across waking, anesthesia, and dream states.",
+    "domains": [
+      "neuroscience",
+      "cognitive-science",
+      "philosophy"
+    ],
+    "tags": [
+      "ncc",
+      "subjective-experience",
+      "corticothalamic",
+      "qualia",
+      "awareness"
+    ],
+    "sourceIds": [
+      "src-crick-koch-2003",
+      "src-kandel-principles-neural"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Neural Correlates of Consciousness",
+      "Cognitive Neuroscience of Consciousness"
+    ]
+  },
+  {
+    "id": "concept-proteins-and-enzymes",
+    "slug": "proteins-and-enzymes",
+    "name": "Proteins & Enzymes",
+    "shortDescription": "Large biological macromolecules composed of folded amino acid chains that catalyze metabolic reactions and provide cellular structural architecture.",
+    "description": "Proteins are linear polymers of twenty standard amino acids that fold into precise three-dimensional conformations determined by their primary sequences. As enzymes, they lower chemical activation energies to catalyze biochemical reactions with extreme substrate specificity, driving cellular metabolism and signal transduction.",
+    "domains": [
+      "biology",
+      "biochemistry"
+    ],
+    "tags": [
+      "amino-acids",
+      "protein-folding",
+      "enzymes",
+      "catalysis",
+      "macromolecules"
+    ],
+    "sourceIds": [
+      "src-alberts-mboc"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Enzymatic Catalysis",
+      "Biological Macromolecules"
+    ]
+  },
+  {
+    "id": "concept-neurotransmitters",
+    "slug": "neurotransmitters",
+    "name": "Neurotransmitters & Neuromodulation",
+    "shortDescription": "Endogenous chemical signaling molecules synthesized by neurons to transmit messages across synaptic clefts or modulate widespread neural circuit excitability.",
+    "description": "Neurotransmitters include small-molecule fast transmitters (such as glutamate for excitation and GABA for inhibition) alongside diffuse neuromodulatory monoamines (dopamine, serotonin, norepinephrine, and acetylcholine). Neuromodulators regulate arousal, motivation, mood, attention, and synaptic learning rules across brain regions.",
+    "domains": [
+      "neuroscience",
+      "biochemistry"
+    ],
+    "tags": [
+      "glutamate",
+      "gaba",
+      "dopamine",
+      "serotonin",
+      "neuromodulation"
+    ],
+    "sourceIds": [
+      "src-kandel-principles-neural",
+      "src-purves-neuroscience"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Neurochemical Transmitters",
+      "Neuromodulators"
+    ]
+  },
+  {
+    "id": "concept-sensory-systems",
+    "slug": "sensory-systems",
+    "name": "Sensory Systems & Transduction",
+    "shortDescription": "Specialized anatomical organs and neural pathways that detect environmental stimuli and convert physical energies into electrical receptor potentials.",
+    "description": "Sensory systems (vision, audition, somatosensation, olfaction, and gustation) rely on specialized sensory receptor cells to perform sensory transduction—transforming photons, acoustic pressure waves, mechanical deformation, or chemical ligands into graded electrical potentials that trigger action potentials toward the central nervous system.",
+    "domains": [
+      "neuroscience",
+      "biology"
+    ],
+    "tags": [
+      "transduction",
+      "receptor-potentials",
+      "somatosensory",
+      "audition",
+      "sensory-organs"
+    ],
+    "sourceIds": [
+      "src-purves-neuroscience"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Sensory Transduction",
+      "Sensory Pathways"
+    ]
+  },
+  {
+    "id": "concept-circadian-rhythms",
+    "slug": "circadian-rhythms",
+    "name": "Circadian Rhythms",
+    "shortDescription": "Endogenous, cell-autonomous 24-hour biological oscillations that coordinate physiological, biochemical, and behavioral processes to Earth's solar cycle.",
+    "description": "Driven by molecular transcriptional-translational feedback loops involving CLOCK, BMAL1, and Period (PER) proteins, circadian rhythms operate in nearly every tissue. In mammals, these cell-autonomous clocks are synchronized by a master pacemaker in the hypothalamic suprachiasmatic nucleus (SCN) entrained by retinal light exposure.",
+    "domains": [
+      "biology",
+      "neuroscience"
+    ],
+    "tags": [
+      "biological-clock",
+      "suprachiasmatic-nucleus",
+      "melatonin",
+      "feedback-loops",
+      "chronobiology"
+    ],
+    "sourceIds": [
+      "src-nobel-circadian-2017",
+      "src-purves-neuroscience"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Biological Clocks",
+      "Circadian Clock"
+    ]
+  },
+  {
+    "id": "concept-homeostasis",
+    "slug": "homeostasis",
+    "name": "Homeostasis",
+    "shortDescription": "The self-regulating physiological mechanisms by which living organisms maintain stable internal chemical and physical conditions despite external environmental fluctuations.",
+    "description": "Coined by Walter Cannon, homeostasis operates via physiological negative feedback loops that continuously monitor controlled variables (such as core body temperature, blood glucose levels, blood pressure, and arterial pH). Deviations from homeostatic setpoints activate neuroendocrine responses to restore physiological equilibrium.",
+    "domains": [
+      "biology",
+      "physiology"
+    ],
+    "tags": [
+      "negative-feedback",
+      "setpoints",
+      "physiological-regulation",
+      "equilibrium",
+      "autonomic"
+    ],
+    "sourceIds": [
+      "src-guyton-hall-physiology"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Physiological Homeostasis",
+      "Internal Milieu"
+    ]
+  },
+  {
+    "id": "concept-motor-control",
+    "slug": "motor-control",
+    "name": "Motor Control & Motor Cortex",
+    "shortDescription": "The neural processing systems that plan, coordinate, and execute voluntary skeletal muscle movements through descending motor pathways.",
+    "description": "Motor control transforms cognitive intentions into coordinated mechanical actions. Initiated in premotor and primary motor cortex (M1), descending corticospinal tracts transmit commands to spinal motor neurons, while continuous sensory feedback loops through the cerebellum and basal ganglia fine-tune timing, error correction, and motor learning.",
+    "domains": [
+      "neuroscience"
+    ],
+    "tags": [
+      "corticospinal",
+      "motor-cortex",
+      "cerebellum",
+      "basal-ganglia",
+      "voluntary-movement"
+    ],
+    "sourceIds": [
+      "src-kandel-principles-neural",
+      "src-purves-neuroscience"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Motor Systems",
+      "Neural Motor Control"
+    ]
+  },
+  {
+    "id": "concept-epigenetics",
+    "slug": "epigenetics",
+    "name": "Epigenetics & Gene Regulation",
+    "shortDescription": "Heritable changes in gene expression and cellular phenotype that occur without alterations to the underlying DNA nucleotide sequence.",
+    "description": "Epigenetic mechanisms regulate chromatin accessibility and transcriptional activity through chemical modifications such as DNA cytosine methylation, histone acetylation, and non-coding RNA interactions. Epigenetic marks allow genetically identical cells to differentiate into specialized cell types while responding to environmental signals.",
+    "domains": [
+      "genetics",
+      "biology"
+    ],
+    "tags": [
+      "dna-methylation",
+      "histone-modification",
+      "chromatin",
+      "gene-regulation",
+      "cell-differentiation"
+    ],
+    "sourceIds": [
+      "src-alberts-mboc"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Epigenetic Regulation",
+      "Chromatin Remodeling"
+    ]
+  },
+  {
+    "id": "concept-learning-psychology",
+    "slug": "learning-psychology",
+    "name": "Learning & Conditioning",
+    "shortDescription": "The psychological and behavioral process by which experience produces enduring changes in an organism's knowledge, capabilities, or behavioral repertoires.",
+    "description": "Learning spans classical stimulus-response conditioning (Pavlov), operant reinforcement schedules (Skinner), and cognitive observational modeling (Bandura). Biologically underpinned by synaptic neuroplasticity, psychological learning theory models how agents acquire associations, extract abstract concepts, and modify expectations based on environmental feedback.",
+    "domains": [
+      "psychology",
+      "cognitive-science"
+    ],
+    "tags": [
+      "conditioning",
+      "behaviorism",
+      "reinforcement",
+      "associative-learning",
+      "cognitive-acquisition"
+    ],
+    "sourceIds": [
+      "src-baddeley-2012-working-memory",
+      "src-sep-epistemology"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Behavioral Conditioning",
+      "Psychological Learning"
+    ]
+  },
+  {
+    "id": "concept-attention",
+    "slug": "attention",
+    "name": "Attention & Selective Processing",
+    "shortDescription": "The cognitive mechanism of selectively concentrating on discrete environmental or internal stimuli while filtering out distracting sensory information.",
+    "description": "Operating under severe capacity limitations, human attention coordinates alerting (maintaining vigilance), orienting (directing sensory focus toward stimuli), and executive control (resolving conflict between competing goals). Top-down goal-directed mechanisms interact with bottom-up stimulus-driven saliency to allocate brain processing resources.",
+    "domains": [
+      "psychology",
+      "neuroscience"
+    ],
+    "tags": [
+      "selective-attention",
+      "executive-control",
+      "vigilance",
+      "cognitive-filtering",
+      "orienting"
+    ],
+    "sourceIds": [
+      "src-posner-petersen-1990"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Selective Attention",
+      "Attentional Networks"
+    ]
+  },
+  {
+    "id": "concept-cognitive-biases",
+    "slug": "cognitive-biases",
+    "name": "Cognitive Biases & Heuristics",
+    "shortDescription": "Systematic, predictable deviations from normative rationality and probability theory arising from fast, intuitive cognitive heuristics.",
+    "description": "Documented by Amos Tversky and Daniel Kahneman, cognitive biases (such as confirmation bias, availability bias, framing effects, and anchoring) emerge when fast, automatic 'System 1' heuristics substitute simple intuitive assessments for complex statistical computations, frequently generating systematic judgment errors under uncertainty.",
+    "domains": [
+      "psychology",
+      "behavioral-economics"
+    ],
+    "tags": [
+      "heuristics",
+      "system-1-system-2",
+      "anchoring",
+      "confirmation-bias",
+      "bounded-rationality"
+    ],
+    "sourceIds": [
+      "src-tversky-kahneman-1974"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Psychological Biases",
+      "Heuristics and Biases"
+    ]
+  },
+  {
+    "id": "concept-decision-making",
+    "slug": "decision-making",
+    "name": "Decision-Making & Rational Choice",
+    "shortDescription": "The cognitive process of evaluating alternative courses of action and selecting a choice based on subjective preferences, values, and expected outcomes.",
+    "description": "Normatively formalized by expected utility theory and empirically described by prospect theory, decision-making analyzes how agents weigh risks, discount future rewards, and trade off costs under uncertainty. Bounded rationality recognizes that biological and algorithmic decision-makers must operate within finite computational time and imperfect information.",
+    "domains": [
+      "psychology",
+      "cognitive-science",
+      "economics"
+    ],
+    "tags": [
+      "expected-utility",
+      "prospect-theory",
+      "rational-choice",
+      "risk-assessment",
+      "bounded-rationality"
+    ],
+    "sourceIds": [
+      "src-simon-1955-rational-choice",
+      "src-tversky-kahneman-1974"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Rational Choice Theory",
+      "Behavioral Decision Making"
+    ]
+  },
+  {
+    "id": "concept-working-memory",
+    "slug": "working-memory",
+    "name": "Working Memory",
+    "shortDescription": "A limited-capacity cognitive system responsible for temporarily holding, actively manipulating, and processing information in conscious awareness.",
+    "description": "Formulated by Alan Baddeley, working memory dissociates into domain-specific storage buffers—the phonological loop for acoustic/verbal data and the visuospatial sketchpad for visual imagery—governed by an attentional central executive and linked to long-term memory via an episodic buffer, providing the mental workspace for reasoning and comprehension.",
+    "domains": [
+      "psychology",
+      "cognitive-science"
+    ],
+    "tags": [
+      "baddeley-model",
+      "central-executive",
+      "phonological-loop",
+      "short-term-storage",
+      "cognitive-workspace"
+    ],
+    "sourceIds": [
+      "src-baddeley-2012-working-memory"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Working Memory Model",
+      "Active Memory Workspace"
+    ]
+  },
+  {
+    "id": "concept-epistemology",
+    "slug": "epistemology",
+    "name": "Epistemology",
+    "shortDescription": "The foundational branch of philosophy concerned with the nature, origin, justification, scope, and validity of human knowledge.",
+    "description": "Epistemology examines the criteria distinguishing warranted knowledge from mere opinion or belief. Analyzing the classical tri-partite definition of knowledge as justified true belief (and its Gettier counterexamples), epistemology investigates theories of justification (foundationalism, coherentism, reliabilism) and responds to philosophical skepticism.",
+    "domains": [
+      "philosophy"
+    ],
+    "tags": [
+      "justified-true-belief",
+      "justification",
+      "skepticism",
+      "foundationalism",
+      "truth-conditions"
+    ],
+    "sourceIds": [
+      "src-sep-epistemology"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Theory of Knowledge",
+      "Epistemological Theory"
+    ]
+  },
+  {
+    "id": "concept-formal-logic",
+    "slug": "formal-logic",
+    "name": "Formal Logic & Deductive Reasoning",
+    "shortDescription": "The systematic study of valid inference, argumentation, and formal deductive systems independent of specific empirical subject matter.",
+    "description": "Formal logic evaluates whether the truth of premises necessarily guarantees the truth of conclusions. Spanning propositional logic and first-order predicate calculus with quantifiers, it establishes syntactic proof systems and semantic model theory, underpinning mathematical rigor, computability proofs, and software type systems.",
+    "domains": [
+      "philosophy",
+      "mathematics"
+    ],
+    "tags": [
+      "deduction",
+      "soundness",
+      "validity",
+      "predicate-calculus",
+      "inference-rules"
+    ],
+    "sourceIds": [
+      "src-sep-logic-classical"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Deductive Logic",
+      "Symbolic Logic"
+    ]
+  },
+  {
+    "id": "concept-scientific-method",
+    "slug": "scientific-method",
+    "name": "Scientific Method & Falsification",
+    "shortDescription": "An iterative empirical methodology for acquiring reliable knowledge, characterized by observation, hypothesis formulation, controlled experimentation, and rigorous testing.",
+    "description": "The scientific method systematically reduces subjective bias through controlled empirical testing. Emphasized by Karl Popper, scientific hypotheses must make risky, empirically falsifiable predictions: theories cannot be verified with absolute certainty, but survive through rigorous attempts at experimental refutation and reproducible corroboration.",
+    "domains": [
+      "philosophy",
+      "science"
+    ],
+    "tags": [
+      "falsification",
+      "popper",
+      "hypothesis-testing",
+      "controlled-experiments",
+      "empirical-inquiry"
+    ],
+    "sourceIds": [
+      "src-popper-1959-logic-discovery",
+      "src-sep-scientific-method"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Empirical Method",
+      "Hypothetico-Deductive Method"
+    ]
+  },
+  {
+    "id": "concept-ethics",
+    "slug": "ethics",
+    "name": "Ethics & Moral Philosophy",
+    "shortDescription": "The branch of philosophy that systematically analyzes concepts of right and wrong conduct, moral obligation, virtue, and justice.",
+    "description": "Normative ethics evaluates actions through major theoretical traditions: deontology (duty and categorical imperatives), consequentialism/utilitarianism (maximizing well-being outcomes), and virtue ethics (cultivating moral character). Applied ethics extends these frameworks to biomedical, technological, environmental, and artificial intelligence domains.",
+    "domains": [
+      "philosophy"
+    ],
+    "tags": [
+      "deontology",
+      "utilitarianism",
+      "virtue-ethics",
+      "moral-philosophy",
+      "normative-theory"
+    ],
+    "sourceIds": [
+      "src-sep-epistemology"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Moral Philosophy",
+      "Normative Ethics"
+    ]
+  },
+  {
+    "id": "concept-philosophy-of-mind",
+    "slug": "philosophy-of-mind",
+    "name": "Philosophy of Mind",
+    "shortDescription": "The philosophical discipline studying the nature of mental phenomena, consciousness, subjective experience, and their relationship to the physical brain.",
+    "description": "Centering on the mind-body problem, philosophy of mind debates how subjective conscious experiences (qualia) relate to physical brain states. Competing positions include substance dualism, identity theory physicalism, functionalism (which views mental states as computational functional roles), and property dualism.",
+    "domains": [
+      "philosophy",
+      "cognitive-science"
+    ],
+    "tags": [
+      "mind-body-problem",
+      "qualia",
+      "dualism",
+      "physicalism",
+      "functionalism"
+    ],
+    "sourceIds": [
+      "src-sep-epistemology"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Mind-Body Philosophy",
+      "Philosophy of Consciousness"
+    ]
+  },
+  {
+    "id": "concept-free-will",
+    "slug": "free-will",
+    "name": "Free Will & Determinism",
+    "shortDescription": "The philosophical debate over whether conscious agents possess the genuine capacity to choose between alternative actions in a world governed by physical causality.",
+    "description": "Free will interrogates moral agency and physical causation. Incompatibilists argue that universal physical determinism precludes genuine free choice, dividing into hard determinists (who deny free will) and libertarians (who posit indeterministic agency), while compatibilists maintain that freedom consists in acting according to desires unhindered by external coercion.",
+    "domains": [
+      "philosophy"
+    ],
+    "tags": [
+      "determinism",
+      "compatibilism",
+      "incompatibilism",
+      "moral-responsibility",
+      "agency"
+    ],
+    "sourceIds": [
+      "src-sep-freewill"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Agency and Determinism",
+      "Metaphysical Free Will"
+    ]
+  },
+  {
+    "id": "concept-empiricism",
+    "slug": "empiricism",
+    "name": "Empiricism",
+    "shortDescription": "An epistemological position asserting that all substantive knowledge regarding the world originates from sensory perception and empirical experience.",
+    "description": "Championed historically by John Locke, George Berkeley, and David Hume, empiricism rejects innate conceptual knowledge, maintaining that the mind begins as a blank slate (tabula rasa). Inductive generalization from observation and experimental verification serve as the only legitimate basis for factual knowledge claims.",
+    "domains": [
+      "philosophy"
+    ],
+    "tags": [
+      "sensory-experience",
+      "tabula-rasa",
+      "hume",
+      "locke",
+      "inductive-evidence"
+    ],
+    "sourceIds": [
+      "src-sep-rationalism-empiricism"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Empirical Philosophy",
+      "Epistemological Empiricism"
+    ]
+  },
+  {
+    "id": "concept-rationalism",
+    "slug": "rationalism",
+    "name": "Rationalism",
+    "shortDescription": "An epistemological position holding that reason and intellect, rather than sensory experience, provide the primary foundation and justification of knowledge.",
+    "description": "Exemplified by René Descartes, Baruch Spinoza, and Gottfried Wilhelm Leibniz, rationalism asserts that essential truths (such as mathematical axioms, logical relations, and fundamental metaphysics) are grasped a priori through rational intuition and deductive deduction rather than empirical observation.",
+    "domains": [
+      "philosophy"
+    ],
+    "tags": [
+      "a-priori",
+      "descartes",
+      "deductive-reasoning",
+      "innate-ideas",
+      "intellect"
+    ],
+    "sourceIds": [
+      "src-sep-rationalism-empiricism"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Epistemological Rationalism",
+      "A Priori Rationalism"
+    ]
+  },
+  {
+    "id": "concept-cognitive-load-theory",
+    "slug": "cognitive-load-theory",
+    "name": "Cognitive Load Theory",
+    "shortDescription": "An instructional and cognitive theory analyzing how the information processing load placed on working memory affects learning and problem solving.",
+    "description": "Formulated by John Sweller, cognitive load theory distinguishes three load types: intrinsic load (inherent material complexity), extraneous load (poor presentation design), and germane load (effort devoted to schema acquisition). Educational design must minimize extraneous load to avoid exceeding working memory limits.",
+    "domains": [
+      "psychology",
+      "education"
+    ],
+    "tags": [
+      "sweller",
+      "intrinsic-load",
+      "extraneous-load",
+      "working-memory-limits",
+      "instructional-design"
+    ],
+    "sourceIds": [
+      "src-sweller-1988-cognitive-load"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "CLT",
+      "Cognitive Architecture in Education"
+    ]
+  },
+  {
+    "id": "concept-metacognition",
+    "slug": "metacognition",
+    "name": "Metacognition",
+    "shortDescription": "Higher-order cognitive awareness, monitoring, and active regulation of one's own thinking, learning processes, and cognitive strategies.",
+    "description": "Popularly summarized as 'thinking about thinking', metacognition comprises metacognitive knowledge (understanding personal memory limits and task difficulties) and metacognitive regulation (planning strategies, monitoring comprehension, and revising approaches during problem-solving).",
+    "domains": [
+      "psychology",
+      "cognitive-science"
+    ],
+    "tags": [
+      "self-regulation",
+      "monitoring",
+      "cognitive-strategies",
+      "meta-reasoning",
+      "learning-skills"
+    ],
+    "sourceIds": [
+      "src-baddeley-2012-working-memory"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Metacognitive Regulation",
+      "Self-Regulated Cognition"
+    ]
+  },
+  {
+    "id": "concept-perception-psychology",
+    "slug": "perception-psychology",
+    "name": "Perceptual Organization & Gestalt",
+    "shortDescription": "The psychological investigation into how raw sensory stimuli are structured into meaningful, coherent perceptual wholes and conscious objects.",
+    "description": "Pioneered by Gestalt psychologists, perceptual organization demonstrates that perception is not a passive sum of atomistic sensory signals. Governed by principles such as proximity, similarity, closure, and continuity, perceptual systems spontaneously group sensory features into stable figures against backgrounds.",
+    "domains": [
+      "psychology",
+      "cognitive-science"
+    ],
+    "tags": [
+      "gestalt",
+      "perceptual-grouping",
+      "figure-ground",
+      "visual-organization",
+      "psychophysics"
+    ],
+    "sourceIds": [
+      "src-posner-petersen-1990"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Gestalt Psychology",
+      "Perceptual Psychology"
+    ]
+  },
+  {
+    "id": "concept-philosophy-of-science",
+    "slug": "philosophy-of-science",
+    "name": "Philosophy of Science & Paradigm Shifts",
+    "shortDescription": "The philosophical branch examining the foundations, assumptions, validation methods, and historical dynamics of scientific inquiry and theory change.",
+    "description": "Philosophy of science explores the ontological and methodological presuppositions of science. Contrastingly articulated by Thomas Kuhn, science alternates between puzzle-solving 'normal science' governed by prevailing disciplinary paradigms and crisis-induced 'scientific revolutions' that replace incommensurable theoretical frameworks.",
+    "domains": [
+      "philosophy",
+      "history-of-science"
+    ],
+    "tags": [
+      "kuhn",
+      "paradigm-shifts",
+      "scientific-realism",
+      "incommensurability",
+      "epistemic-progress"
+    ],
+    "sourceIds": [
+      "src-kuhn-1962-revolutions",
+      "src-popper-1959-logic-discovery"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Metascience",
+      "Theory of Science"
+    ]
+  },
+  {
+    "id": "concept-semantics-and-semiotics",
+    "slug": "semantics-and-semiotics",
+    "name": "Philosophy of Language & Semantics",
+    "shortDescription": "The study of how linguistic expressions, symbols, and signs relate to meaning, reference, truth conditions, and communicative understanding.",
+    "description": "Analyzing how arbitrary symbols acquire meaning, philosophy of language explores Gottlob Frege's distinction between sense (Sinn) and reference (Bedeutung), Ludwig Wittgenstein's language games, and formal truth-conditional model theory, bridging linguistic communication with mathematical logic and computer programming languages.",
+    "domains": [
+      "philosophy",
+      "linguistics"
+    ],
+    "tags": [
+      "meaning",
+      "reference",
+      "frege",
+      "wittgenstein",
+      "symbolic-representation"
+    ],
+    "sourceIds": [
+      "src-sep-logic-classical"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Semantics",
+      "Philosophy of Language",
+      "Semiotics"
+    ]
+  },
+  {
+    "id": "concept-heuristics",
+    "slug": "heuristics",
+    "name": "Heuristics & Bounded Rationality",
+    "shortDescription": "Practical problem-solving and decision-making strategies that prioritize speed and tractability over exhaustive optimization under resource constraints.",
+    "description": "Coined in cognitive decision theory by Herbert Simon, heuristics enable organisms and computational systems to 'satisfice'—finding satisfactory rather than strictly optimal solutions when search spaces are vast, information is incomplete, or computational time is restricted.",
+    "domains": [
+      "psychology",
+      "computer-science",
+      "cognitive-science"
+    ],
+    "tags": [
+      "simon",
+      "satisficing",
+      "rule-of-thumb",
+      "tractability",
+      "decision-strategies"
+    ],
+    "sourceIds": [
+      "src-simon-1955-rational-choice",
+      "src-tversky-kahneman-1974"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Cognitive Heuristics",
+      "Satisficing Strategies"
+    ]
+  },
+  {
+    "id": "concept-pragmatism",
+    "slug": "pragmatism",
+    "name": "Pragmatism",
+    "shortDescription": "A philosophical tradition holding that the meaning, truth, and value of concepts and theories are determined by their practical consequences and success in action.",
+    "description": "Developed by Charles Sanders Peirce, William James, and John Dewey, pragmatism rejects detached metaphysical foundationalism. It defines truth not as passive correspondence to unmediated reality, but dynamically as beliefs that prove reliable, fruitful, and self-correcting in practical human experience and empirical inquiry.",
+    "domains": [
+      "philosophy"
+    ],
+    "tags": [
+      "peirce",
+      "james",
+      "dewey",
+      "practical-consequences",
+      "instrumentalism"
+    ],
+    "sourceIds": [
+      "src-sep-epistemology"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "American Pragmatism",
+      "Instrumentalism"
+    ]
+  },
+  {
+    "id": "concept-printing-press",
+    "slug": "printing-press",
+    "name": "The Printing Press & Movable Type",
+    "shortDescription": "The 15th-century mechanical invention that mechanized text reproduction through movable metal type, democratizing literacy and knowledge dissemination across Europe.",
+    "description": "Developed by Johannes Gutenberg in Mainz around 1450, the movable metal type press combined oil-based ink, adjustable hand molds, and screw-press mechanics. By reducing book production costs by orders of magnitude, it ended monastic copying monopolies, accelerated the Protestant Reformation, and provided the information distribution substrate for the Scientific Revolution.",
+    "domains": [
+      "history",
+      "civilization",
+      "technology"
+    ],
+    "tags": [
+      "gutenberg",
+      "movable-type",
+      "mass-communication",
+      "renaissance",
+      "information-revolution"
+    ],
+    "sourceIds": [
+      "src-loc-gutenberg-bible"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Gutenberg Press",
+      "Movable Type Printing"
+    ]
+  },
+  {
+    "id": "concept-scientific-revolution",
+    "slug": "scientific-revolution",
+    "name": "The Scientific Revolution",
+    "shortDescription": "A transformative historical period in early modern Europe (circa 1543–1687) that replaced scholastic natural philosophy with empirical experimentation and mathematical laws.",
+    "description": "Bookended by Nicolaus Copernicus's heliocentric model and Isaac Newton's Principia Mathematica, the Scientific Revolution revolutionized human inquiry. Rejecting reliance on Aristotelian scholasticism, pioneers including Galileo Galilei, Johannes Kepler, and Francis Bacon established mathematical modeling, systematic observation with instruments (telescope, microscope), and reproducible experimentation.",
+    "domains": [
+      "history",
+      "history-of-science",
+      "philosophy"
+    ],
+    "tags": [
+      "copernicus",
+      "galileo",
+      "newton",
+      "empiricism",
+      "heliocentrism"
+    ],
+    "sourceIds": [
+      "src-sep-scientific-method"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Early Modern Scientific Revolution"
+    ]
+  },
+  {
+    "id": "concept-industrial-revolution",
+    "slug": "industrial-revolution",
+    "name": "The Industrial Revolution",
+    "shortDescription": "The socioeconomic transition from agrarian handicraft economies to machine-driven industrial manufacturing, powered by fossil fuels and steam engines.",
+    "description": "Originating in Great Britain during the mid-18th century, the Industrial Revolution mechanized textile production, revolutionized iron smelting via coking coal, and replaced muscle and water power with steam engines. It restructured human civilization through urbanization, factory systems, international trade networks, and rapid technological acceleration.",
+    "domains": [
+      "history",
+      "civilization",
+      "technology"
+    ],
+    "tags": [
+      "mechanization",
+      "steam-power",
+      "factory-system",
+      "urbanization",
+      "modernity"
+    ],
+    "sourceIds": [
+      "src-smithsonian-lighting-revolution"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "First Industrial Revolution"
+    ]
+  },
+  {
+    "id": "concept-harnessing-electricity",
+    "slug": "harnessing-electricity",
+    "name": "Harnessing Electricity",
+    "shortDescription": "The scientific discovery, generation, and commercial distribution of electric power and lighting that formed the technological foundation of modern industrial civilization.",
+    "description": "Evolving from Faraday's discovery of electromagnetic induction to the late-19th-century 'War of the Currents' between Thomas Edison's direct current (DC) and Nikola Tesla/George Westinghouse's alternating current (AC), the electrification of cities created the universal power grid, electrifying factories, homes, and global communications.",
+    "domains": [
+      "history",
+      "technology",
+      "physics"
+    ],
+    "tags": [
+      "electrical-grid",
+      "edison",
+      "tesla",
+      "faraday",
+      "alternating-current"
+    ],
+    "sourceIds": [
+      "src-smithsonian-lighting-revolution"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Electrification",
+      "The Electric Power Revolution"
+    ]
+  },
+  {
+    "id": "concept-telecommunications",
+    "slug": "telecommunications",
+    "name": "Telecommunications & Telegraphy",
+    "shortDescription": "The transmission of information and signals across long distances using electromagnetic media, beginning with the electrical telegraph in the 19th century.",
+    "description": "Inaugurated by Samuel Morse's 1844 telegraph and transoceanic submarine telegraph cables, electrical telecommunications decoupled information transmission speed from the physical transportation of paper. Subsequent telephone networks and wireless radio broadcasting transformed financial markets, diplomacy, warfare, and social connectivity.",
+    "domains": [
+      "history",
+      "technology",
+      "telecommunications"
+    ],
+    "tags": [
+      "telegraph",
+      "morse-code",
+      "submarine-cables",
+      "telephone",
+      "long-distance-communication"
+    ],
+    "sourceIds": [
+      "src-loc-morse-telegraph"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Electric Telegraphy",
+      "Telecommunications History"
+    ]
+  },
+  {
+    "id": "concept-transistor-invention",
+    "slug": "transistor-invention",
+    "name": "Invention of the Transistor",
+    "shortDescription": "The 1947 breakthrough at Bell Laboratories that produced the first solid-state semiconductor amplifier, replacing fragile, power-hungry vacuum tubes.",
+    "description": "Invented in December 1947 by John Bardeen, Walter Brattain, and William Shockley at Bell Labs, the point-contact and subsequent junction transistors utilized semiconductor physics to switch and amplify currents without heated filaments or moving parts, launching the microelectronics era.",
+    "domains": [
+      "history",
+      "technology",
+      "physics"
+    ],
+    "tags": [
+      "bell-labs",
+      "bardeen",
+      "brattain",
+      "shockley",
+      "solid-state-revolution"
+    ],
+    "sourceIds": [
+      "src-ieee-transistor-milestone"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Point-Contact Transistor",
+      "1947 Bell Labs Breakthrough"
+    ]
+  },
+  {
+    "id": "concept-integrated-circuit",
+    "slug": "integrated-circuit",
+    "name": "The Integrated Circuit",
+    "shortDescription": "The microelectronic breakthrough of fabricating multiple interconnected transistors, diodes, and resistors onto a single monolithic semiconductor chip.",
+    "description": "Invented independently by Jack Kilby (hybrid germanium circuit, 1958) and Robert Noyce (monolithic silicon planar IC, 1959), the integrated circuit solved the 'tyranny of numbers' by eliminating manual wire interconnections, enabling exponential scaling in computing density and reliability described by Moore's Law.",
+    "domains": [
+      "history",
+      "technology",
+      "hardware"
+    ],
+    "tags": [
+      "microchip",
+      "kilby",
+      "noyce",
+      "planar-process",
+      "moores-law"
+    ],
+    "sourceIds": [
+      "src-ethw-integrated-circuit"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Microchip",
+      "IC",
+      "Monolithic Integrated Circuit"
+    ]
+  },
+  {
+    "id": "concept-history-of-computing",
+    "slug": "history-of-computing",
+    "name": "History of Computing",
+    "shortDescription": "The evolutionary trajectory of automated calculation machines from mechanical calculators to programmable electronic digital computers.",
+    "description": "Spanning Charles Babbage's Analytical Engine and Ada Lovelace's first computer algorithm in the 1840s to electromechanical codebreakers and giant electronic vacuum-tube systems like ENIAC (1945), computing evolved from specialized arithmetic calculators into general-purpose, stored-program information processors.",
+    "domains": [
+      "history",
+      "computer-science"
+    ],
+    "tags": [
+      "babbage",
+      "ada-lovelace",
+      "eniac",
+      "stored-program",
+      "computing-pioneers"
+    ],
+    "sourceIds": [
+      "src-von-neumann-1945-edvac"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Computing History",
+      "Evolution of Computers"
+    ]
+  },
+  {
+    "id": "concept-turing-machine-history",
+    "slug": "turing-machine-history",
+    "name": "The 1936 Turing Universal Machine",
+    "shortDescription": "The historic 1936 theoretical formulation of a universal tape-manipulating computing machine that mathematically defined the limits and nature of mechanical calculation.",
+    "description": "In his seminal 1936 paper resolving Hilbert's Entscheidungsproblem, Alan Turing conceptualized an abstract machine consisting of a tape, read/write head, and transition table. Critically, he introduced the Universal Turing Machine—a single machine capable of simulating any other machine by reading its description, establishing the stored-program computing paradigm.",
+    "domains": [
+      "history",
+      "computer-science",
+      "mathematics"
+    ],
+    "tags": [
+      "turing-1936",
+      "universal-machine",
+      "entscheidungsproblem",
+      "theoretical-foundations",
+      "stored-program"
+    ],
+    "sourceIds": [
+      "src-turing-1936-computable"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Universal Turing Machine",
+      "1936 Turing Paper"
+    ]
+  },
+  {
+    "id": "concept-internet-history",
+    "slug": "internet-history",
+    "name": "History of the Internet & TCP/IP",
+    "shortDescription": "The historical development and standardization of global interconnected packet networks governed by open protocol suites.",
+    "description": "Pioneered by Vinton Cerf and Robert Kahn in 1974, the Internet architecture separated network routing from host-to-host reliability through TCP/IP. Transitioning from military and academic ARPANET roots in the 1980s, the Internet expanded into a resilient, decentralized global communications commons supporting commerce, science, and public discourse.",
+    "domains": [
+      "history",
+      "telecommunications",
+      "computer-science"
+    ],
+    "tags": [
+      "tcp-ip",
+      "cerf-kahn",
+      "packet-networking",
+      "inter-networking",
+      "global-commons"
+    ],
+    "sourceIds": [
+      "src-cerf-kahn-1974-tcp"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Internet Evolution",
+      "History of TCP/IP"
+    ]
+  },
+  {
+    "id": "concept-arpanet",
+    "slug": "arpanet",
+    "name": "ARPANET & Packet Switching",
+    "shortDescription": "The pioneering packet-switching network commissioned by the U.S. Department of Defense's Advanced Research Projects Agency (DARPA) in 1969.",
+    "description": "Conceived by J. C. R. Licklider, Paul Baran, Donald Davies, and Larry Roberts, ARPANET replaced vulnerable circuit-switched communications with distributed packet switching. Deploying minicomputer Interface Message Processors (IMPs) between university nodes, ARPANET served as the operational testbed that gave birth to the modern Internet.",
+    "domains": [
+      "history",
+      "computer-science",
+      "telecommunications"
+    ],
+    "tags": [
+      "darpa",
+      "packet-switching",
+      "imp",
+      "kleinrock",
+      "network-history"
+    ],
+    "sourceIds": [
+      "src-ethw-arpanet-1969"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Advanced Research Projects Agency Network"
+    ]
+  },
+  {
+    "id": "concept-world-wide-web",
+    "slug": "world-wide-web",
+    "name": "The World Wide Web",
+    "shortDescription": "The global hypertext information system invented by Tim Berners-Lee in 1989, enabling documents and resources to be interconnected via URLs, HTTP, and HTML.",
+    "description": "Invented at CERN by Tim Berners-Lee to facilitate collaborative scientific document sharing, the World Wide Web unified global internet resources through Uniform Resource Locators (URLs), Hypertext Transfer Protocol (HTTP), and Hypertext Markup Language (HTML). Made royalty-free, the Web transformed the Internet into a universal, accessible information medium.",
+    "domains": [
+      "history",
+      "computer-science",
+      "civilization"
+    ],
+    "tags": [
+      "berners-lee",
+      "cern",
+      "http",
+      "html",
+      "hypertext"
+    ],
+    "sourceIds": [
+      "src-berners-lee-1989-proposal"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "WWW",
+      "The Web",
+      "W3"
+    ]
+  },
+  {
+    "id": "concept-space-race",
+    "slug": "space-race",
+    "name": "The Space Race & Apollo Program",
+    "shortDescription": "The mid-20th-century technological and ideological competition between the United States and Soviet Union to achieve human spaceflight and reach the Moon.",
+    "description": "Triggered by the Soviet launch of Sputnik 1 in 1957, the Space Race accelerated breakthroughs in rocketry, telemetry, guidance computing, and materials science. Culminating in NASA's Apollo 11 lunar landing in July 1969, the program demonstrated massive mission-oriented technological management and established the orbital space age.",
+    "domains": [
+      "history",
+      "space",
+      "technology"
+    ],
+    "tags": [
+      "apollo-11",
+      "sputnik",
+      "cold-war",
+      "nasa",
+      "lunar-landing"
+    ],
+    "sourceIds": [
+      "src-smithsonian-apollo-history"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Space Race",
+      "Apollo Project"
+    ]
+  },
+  {
+    "id": "concept-satellite-technology",
+    "slug": "satellite-technology",
+    "name": "Satellite Technology & Orbital Communications",
+    "shortDescription": "The engineering discipline of placing artificial payloads into stable Earth orbits to provide global communication relays, navigation, and environmental observation.",
+    "description": "First articulated conceptually by Arthur C. Clarke in 1945 and realized with Telstar 1 in 1962, artificial satellites in geostationary, medium, and low Earth orbits transformed global telecommunications, weather forecasting, defense surveillance, and satellite positioning systems (such as GPS).",
+    "domains": [
+      "technology",
+      "space",
+      "telecommunications"
+    ],
+    "tags": [
+      "orbital-satellites",
+      "geostationary",
+      "gps",
+      "telecom-satellites",
+      "earth-observation"
+    ],
+    "sourceIds": [
+      "src-curtis-orbital-mechanics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Artificial Satellites",
+      "Satellite Communications"
+    ]
+  },
+  {
+    "id": "concept-information-age",
+    "slug": "information-age",
+    "name": "The Information Age & Digital Revolution",
+    "shortDescription": "The contemporary historical era characterized by the rapid transition from traditional industrial economy to an economy based on information technology.",
+    "description": "Underpinned by microelectronics, personal computers, software ecosystems, and high-speed telecommunications networks, the Information Age restructured human civilization. Digital data creation, automated computation, and instantaneous global connectivity redefined global finance, manufacturing, governance, and culture.",
+    "domains": [
+      "history",
+      "civilization",
+      "technology"
+    ],
+    "tags": [
+      "digital-revolution",
+      "digital-economy",
+      "mass-connectivity",
+      "knowledge-society",
+      "modern-era"
+    ],
+    "sourceIds": [
+      "src-raymond-cathedral",
+      "src-berners-lee-1989-proposal"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Digital Age",
+      "Computer Age"
+    ]
+  },
+  {
+    "id": "concept-steam-engine",
+    "slug": "steam-engine",
+    "name": "The Steam Engine & Thermodynamics",
+    "shortDescription": "The external combustion heat engine that converts thermal energy of pressurized steam into mechanical work, catalyzing the Industrial Revolution.",
+    "description": "Evolving from Thomas Newcomen's atmospheric engine to James Watt's separate-condenser design, the steam engine liberated mechanical power from geographical dependence on flowing water. Analyzing the theoretical thermodynamic efficiency of steam engines inspired Sadi Carnot's foundational work that birthed classical thermodynamics.",
+    "domains": [
+      "history",
+      "technology",
+      "physics"
+    ],
+    "tags": [
+      "watt",
+      "newcomen",
+      "heat-engine",
+      "carnot",
+      "industrial-power"
+    ],
+    "sourceIds": [
+      "src-callen-thermodynamics"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Steam Power",
+      "Watt Steam Engine"
+    ]
+  },
+  {
+    "id": "concept-cold-war-technology",
+    "slug": "cold-war-technology",
+    "name": "Cold War & Defense-Driven R&D",
+    "shortDescription": "The post-WWII geopolitical rivalry between superpowers that funded and accelerated landmark technological breakthroughs in computing, aerospace, and networking.",
+    "description": "The strategic standoff between the Western and Eastern blocs mobilized national scientific budgets on an unprecedented scale. Cold War defense initiatives directly funded radar development, the SAGE computer air defense system, silicon microelectronics, satellite surveillance, the Apollo space program, and the ARPANET.",
+    "domains": [
+      "history",
+      "civilization",
+      "technology"
+    ],
+    "tags": [
+      "darpa",
+      "defense-rd",
+      "geopolitics",
+      "superpower-rivalry",
+      "aerospace"
+    ],
+    "sourceIds": [
+      "src-ethw-arpanet-1969",
+      "src-smithsonian-apollo-history"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Cold War R&D",
+      "Military-Industrial-Academic Complex"
+    ]
+  },
+  {
+    "id": "concept-microprocessor-revolution",
+    "slug": "microprocessor-revolution",
+    "name": "The Microprocessor Revolution",
+    "shortDescription": "The technological leap of integrating an entire central processing unit onto a single silicon chip, democratizing personal computing.",
+    "description": "Triggered by the commercial introduction of the Intel 4004 in 1971, designed by Federico Faggin, Ted Hoff, and Stanley Mazor, microprocessors collapsed multiple circuit boards into a single microchip. This miniaturization powered the personal computer revolution (Apple, IBM PC) and embedded computing across modern appliances.",
+    "domains": [
+      "history",
+      "technology",
+      "hardware"
+    ],
+    "tags": [
+      "intel-4004",
+      "microprocessors",
+      "personal-computing",
+      "faggin",
+      "silicon-valley"
+    ],
+    "sourceIds": [
+      "src-patterson-hennessy-cod"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Microprocessor Era",
+      "Personal Computer Revolution"
+    ]
+  },
+  {
+    "id": "concept-von-neumann-architecture",
+    "slug": "von-neumann-architecture",
+    "name": "Von Neumann Architecture",
+    "shortDescription": "A theoretical and practical computer design model where instructions and data are stored in the same physical or addressable memory space.",
+    "description": "Articulated in John von Neumann's 1945 EDVAC report (building on discussions with Eckert and Mauchly), this architecture outlines five primary units: arithmetic logic unit, control unit, memory, input/output, and bus interfaces. By treating program instructions identically to numeric data in memory, it established the foundational blueprint of modern general-purpose digital computers.",
+    "domains": [
+      "computer-architecture",
+      "history",
+      "computer-science"
+    ],
+    "tags": [
+      "stored-program",
+      "edvac",
+      "instruction-cycle",
+      "fetch-decode-execute",
+      "von-neumann-bottleneck"
+    ],
+    "sourceIds": [
+      "src-von-neumann-1945-edvac",
+      "src-patterson-hennessy-cod"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Stored-Program Concept",
+      "Von Neumann Model"
+    ]
+  },
+  {
+    "id": "concept-writing-systems",
+    "slug": "writing-systems",
+    "name": "Writing Systems & Knowledge Records",
+    "shortDescription": "The historical invention of visual symbolic systems (cuneiform, hieroglyphs, alphabets) that enabled human societies to record and preserve language across time and space.",
+    "description": "Originating in ancient Mesopotamia, Egypt, and China around the 4th millennium BCE, writing systems transformed ephemeral spoken human language into durable external symbolic records. Enabling legal codes, administration, mathematics, literature, and cumulative scientific knowledge, writing represents the foundational intellectual technology of human civilization.",
+    "domains": [
+      "history",
+      "civilization",
+      "linguistics"
+    ],
+    "tags": [
+      "cuneiform",
+      "alphabet",
+      "symbolic-records",
+      "literacy",
+      "early-civilization"
+    ],
+    "sourceIds": [
+      "src-loc-gutenberg-bible"
+    ],
+    "reviewStatus": "needs-review",
+    "aliases": [
+      "Invention of Writing",
+      "Written Records"
+    ]
+  }
+]
