@@ -160,10 +160,10 @@
     "sourceConceptId": "concept-logic-gates",
     "targetConceptId": "concept-transistors",
     "type": "implemented-with",
-    "explanation": "Digital logic gates are implemented by interconnecting transistors to form switching circuits that execute Boolean functions.",
+    "explanation": "Modern digital logic gates are physically constructed from interconnected semiconductor transistors (such as CMOS pairs) that act as voltage-controlled electronic switches to execute Boolean logic functions.",
     "strength": "primary",
     "sourceIds": [
-      "src-shannon-1938-relay",
+      "src-patterson-hennessy-cod",
       "src-sze-semiconductor"
     ],
     "reviewStatus": "needs-review"
@@ -480,7 +480,7 @@
     "sourceConceptId": "concept-boolean-logic",
     "targetConceptId": "concept-logic-gates",
     "type": "implemented-with",
-    "explanation": "Theoretical Boolean algebra operations are physically instantiated in computer hardware through electronic logic gate circuits.",
+    "explanation": "Theoretical Boolean algebra is physically instantiated in digital circuitry through switching networks—first mathematically formalized for relay circuits by Claude Shannon in 1938 and subsequently implemented in solid-state transistor logic gates.",
     "strength": "primary",
     "sourceIds": [
       "src-boole-1854-laws",
@@ -2110,11 +2110,11 @@
     "sourceConceptId": "concept-integrated-circuit",
     "targetConceptId": "concept-logic-gates",
     "type": "includes",
-    "explanation": "Integrated circuits combine microscopic planar transistors to physically instantiate arrays of logic gates on a single silicon chip.",
+    "explanation": "Integrated circuits combine microscopic planar transistors on a single semiconductor die to instantiate interconnected networks of logic gates.",
     "strength": "primary",
     "sourceIds": [
       "src-ethw-integrated-circuit",
-      "src-shannon-1938-relay"
+      "src-patterson-hennessy-cod"
     ],
     "reviewStatus": "needs-review"
   },
@@ -2249,7 +2249,7 @@
     "sourceConceptId": "concept-logic-gates",
     "targetConceptId": "concept-boolean-logic",
     "type": "uses",
-    "explanation": "Digital logic gates evaluate physical electrical inputs according to the truth tables and algebraic laws of Boolean logic.",
+    "explanation": "Digital logic gates evaluate physical electrical inputs according to the truth tables, theorems, and algebraic laws of Boolean logic, following the switching-circuit analysis established by Claude Shannon.",
     "strength": "primary",
     "sourceIds": [
       "src-shannon-1938-relay",

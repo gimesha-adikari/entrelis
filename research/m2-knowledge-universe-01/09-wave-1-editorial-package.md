@@ -2,7 +2,7 @@
 
 > **Document Type:** Standalone Human Editorial Review Package  
 > **Target Release Stage:** Milestone 2 (Wave 1 Seed-Adjacent Expansion)  
-> **Candidate Scope:** 26 High-Value Knowledge Nodes, 61 Interconnecting Edges, 32 Bibliographic Sources  
+> **Candidate Scope:** 26 High-Value Knowledge Nodes, 61 Interconnecting Edges, 31 Bibliographic Sources  
 > **Review Status Invariant:** All candidate nodes and relationships are held at `needs-review` pending editorial board sign-off.  
 > **Branch:** `research/m2-knowledge-universe-01`  
 > **Date:** October 2026  
@@ -405,22 +405,23 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
 ### 12. Logic Gates (`concept-logic-gates`)
 - **Domain:** Hardware, Electronics, Computer Engineering
 - **Short Description:** Idealized physical devices implementing Boolean functions that transform one or more binary electrical inputs into a single binary output.
-- **Full Explanation:** Logic gates represent the physical bridge between abstract mathematics and electrical hardware. By wiring transistors into complementary arrangements (CMOS), logic gates translate continuous analog voltages into discrete binary logic states (high/low voltages representing 1/0), executing elementary operations (AND, OR, NOT, NAND, NOR) that form the building blocks of arithmetic logic units and processor control circuitry.
+- **Full Explanation:** Logic gates represent the physical bridge between abstract mathematics and electrical hardware. Grounded historically in Claude Shannon's 1938 demonstration that two-state electrical switching networks (originally electromechanical relays) compute Boolean algebra, modern digital logic gates are implemented using semiconductor transistors (such as complementary MOS pairs). Transistors operate as voltage-controlled switches to map high and low voltage levels to discrete binary logic states (1 and 0), executing elementary Boolean operations (AND, OR, NOT, NAND, NOR, XOR) that form the building blocks of arithmetic logic units and processor control circuitry.
 - **Authoritative References:**
   1. `src-shannon-1938-relay`: Claude E. Shannon. "A Symbolic Analysis of Relay and Switching Circuits", *Transactions of the American Institute of Electrical Engineers*, Vol 57, No 12, 1938, pp. 713–723. DOI: `10.1109/T-AIEE.1938.5057767`.
      - *Exact Location:* Section "Series and Parallel Combinations of Relays", pp. 713–715; Section "Analogy with the Calculus of Propositions", pp. 715–718.
-     - *Claim Supported:* Seminal mathematical proof that physical switching circuits physically instantiate the axioms of Boolean algebra.
+     - *Claim Supported:* Seminal mathematical proof that two-state electrical switching networks (originally electromechanical relays in series and parallel) physically compute the axioms of Boolean propositional calculus.
      - *Verification Method:* IEEE Xplore archival DOI verified. Digitized primary document.
-  2. `src-patterson-hennessy-cod`: Patterson & Hennessy. *Computer Organization and Design* (6th Edition).
-     - *Exact Location:* Appendix A "The Basics of Logic Design", Sections A.1–A.3, pp. A-2–A-20.
-     - *Claim Supported:* Transistor circuit implementations of AND, OR, inverter gates; truth tables, propagation delay, and CMOS gate construction.
-     - *Verification Method:* Bibliographic verification via Elsevier.
+  2. `src-patterson-hennessy-cod`: Patterson & Hennessy. *Computer Organization and Design: The Hardware/Software Interface* (6th Edition).
+     - *Exact Location:* Appendix A / Appendix C "The Basics of Logic Design", Sections "Gates, Truth Tables, and Logic Equations".
+     - *Claim Supported:* Transistor circuit implementations of AND, OR, inverter gates; truth tables, CMOS complementary pull-up/pull-down networks, and gate propagation delay.
+     - *Verification Method:* Bibliographic verification via Elsevier catalog and official appendix contents.
 - **Proposed Relationships:**
-  - `concept-logic-gates --(implemented-with)--> concept-transistors`: Logic gates are physically constructed using interconnected field-effect transistors.
-  - `concept-logic-gates --(uses)--> concept-boolean-logic`: Logic gates evaluate physical voltages according to the algebraic laws of Boolean logic.
-  - `concept-boolean-logic --(implemented-with)--> concept-logic-gates`: Boolean algebra finds its physical engineering instantiation in digital logic gates.
-  - `concept-integrated-circuit --(includes)--> concept-logic-gates`: Integrated circuits interconnect millions to billions of logic gates on a single silicon die.
+  - `concept-logic-gates --(implemented-with)--> concept-transistors`: Modern digital logic gates are physically constructed using interconnected semiconductor transistors (such as CMOS pairs) acting as electronic switches.
+  - `concept-logic-gates --(uses)--> concept-boolean-logic`: Logic gates evaluate physical voltages according to the algebraic laws and truth tables of Boolean logic.
+  - `concept-boolean-logic --(implemented-with)--> concept-logic-gates`: Theoretical Boolean algebra is physically instantiated in digital circuitry through switching networks—first formalized for relay circuits by Shannon (1938) and subsequently realized in solid-state transistor logic gates.
+  - `concept-integrated-circuit --(includes)--> concept-logic-gates`: Integrated circuits combine microscopic planar transistors on a single silicon die to instantiate interconnected networks of logic gates.
 - **Pedagogical Nuances & Misconceptions:**
+  - *Misconception:* Claude Shannon invented transistor logic gates. Shannon (1938) established the switching algebra using electromechanical relays; solid-state transistors were invented in 1947 and replaced relays in digital computers during the 1950s.
   - *Misconception:* Logic gates operate instantaneously. In physical reality, propagation delays, gate capacitance, and transition times strictly limit clock frequencies.
 - **Editorial Recommendation:** **Approve for Wave 1 Import** (Score: 9.9/10). The quintessential physical-to-theoretical bridge connecting `Transistors` to `Boolean Logic`.
 
@@ -434,10 +435,10 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
      - *Exact Location:* Chapter 1 "Physics and Properties of Semiconductors: A Review", pp. 7–74 (Carrier Transport, Doping, Band Structure).
      - *Claim Supported:* Quantum band theory of semiconductors, intrinsic vs. extrinsic carriers, carrier drift, and p-n junction electrostatics.
      - *Verification Method:* Wiley catalog verification. Authoritative graduate-level engineering reference.
-  2. `src-streetman-solid-state`: Ben G. Streetman, Sanjay K. Banerjee. *Solid State Electronic Devices* (7th Edition). Pearson, 2015. ISBN 978-0-13-335603-8. URL: `https://www.pearson.com/en-us/subject-catalog/p/solid-state-electronic-devices/P200000003254`.
-     - *Exact Location:* Chapter 3 "Energy Bands and Charge Carriers in Semiconductors", pp. 55–104.
-     - *Claim Supported:* Direct vs. indirect band gaps, Fermi level positioning, and carrier concentration formulas.
-     - *Verification Method:* Bibliographic verification via Pearson.
+  2. `src-ashcroft-mermin-solid-state`: Neil W. Ashcroft, N. David Mermin. *Solid State Physics*. Saunders College / Cengage Learning, 1976. ISBN 978-0-03-083993-1. URL: `https://www.cengage.com/c/solid-state-physics-1e-ashcroft/9780030839931/`.
+     - *Exact Location:* Chapter 28 "Homogeneous Semiconductors", pp. 561–589.
+     - *Claim Supported:* Semiconductor band structure, carrier concentrations, intrinsic vs. extrinsic statistics, and donor/acceptor impurity levels.
+     - *Verification Method:* Cengage catalog and chapter index confirmed.
 - **Proposed Relationships:**
   - `concept-semiconductors --(depends-on)--> concept-solid-state-physics`: Semiconductor properties are governed by the quantum mechanics of periodic crystal lattices.
   - `concept-transistors --(implemented-with)--> concept-semiconductors`: Transistors are fabricated directly out of doped semiconductor materials.
@@ -492,11 +493,14 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
 - **Short Description:** The technological leap of integrating an entire central processing unit onto a single silicon chip, democratizing personal computing.
 - **Full Explanation:** Beginning with the release of the Intel 4004 in 1971, the microprocessor revolution placed all components of a CPU—arithmetic logic unit, control unit, and registers—onto a single semiconductor die. This eliminated room-sized mainframes, drastically collapsed computing costs, and made personal workstations, home computers, and embedded devices ubiquitous across society.
 - **Authoritative References:**
-  1. `src-patterson-hennessy-cod`: Patterson & Hennessy. *Computer Organization and Design* (6th Edition).
+  1. `src-patterson-hennessy-cod`: Patterson & Hennessy. *Computer Organization and Design: The Hardware/Software Interface* (6th Edition).
      - *Exact Location:* Chapter 1 "Computer Abstractions and Technology", Section 1.3 "The Great Architecture Ideas", pp. 10–15; Section 1.8 "Historical Perspective", pp. 45–54.
      - *Claim Supported:* The evolutionary trajectory from discrete transistor CPUs to single-chip microprocessors and Moore's law scaling trends.
      - *Verification Method:* Bibliographic verification via Elsevier catalog.
-  2. Independent Corroboration: Paul E. Ceruzzi. *A History of Modern Computing* (2nd Edition). The MIT Press, 2003. ISBN 978-0-262-53203-7. Chapter 7 "The Microprocessor and the Personal Computer".
+  2. `src-ieee-transistor-milestone`: IEEE History Center. *Milestones: Invention of the First Transistor at Bell Telephone Laboratories, 1947*.
+     - *Exact Location:* IEEE Global History Network dedication citation and historical retrospective.
+     - *Claim Supported:* Historical continuum linking solid-state transistor switching to monolithic microprocessor integration. Contextual historiography corroborates commercial impact (e.g., Ceruzzi, *A History of Modern Computing*, Chapter 7).
+     - *Verification Method:* Open-access archival milestone verification.
 - **Proposed Relationships:**
   - `concept-microprocessor-revolution --(depends-on)--> concept-integrated-circuit`: Microprocessors were made possible by large-scale integrated circuit fabrication.
   - `concept-microprocessor-revolution --(leads-to)--> concept-cpus`: The microprocessor consolidated room-sized CPU architectures into single silicon chips.
@@ -653,16 +657,16 @@ Each dossier provides the complete bibliographic audit, relational mapping, nuan
 <!-- slide -->
 ### 24. Algorithms (`concept-algorithms`)
 - **Domain:** Computer Science, Mathematics
-- **Short Description:** Finite, well-defined sequences of computational instructions that take inputs, perform unambiguous operations, and terminate to produce desired outputs.
-- **Full Explanation:** An algorithm is a rigorous, effective procedure for solving a computational problem. Analyzed via asymptotic complexity notations (Big-O, Big-$\Omega$, Big-$\Theta$), algorithms optimize computational resource consumption (execution time and memory space) through foundational paradigms such as divide-and-conquer, dynamic programming, greedy heuristics, and graph traversal.
+- **Short Description:** Well-defined computational procedures that take inputs, perform unambiguous deterministic or randomized operations, and terminate to produce desired outputs.
+- **Full Explanation:** An algorithm is a well-defined computational procedure that takes some value (or set of values) as input and produces some value (or set of values) as output to solve a specified computational problem. Analyzed via asymptotic notation (Big-O, Big-$\Omega$, Big-$\Theta$) to characterize scaling behavior in time and space, algorithms encompass both deterministic procedures and randomized algorithms—which utilize random choices to optimize expected running time or circumvent worst-case inputs—employing foundational paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals.
 - **Authoritative References:**
-  1. `src-cormen-clrs`: Cormen, Leiserson, Rivest, Stein. *Introduction to Algorithms* (4th Edition). The MIT Press, 2022. ISBN 978-0-262-04630-5. URL: `https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/`. *(URL corrected from 3rd-ed errata to official MIT Press book catalog)*.
-     - *Exact Location:* Chapter 1 "The Role of Algorithms in Computing", pp. 5–15; Chapter 2 "Getting Started", pp. 17–44; Chapter 3 "Characterizing Running Times", pp. 49–70.
-     - *Claim Supported:* Rigorous definition of algorithms, correctness proofs via loop invariants, divide-and-conquer recurrences, and asymptotic complexity bounds.
-     - *Verification Method:* Bibliographic verification via MIT Press.
+  1. `src-cormen-clrs`: Cormen, Leiserson, Rivest, Stein. *Introduction to Algorithms* (4th Edition). The MIT Press, 2022. ISBN 978-0-262-04630-5. URL: `https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/`.
+     - *Exact Location:* Chapter 1 "The Role of Algorithms in Computing", Section 1.1 "Algorithms"; Chapter 5 "Probabilistic Analysis and Randomized Algorithms", Section 5.3 "Randomized algorithms".
+     - *Claim Supported:* Formal definition of algorithms as computational procedures transforming input to output, loop invariants, asymptotic bounds, and randomized algorithms.
+     - *Verification Method:* Bibliographic verification via MIT Press catalog and table of contents.
   2. `src-knuth-taocp-v1`: Donald E. Knuth. *The Art of Computer Programming, Volume 1: Fundamental Algorithms* (3rd Edition).
      - *Exact Location:* Section 1.1 "Algorithms", pp. 1–10.
-     - *Claim Supported:* Knuth's definitive criteria for algorithms: finiteness, definiteness, input, output, and effectiveness.
+     - *Claim Supported:* Classical criteria for deterministic algorithms (finiteness, definiteness, input, output, effectiveness) and notes on probabilistic extensions.
      - *Verification Method:* Bibliographic verification via Stanford University faculty catalog.
 - **Proposed Relationships:**
   - `concept-algorithms --(uses)--> concept-data-structures`: Algorithmic procedures operate upon and traverse specialized data structures.
@@ -739,12 +743,12 @@ To ensure every claim is auditable and transparent, all factual assertions acros
 
 | Verification Result | Count | Pct | Method & Access Characterization |
 |---|---|---|---|
-| **`DIRECT-CHAPTER-CONFIRMED`** | 49 | 50.5% | Specific chapter, section, and page numbers confirmed against official publisher tables of contents, companion sites, and recognized university syllabi (CLRS, Dragon Book, TAPL, CS:APP, OSTEP, Hennessy & Patterson, Knuth, Silberschatz, Ashcroft & Mermin, Sze). |
+| **`CHAPTER-TOC-AND-METADATA-CONFIRMED`** | 51 | 52.6% | Chapter and section topical coverage confirmed against official publisher tables of contents, companion sites, and academic syllabi (CLRS 4th ed, Dragon Book, TAPL, CS:APP, Patterson & Hennessy COD, Knuth, Silberschatz, Ashcroft & Mermin, Sze, Jones GC, Cooper, Herlihy, Griffiths, Sipser, Tanenbaum). Line-level interior text is protected by commercial academic copyright and was not directly examined. |
 | **`DIRECT-FULL-TEXT-VERIFIED`** | 21 | 21.6% | Complete primary text, official technical standard, or open-access documentation directly verified online (POSIX.1-2017, RISC-V Spec, Intel SDM, The Rust Book, OSTEP, Stanford Encyclopedia of Philosophy, Particle Data Group). |
-| **`ARCHIVE-DIGITIZED-CONFIRMED`** | 18 | 18.6% | Digitized historical manuscripts, IEEE milestone plaques, or archival primary papers verified in institutional repositories (IEEE History Center ETHW, Project Gutenberg Boole 1854, Shannon 1938 relay thesis, Von Neumann 1945 EDVAC report reprint). |
-| **`PARTIALLY-VERIFIED`** | 6 | 6.2% | Core technical claims confirmed, but historical attribution, patent priority, or retrospective historical significance involves scholarly nuance (Eckert-Mauchly vs. Von Neumann EDVAC attribution; Kilby vs. Noyce IC patent dispute; 1947 point-contact vs. later junction transistors; Turing 1936 retrospective computing history status). |
+| **`ARCHIVE-DIGITIZED-CONFIRMED`** | 16 | 16.5% | Digitized historical manuscripts, IEEE milestone plaques, or archival primary papers verified in institutional repositories (IEEE History Center ETHW, Project Gutenberg Boole 1854, Shannon 1938 relay thesis, Turing 1936 computable numbers, Von Neumann 1945 EDVAC report reprint). |
+| **`PARTIALLY-VERIFIED`** | 6 | 6.2% | Core technical claims confirmed, but historical attribution, patent priority, or retrospective historical significance involves scholarly nuance (Eckert-Mauchly vs. Von Neumann EDVAC attribution; Kilby vs. Noyce IC patent dispute; 1947 point-contact vs. later junction transistors; Turing 1936, Von Neumann 1945, and Microprocessor Revolution computing history status). |
 | **`AWAITING-STRONGER-EVIDENCE`** | 3 | 3.1% | Primary seminal paper is behind commercial publisher paywalls (Denning 1970 Virtual Memory, Lamport 1978 Clocks, Codd 1970 Relational Model in ACM Digital Library). Abstract, citation, and secondary textbook corroboration confirmed; full original paper requires institutional retrieval. |
-| **Total Evaluated Claims** | **97** | **100.0%** | |
+| **Total Evaluated Claims** | **97** | **100.0%** | **31 Distinct Bibliographic Sources** |
 
 ---
 

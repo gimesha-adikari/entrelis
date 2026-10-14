@@ -248,8 +248,8 @@
     "id": "concept-algorithms",
     "slug": "algorithms",
     "name": "Algorithms",
-    "shortDescription": "Finite, well-defined sequences of computational instructions that take inputs, perform unambiguous operations, and terminate to produce desired outputs.",
-    "description": "An algorithm provides a step-by-step mathematical recipe for solving a computational problem. Analyzed via asymptotic notation (Big-O, Big-Theta) to quantify scaling behavior in time and space, algorithms employ fundamental algorithmic paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals to optimize resource utilization.",
+    "shortDescription": "Well-defined computational procedures that take inputs, perform unambiguous deterministic or randomized operations, and terminate to produce desired outputs.",
+    "description": "An algorithm is a well-defined computational procedure that takes some value (or set of values) as input and produces some value (or set of values) as output to solve a specified computational problem. Analyzed via asymptotic notation (Big-O, Big-\\u03A9, Big-\\u0398) to characterize scaling behavior in time and space, algorithms encompass both deterministic procedures and randomized algorithms—which utilize random choices to optimize expected running time or circumvent worst-case inputs—employing foundational paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals.",
     "domains": [
       "computer-science",
       "mathematics"
@@ -302,7 +302,7 @@
     "slug": "logic-gates",
     "name": "Logic Gates",
     "shortDescription": "Idealized physical devices implementing Boolean functions that transform one or more binary electrical inputs into a single binary output.",
-    "description": "Logic gates physically realize Boolean logic functions (AND, OR, NOT, NAND, NOR, XOR) in electronic hardware. Combining transistors into gate topologies creates combinational circuits (such as half-adders and multiplexers) and sequential storage circuits (such as flip-flops and latches) that together form arithmetic logic units (ALUs) and processor control registers.",
+    "description": "Logic gates physically realize Boolean logic functions (AND, OR, NOT, NAND, NOR, XOR) in electronic hardware. Grounded historically in Claude Shannon's 1938 demonstration that two-state electrical switching networks (originally electromechanical relays) compute Boolean algebra, modern digital logic gates are implemented using semiconductor transistors (such as CMOS pairs). Interconnecting transistors into gate topologies creates combinational circuits (adders, multiplexers) and sequential storage circuits (flip-flops, latches) that together form arithmetic logic units (ALUs) and control units.",
     "domains": [
       "computer-architecture",
       "electronics",

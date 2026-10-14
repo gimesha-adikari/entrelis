@@ -234,6 +234,6 @@ Before executing database import for Wave 1:
 
 1. **Schema Integrity:** Verify candidate objects match the TypeScript `Concept` and `Relationship` definitions in `src/domain/knowledge/types.ts`.
 2. **Referential Integrity:** Ensure all 53 relationship records reference valid IDs present in `04-concept-candidates.json` or `src/data/seed/concepts.ts`.
-3. **Bibliographic Grounding:** Verify all 32 referenced sources exist in `02-source-registry.json` and maintain active, verified URLs.
+3. **Bibliographic Grounding:** Verify all 31 referenced sources exist in `02-source-registry.json` and maintain active, verified URLs.
 4. **Rendering Simulation:** Validate that the 33-node celestial layout computes stable 3D positions without node overlap or physics simulation instability.
 5. **Human Sign-off:** Editorial board must inspect `09-wave-1-editorial-package.md` before migrating review status from `needs-review` to `reviewed`.

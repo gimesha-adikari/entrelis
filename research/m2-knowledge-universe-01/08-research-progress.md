@@ -17,7 +17,7 @@
 * **Semantic Relationships Researched:** **211** directed edges (plus 8 existing M1.5 seed relationships = 219 total)
 * **Cross-Domain Bridge Connections:** **64** relationships across M2 high-level research domains (30.3%); **82** relationships across primary domain tags (38.9%); **28** relationships across completely disjoint domain tag sets (13.3%)
 * **Corrected Wave 1 Selection:** **26 connected nodes** forming a 33-node single-component subgraph (61 relationships, 0 isolated nodes, 0 degree-1 leaf nodes; 16 candidate nodes with direct seed adjacency via 21 edges, 10 bridging candidates at depth 1)
-* **Wave 1 Granular Evidence Audit:** **97 claims** audited across 26 nodes and 61 relationships (88 directly verified [90.7%], 6 partially verified [6.2%], 3 awaiting stronger evidence [3.1%])
+* **Wave 1 Granular Evidence Audit:** **97 claims** audited across 26 nodes and 61 relationships citing 31 distinct sources (51 chapter/TOC confirmed [52.6%], 21 full-text verified [21.6%], 16 archive-digitized [16.5%], 6 partially verified [6.2%], 3 awaiting stronger evidence [3.1%])
 * **Integrity Validation:** 100% compliant with `src/domain/knowledge/types.ts` and `validation.ts`
 * **Isolated / Orphan Nodes in Combined Graph:** **0** (In candidate-only subgraph without seed: 2 nodes)
 * **Review Status Invariant:** All candidate node and relationship records held strictly at `reviewStatus: "needs-review"`
@@ -62,10 +62,15 @@ All research artifacts are located in `research/m2-knowledge-universe-01/`:
    - Corrected to 26 nodes forming a unified 33-node subgraph (Seed + Wave 1) with 61 relationships, 1 single connected component, and 0 degree-0/1 nodes.
    - **Adjacency Discrepancy Resolved:** Re-computed topological distances confirmed **16 candidate nodes with direct seed adjacency** (via 21 edges) and **10 candidate nodes with 1-hop bridging depth** (via Wave 1 candidates). The previous count of 15 overlooked `concept-asynchronous-io`'s direct edge `rel-asynchronous-io-operating-systems` to seed `concept-operating-systems`.
 2. **Granular Evidence Verification Ledger (`10-wave-1-evidence-ledger.json`):**
-   - Conducted an adversarial audit of 97 granular factual claims across all 26 nodes and 61 relationships:
-     - **88 Directly Verified (90.7%):** 49 `DIRECT-CHAPTER-CONFIRMED`, 21 `DIRECT-FULL-TEXT-VERIFIED`, 18 `ARCHIVE-DIGITIZED-CONFIRMED`.
+   - Conducted an adversarial audit of 97 granular factual claims across all 26 nodes and 61 relationships (citing 31 distinct sources):
+     - **51 Chapter & Table of Contents Confirmed (52.6%):** `CHAPTER-TOC-AND-METADATA-CONFIRMED` across 15 copyrighted academic textbooks verified via official publisher tables of contents, companion sites, and academic syllabi; internal text protected by copyright.
+     - **21 Open-Access Full-Text Verified (21.6%):** `DIRECT-FULL-TEXT-VERIFIED` across official open standards (POSIX, RISC-V, Intel SDM, Rust Book/Reference, OSTEP, SEP, PDG).
+     - **16 Archive-Digitized Confirmed (16.5%):** `ARCHIVE-DIGITIZED-CONFIRMED` across primary digitized archival documents (Turing 1936, Shannon 1938 relay thesis, Boole 1854, ETHW 1958 IC milestone, IEEE 1947 transistor milestone, Von Neumann 1945 EDVAC report).
      - **6 Partially Verified (6.2%):** Primary texts verified but historical attribution/retrospective nuances require editorial review (e.g., von Neumann EDVAC report co-authorship context, Kilby/Noyce IC co-invention priority, Bardeen/Brattain 1947 point-contact vs Shockley junction transistor, Turing 1936 retrospective status).
      - **3 Awaiting Stronger Evidence (3.1%):** Seminal ACM Digital Library papers behind paywalls with partial corroboration via standard textbooks (Denning 1970 Working Set, Lamport 1978 Logical Clocks, Codd 1970 Relational Model).
+   - **Factual Inaccuracies Corrected:**
+     - *Logic Gates & Claude Shannon:* Distinguished Shannon's 1938 relay-circuit switching theorem from modern semiconductor CMOS transistor logic gates; updated `rel-logic-gates-transistors` and `rel-integrated-circuit-logic-gates` to cite Patterson & Hennessy COD.
+     - *Algorithms:* Generalization updated to accommodate randomized algorithms (such as randomized quicksort and probabilistic analysis from CLRS 4th ed), qualifying Knuth's classical criteria.
 3. **Source Verification Transparency:**
    - Replaced uncritical 100% `SOURCE-CONFIRMED` claims with four realistic verification tiers across all 96 sources:
      - `BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED` (43 sources / 44.8%)

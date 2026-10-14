@@ -588,11 +588,11 @@
       "sourceConceptId": "concept-integrated-circuit",
       "targetConceptId": "concept-logic-gates",
       "type": "includes",
-      "explanation": "Integrated circuits combine microscopic planar transistors to physically instantiate arrays of logic gates on a single silicon chip.",
+      "explanation": "Integrated circuits combine microscopic planar transistors on a single semiconductor die to instantiate interconnected networks of logic gates.",
       "strength": "primary",
       "sourceIds": [
         "src-ethw-integrated-circuit",
-        "src-shannon-1938-relay"
+        "src-patterson-hennessy-cod"
       ],
       "reviewStatus": "needs-review"
     },
@@ -727,7 +727,7 @@
       "sourceConceptId": "concept-logic-gates",
       "targetConceptId": "concept-boolean-logic",
       "type": "uses",
-      "explanation": "Digital logic gates evaluate physical electrical inputs according to the truth tables and algebraic laws of Boolean logic.",
+      "explanation": "Digital logic gates evaluate physical electrical inputs according to the truth tables, theorems, and algebraic laws of Boolean logic, following the switching-circuit analysis established by Claude Shannon.",
       "strength": "primary",
       "sourceIds": [
         "src-shannon-1938-relay",

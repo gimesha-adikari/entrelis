@@ -164,19 +164,20 @@ Documenting all three counting methodologies ensures that cross-domain claims ar
 
 ## 5. Machine-Readable Evidence Ledger Audit (`10-wave-1-evidence-ledger.json`)
 
-To establish auditable provenance before any publication or database migration, 97 distinct factual assertions across the 26 Wave 1 candidate concepts and 61 active relationships were audited in [`10-wave-1-evidence-ledger.json`](file:///home/gimesha/My_Projects/entrelis/research/m2-knowledge-universe-01/10-wave-1-evidence-ledger.json):
+To establish auditable provenance before any publication or database migration, 97 distinct factual assertions across the 26 Wave 1 candidate concepts and 61 active relationships (citing 31 distinct bibliographic sources) were audited in [`10-wave-1-evidence-ledger.json`](file:///home/gimesha/My_Projects/entrelis/research/m2-knowledge-universe-01/10-wave-1-evidence-ledger.json):
 
-1. **Directly Source-Verified Claims (88 claims / 90.7%):**
-   - **`DIRECT-CHAPTER-CONFIRMED` (49 claims):** Specific chapter, section, and page numbers verified against official publisher tables of contents, companion sites, and academic syllabi (CLRS 4th ed, Dragon Book, TAPL, CS:APP, OSTEP, Hennessy & Patterson COD, Knuth TAOCP, Silberschatz, Ashcroft & Mermin, Sze, Jones GC Handbook).
-   - **`DIRECT-FULL-TEXT-VERIFIED` (21 claims):** Complete primary text, official technical standard, or open-access documentation verified online (POSIX.1-2017, RISC-V Spec, Intel SDM, The Rust Book, OSTEP, Stanford Encyclopedia of Philosophy, Particle Data Group).
-   - **`ARCHIVE-DIGITIZED-CONFIRMED` (18 claims):** Digitized historical manuscripts, IEEE milestone plaques, or archival primary papers verified in institutional repositories (IEEE History Center ETHW, Project Gutenberg Boole 1854, Shannon 1938 relay thesis, Von Neumann 1945 EDVAC report reprint).
-2. **Partially Verified Claims (6 claims / 6.2%):**
-   - Claims where the core technical mechanism is verified, but secondary historical attribution or retrospective significance involves scholarly debate:
+1. **Chapter & Table of Contents Confirmed Claims (51 claims / 52.6%):**
+   - **`CHAPTER-TOC-AND-METADATA-CONFIRMED` (51 claims):** Chapter and section topical coverage verified against official publisher tables of contents, companion sites, and academic syllabi (CLRS 4th ed, Dragon Book, TAPL, CS:APP, Patterson & Hennessy COD, Knuth TAOCP, Silberschatz, Ashcroft & Mermin, Sze, Jones GC Handbook, Cooper, Herlihy, Griffiths, Sipser, Tanenbaum). Line-level interior text is protected by commercial academic copyright and was not directly examined.
+2. **Directly Source-Verified Primary Documentation (37 claims / 38.1%):**
+   - **`DIRECT-FULL-TEXT-VERIFIED` (21 claims / 21.6%):** Complete primary text, official technical standards, or open-access documentation verified online (POSIX.1-2017, RISC-V Spec, Intel SDM, The Rust Book, OSTEP, Stanford Encyclopedia of Philosophy, Particle Data Group).
+   - **`ARCHIVE-DIGITIZED-CONFIRMED` (16 claims / 16.5%):** Digitized historical manuscripts, IEEE milestone plaques, or archival primary papers verified in institutional repositories (IEEE History Center ETHW, Project Gutenberg Boole 1854, Shannon 1938 relay thesis, Turing 1936 universal machine paper, Von Neumann 1945 EDVAC report reprint).
+3. **Partially Verified Claims (6 claims / 6.2%):**
+   - Claims where the core technical mechanism is verified, but secondary historical attribution or retrospective significance involves scholarly nuance:
      - `concept-von-neumann-architecture`: John von Neumann was sole author of the 1945 EDVAC report, but historians (Stern, Goldstine) note J. Presper Eckert and John Mauchly originated key stored-program concepts during ENIAC construction.
      - `concept-integrated-circuit`: Jack Kilby (TI, 1958) built the first germanium IC with flying wires, while Robert Noyce (Fairchild, 1959) invented the planar silicon IC with evaporated interconnects used in modern chips.
      - `concept-transistor-invention`: 1947 Bell Labs breakthrough was a point-contact germanium transistor; junction and silicon transistors followed in 1948–1954.
      - Retrospective historical status claims for Turing 1936, Von Neumann 1945, and Microprocessor Revolution in computing history.
-3. **Claims Awaiting Stronger Evidence / Paywall Access (3 claims / 3.1%):**
+4. **Claims Awaiting Stronger Evidence / Paywall Access (3 claims / 3.1%):**
    - Primary seminal survey or papers behind commercial publisher paywalls where title, abstract, and secondary textbook corroboration were verified, but full original text requires institutional retrieval:
      - `claim-concept-virtual-memory-def` (Peter Denning, 1970 ACM Computing Surveys)
      - `claim-concept-concurrency-happens-before` (Leslie Lamport, 1978 Communications of the ACM)
