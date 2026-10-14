@@ -79,12 +79,16 @@ export function KnowledgeConnections({
               <p className={styles.explanation}>{conn.explanation}</p>
 
               <div className={styles.cardFooter}>
-                {returnFrom === "m2-universe" ? (
+                {returnFrom === "m2-universe" || returnFrom === "wave1-universe" ? (
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
                     <Link
-                      href={`/lab/m2-universe?concept=${conn.relatedConcept.slug}`}
+                      href={
+                        returnFrom === "wave1-universe"
+                          ? `/lab/m2-wave1-universe?concept=${conn.relatedConcept.slug}`
+                          : `/lab/m2-universe?concept=${conn.relatedConcept.slug}`
+                      }
                       className={styles.exploreLink}
-                      aria-label={`Explore ${conn.relatedConcept.name} in M2 Universe`}
+                      aria-label={`Explore ${conn.relatedConcept.name} in Universe`}
                     >
                       <span>Explore in Universe</span>
                       <span className={styles.arrow} aria-hidden="true">

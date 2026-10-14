@@ -30,7 +30,7 @@ export interface ConceptPanelProps {
   index?: KnowledgeGraphIndex;
   onSelectConcept: (slug: string) => void;
   variant?: ProjectedVariant;
-  navigationMode?: "production" | "lab";
+  navigationMode?: "production" | "lab" | "wave1";
   isMobileExpanded?: boolean;
   onToggleMobileExpanded?: () => void;
   fieldWidth?: number;
@@ -445,6 +445,8 @@ const ConceptPanel = forwardRef<HTMLElement, ConceptPanelProps>(function Concept
               href={
                 navigationMode === "lab"
                   ? `/lab/knowledge-reader/${concept.slug}?from=m2-universe`
+                  : navigationMode === "wave1"
+                  ? `/lab/knowledge-reader/${concept.slug}?from=wave1-universe`
                   : `/lab/knowledge-reader/${concept.slug}`
               }
               className={styles.learnMoreLink}

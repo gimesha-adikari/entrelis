@@ -309,4 +309,31 @@ describe("KnowledgeReader Component", () => {
 
     pushStateSpy.mockRestore();
   });
+
+  it("handles from=wave1-universe back link and preserves it across article navigation", () => {
+    const pushStateSpy = vi.spyOn(window.history, "pushState");
+    window.history.pushState(null, "", "/lab/knowledge-reader/virtual-memory?from=wave1-universe");
+
+    const vmArticle = articles.find((a) => a.slug === "virtual-memory")!;
+    const { unmount } = render(
+      <KnowledgeReader initialArticle={vmArticle} allArticles={articles} />
+    );
+
+    const vmBackLink = screen.getByTestId("back-to-universe-link");
+    expect(vmBackLink.getAttribute("href")).toBe("/lab/m2-wave1-universe?concept=virtual-memory");
+    expect(vmBackLink.getAttribute("aria-label")).toContain("Wave 1 Universe");
+
+    // Click Concurrency in sidebar
+    const concurrencyBtn = screen.getByTestId("article-nav-button-concurrency");
+    fireEvent.click(concurrencyBtn);
+
+    expect(pushStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      "/lab/knowledge-reader/concurrency?from=wave1-universe"
+    );
+
+    unmount();
+    pushStateSpy.mockRestore();
+  });
 });

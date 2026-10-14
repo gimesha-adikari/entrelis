@@ -26,7 +26,7 @@ export function KnowledgeReader({
     if (propReturnFrom) return propReturnFrom;
     if (typeof window !== "undefined") {
       const fromParam = new URLSearchParams(window.location.search).get("from");
-      if (fromParam === "m2-universe") return "m2-universe";
+      if (fromParam === "m2-universe" || fromParam === "wave1-universe") return fromParam;
     }
     return null;
   });
@@ -56,8 +56,8 @@ export function KnowledgeReader({
       if (typeof window === "undefined") return;
       const params = new URLSearchParams(window.location.search);
       const fromParam = params.get("from");
-      if (fromParam === "m2-universe") {
-        setReturnFrom("m2-universe");
+      if (fromParam === "m2-universe" || fromParam === "wave1-universe") {
+        setReturnFrom(fromParam);
       }
       const urlSlug = getSlugFromLocation();
       if (urlSlug && allArticles.some((a) => a.slug === urlSlug)) {
@@ -89,16 +89,21 @@ export function KnowledgeReader({
   const currentArticle = allArticles.find((a) => a.slug === activeSlug) ?? initialArticle;
   const isSeed = currentArticle.tier === "seed";
   const isFromM2Universe = returnFrom === "m2-universe";
-  const backUrl = isFromM2Universe
-    ? `/lab/m2-universe?concept=${currentArticle.slug}`
-    : isSeed
-      ? `/concept/${currentArticle.slug}`
-      : "/";
-  const backLabel = isFromM2Universe
-    ? `Return to ${currentArticle.title} in M2 Universe`
-    : isSeed
-      ? `Return to ${currentArticle.title} in Universe`
-      : "Return to Universe";
+  const isFromWave1Universe = returnFrom === "wave1-universe";
+  const backUrl = isFromWave1Universe
+    ? `/lab/m2-wave1-universe?concept=${currentArticle.slug}`
+    : isFromM2Universe
+      ? `/lab/m2-universe?concept=${currentArticle.slug}`
+      : isSeed
+        ? `/concept/${currentArticle.slug}`
+        : "/";
+  const backLabel = isFromWave1Universe
+    ? `Return to ${currentArticle.title} in Wave 1 Universe`
+    : isFromM2Universe
+      ? `Return to ${currentArticle.title} in M2 Universe`
+      : isSeed
+        ? `Return to ${currentArticle.title} in Universe`
+        : "Return to Universe";
 
   // Keep document title in sync with active article
   useEffect(() => {
@@ -124,7 +129,9 @@ export function KnowledgeReader({
         const baseTarget = isQueryStyle
           ? `/lab/knowledge-reader?article=${slug}`
           : `/lab/knowledge-reader/${slug}`;
-        const targetUrl = isFromM2Universe
+        const targetUrl = isFromWave1Universe
+          ? `${baseTarget}${isQueryStyle ? "&" : "?"}from=wave1-universe`
+          : isFromM2Universe
           ? `${baseTarget}${isQueryStyle ? "&" : "?"}from=m2-universe`
           : baseTarget;
 

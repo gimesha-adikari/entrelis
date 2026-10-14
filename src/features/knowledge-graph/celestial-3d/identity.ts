@@ -190,9 +190,174 @@ export const M2_PILOT_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdent
   },
 };
 
+/**
+ * Curated 20 Entrelis Milestone 2 Wave 1 Candidate identities.
+ * Stable, deterministic celestial identities using the existing archetype system.
+ */
+export const WAVE1_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdentity>> = {
+  compilers: {
+    archetype: "blue-star",
+    seed: 524288,
+    paletteVariant: 0,
+  },
+  "type-systems": {
+    archetype: "crystal-world",
+    seed: 1048576,
+    paletteVariant: 1,
+  },
+  "garbage-collection": {
+    archetype: "storm-giant",
+    seed: 2097152,
+    paletteVariant: 0,
+    rings: {
+      innerRadius: 60,
+      outerRadius: 80,
+      tilt: 0.3,
+      opacity: 0.7,
+      style: "dust",
+      seed: 2097152,
+      color: 0x64748b,
+    },
+  },
+  "data-structures": {
+    archetype: "mineral-rocky",
+    seed: 4194304,
+    paletteVariant: 0,
+    rings: {
+      innerRadius: 62,
+      outerRadius: 85,
+      tilt: 0.38,
+      opacity: 0.82,
+      style: "ice",
+      seed: 4194304,
+      color: 0x38bdf8,
+    },
+  },
+  "database-systems": {
+    archetype: "metallic-world",
+    seed: 8388608,
+    paletteVariant: 0,
+    moons: [
+      {
+        archetype: "rocky",
+        relativeRadius: 0.22,
+        distance: 130,
+        phase: 0.9,
+        seed: 8388609,
+        orbitalSpeed: 0.1,
+      },
+    ],
+  },
+  "logic-gates": {
+    archetype: "crystal-world",
+    seed: 16777216,
+    paletteVariant: 0,
+  },
+  "integrated-circuit": {
+    archetype: "metallic-world",
+    seed: 33554432,
+    paletteVariant: 1,
+  },
+  "microprocessor-revolution": {
+    archetype: "ember-star",
+    seed: 67108864,
+    paletteVariant: 0,
+  },
+  "von-neumann-architecture": {
+    archetype: "golden-star",
+    seed: 134217728,
+    paletteVariant: 0,
+    rings: {
+      innerRadius: 70,
+      outerRadius: 95,
+      tilt: 0.25,
+      opacity: 0.85,
+      style: "dust",
+      seed: 134217728,
+      color: 0xf59e0b,
+    },
+  },
+  "history-of-computing": {
+    archetype: "volcanic-rocky",
+    seed: 268435456,
+    paletteVariant: 0,
+    moons: [
+      {
+        archetype: "rocky",
+        relativeRadius: 0.25,
+        distance: 145,
+        phase: 1.8,
+        seed: 268435457,
+        orbitalSpeed: 0.08,
+      },
+    ],
+  },
+  semiconductors: {
+    archetype: "mineral-rocky",
+    seed: 536870912,
+    paletteVariant: 0,
+  },
+  "transistor-invention": {
+    archetype: "ember-star",
+    seed: 1073741824,
+    paletteVariant: 0,
+  },
+  "solid-state-physics": {
+    archetype: "blue-atmospheric",
+    seed: 2147483648,
+    paletteVariant: 0,
+  },
+  atoms: {
+    archetype: "blue-star",
+    seed: 4294967296,
+    paletteVariant: 0,
+    moons: [
+      {
+        archetype: "ice",
+        relativeRadius: 0.15,
+        distance: 120,
+        phase: 0.4,
+        seed: 4294967297,
+        orbitalSpeed: 0.2,
+      },
+    ],
+  },
+  electrons: {
+    archetype: "asteroid",
+    seed: 8589934592,
+    asteroidVariant: "mineral",
+  },
+  "boolean-logic": {
+    archetype: "crystal-world",
+    seed: 17179869184,
+    paletteVariant: 0,
+  },
+  "formal-logic": {
+    archetype: "life-world",
+    seed: 34359738368,
+    paletteVariant: 0,
+  },
+  algorithms: {
+    archetype: "blue-atmospheric",
+    seed: 68719476736,
+    paletteVariant: 0,
+  },
+  "computability-theory": {
+    archetype: "storm-giant",
+    seed: 137438953472,
+    paletteVariant: 0,
+  },
+  "alan-turing": {
+    archetype: "golden-star",
+    seed: 274877906944,
+    paletteVariant: 0,
+  },
+};
+
 export const ALL_CONCEPT_IDENTITIES: Readonly<Record<string, CelestialIdentity>> = {
   ...ENTRELIS_CONCEPT_IDENTITIES,
   ...M2_PILOT_CONCEPT_IDENTITIES,
+  ...WAVE1_CONCEPT_IDENTITIES,
 };
 
 /**

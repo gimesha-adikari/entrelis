@@ -21,7 +21,7 @@ interface Props {
   dataset?: KnowledgeDataset;
   initialSlug?: string;
   initialVariant?: ProjectedVariant;
-  navigationMode?: "production" | "lab";
+  navigationMode?: "production" | "lab" | "wave1";
 }
 
 function parseVariantFromSearch(search: string, fallback: ProjectedVariant): ProjectedVariant {
@@ -93,7 +93,7 @@ export default function KnowledgeGraphExperience({
   navigationMode = "production",
 }: Props) {
   const [selectedSlug, setSelectedSlug] = useState<string>(() => {
-    if (typeof window !== "undefined" && navigationMode === "lab") {
+    if (typeof window !== "undefined" && (navigationMode === "lab" || navigationMode === "wave1")) {
       const urlConcept = new URLSearchParams(window.location.search).get("concept");
       if (urlConcept) return urlConcept;
     }
@@ -192,7 +192,7 @@ export default function KnowledgeGraphExperience({
     (slug: string) => {
       setSelectedSlug(slug);
       if (typeof window !== "undefined") {
-        if (navigationMode === "lab") {
+        if (navigationMode === "lab" || navigationMode === "wave1") {
           const url = new URL(window.location.href);
           url.searchParams.set("concept", slug);
           if (window.location.search !== url.search) {
@@ -213,7 +213,7 @@ export default function KnowledgeGraphExperience({
   useEffect(() => {
     const handlePopState = () => {
       if (typeof window === "undefined") return;
-      if (navigationMode === "lab") {
+      if (navigationMode === "lab" || navigationMode === "wave1") {
         const params = new URLSearchParams(window.location.search);
         const conceptParam = params.get("concept");
         if (conceptParam) {
@@ -259,7 +259,7 @@ export default function KnowledgeGraphExperience({
   const handleResetCamera = useCallback(() => {
     setSelectedSlug("rust");
     if (typeof window !== "undefined") {
-      if (navigationMode === "lab") {
+      if (navigationMode === "lab" || navigationMode === "wave1") {
         const url = new URL(window.location.href);
         url.searchParams.delete("concept");
         window.history.pushState({ slug: "rust" }, "", url.toString());
@@ -280,10 +280,17 @@ export default function KnowledgeGraphExperience({
               M2 Preview · 13 Nodes
             </span>
           )}
+          {navigationMode === "wave1" && (
+            <span className={styles.labBadge} data-testid="wave1-preview-badge">
+              Wave 1 Preview · 33 Nodes
+            </span>
+          )}
         </div>
         <p className={styles.brandTagline}>
           {navigationMode === "lab"
             ? "Editorial Research Universe Preview (13 Nodes · 19 Connections)"
+            : navigationMode === "wave1"
+            ? "Editorial Research Universe Preview (33 Nodes · 61 Connections)"
             : "Everything is connected"}
         </p>
       </header>
