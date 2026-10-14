@@ -13,7 +13,7 @@
       "publicationDate": "2020",
       "accessDate": "2026-10-14",
       "notes": "Peer-reviewed philosophical treatise on the nature, sources, and scope of knowledge, truth conditions, justification theories (foundationalism vs coherentism), and the Gettier problem.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -26,7 +26,7 @@
       "publicationDate": "2021",
       "accessDate": "2026-10-14",
       "notes": "Authoritative reference analyzing propositional and first-order predicate logic, model-theoretic semantics, deductive validity, soundness, and completeness theorems.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -39,7 +39,7 @@
       "publicationDate": "2020",
       "accessDate": "2026-10-14",
       "notes": "Historical and conceptual evaluation of scientific methodology, inductivism, hypothetico-deductivism, Bayesian confirmation theory, and historical challenges to universal method.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -52,7 +52,7 @@
       "publicationDate": "2021",
       "accessDate": "2026-10-14",
       "notes": "Comprehensive survey of metaphysical positions on free agency, causal determinism, incompatibilism, compatibilism, and moral responsibility.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -65,7 +65,7 @@
       "publicationDate": "2021",
       "accessDate": "2026-10-14",
       "notes": "Rigorous comparison contrasting the empiricist thesis (all knowledge derives from sense experience) with the rationalist thesis (substantial knowledge is grasped a priori by reason).",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -79,7 +79,7 @@
       "accessDate": "2026-10-14",
       "notes": "Landmark Science paper establishing the heuristics and biases research program, demonstrating that human probabilistic judgment relies on representativeness, availability, and anchoring shortcuts.",
       "doi": "10.1126/science.185.4157.1124",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -93,7 +93,7 @@
       "accessDate": "2026-10-14",
       "notes": "Authoritative review synthesizing the multi-component working memory model: phonological loop, visuospatial sketchpad, central executive, and episodic buffer.",
       "doi": "10.1146/annurev-psych-120710-100422",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -107,7 +107,7 @@
       "accessDate": "2026-10-14",
       "notes": "Foundational cognitive science paper introducing Cognitive Load Theory, establishing how working memory capacity limitations constrain schema acquisition during complex problem solving.",
       "doi": "10.1207/s15516709cog1202_4",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -121,7 +121,7 @@
       "accessDate": "2026-10-14",
       "notes": "Classical philosophy of science treatise rejecting inductivism and proposing empirical falsifiability as the criterion of demarcation between empirical science and pseudo-science.",
       "isbn": "978-0-415-27844-7",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -135,7 +135,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal work demonstrating that scientific advancement does not proceed linearly but through periods of normal science governed by paradigms interrupted by revolutionary paradigm shifts.",
       "isbn": "978-0-226-45812-0",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -149,7 +149,7 @@
       "accessDate": "2026-10-14",
       "notes": "Landmark neurocognitive paper establishing the three anatomical attention networks: alerting, orienting, and executive control.",
       "doi": "10.1146/annurev.ne.13.030190.000325",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -163,7 +163,7 @@
       "accessDate": "2026-10-14",
       "notes": "Pioneering paper introducing bounded rationality, arguing that human decision-makers satisfice rather than optimize due to cognitive processing and information limits.",
       "doi": "10.2307/1884852",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     }
   ],
@@ -174,11 +174,26 @@
       "name": "Learning & Conditioning",
       "shortDescription": "The psychological and behavioral process by which experience produces enduring changes in an organism's knowledge, capabilities, or behavioral repertoires.",
       "description": "Learning spans classical stimulus-response conditioning (Pavlov), operant reinforcement schedules (Skinner), and cognitive observational modeling (Bandura). Biologically underpinned by synaptic neuroplasticity, psychological learning theory models how agents acquire associations, extract abstract concepts, and modify expectations based on environmental feedback.",
-      "domains": ["psychology", "cognitive-science"],
-      "tags": ["conditioning", "behaviorism", "reinforcement", "associative-learning", "cognitive-acquisition"],
-      "sourceIds": ["src-baddeley-2012-working-memory", "src-sep-epistemology"],
+      "domains": [
+        "psychology",
+        "cognitive-science"
+      ],
+      "tags": [
+        "conditioning",
+        "behaviorism",
+        "reinforcement",
+        "associative-learning",
+        "cognitive-acquisition"
+      ],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory",
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Behavioral Conditioning", "Psychological Learning"]
+      "aliases": [
+        "Behavioral Conditioning",
+        "Psychological Learning"
+      ]
     },
     {
       "id": "concept-attention",
@@ -186,11 +201,25 @@
       "name": "Attention & Selective Processing",
       "shortDescription": "The cognitive mechanism of selectively concentrating on discrete environmental or internal stimuli while filtering out distracting sensory information.",
       "description": "Operating under severe capacity limitations, human attention coordinates alerting (maintaining vigilance), orienting (directing sensory focus toward stimuli), and executive control (resolving conflict between competing goals). Top-down goal-directed mechanisms interact with bottom-up stimulus-driven saliency to allocate brain processing resources.",
-      "domains": ["psychology", "neuroscience"],
-      "tags": ["selective-attention", "executive-control", "vigilance", "cognitive-filtering", "orienting"],
-      "sourceIds": ["src-posner-petersen-1990"],
+      "domains": [
+        "psychology",
+        "neuroscience"
+      ],
+      "tags": [
+        "selective-attention",
+        "executive-control",
+        "vigilance",
+        "cognitive-filtering",
+        "orienting"
+      ],
+      "sourceIds": [
+        "src-posner-petersen-1990"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Selective Attention", "Attentional Networks"]
+      "aliases": [
+        "Selective Attention",
+        "Attentional Networks"
+      ]
     },
     {
       "id": "concept-cognitive-biases",
@@ -198,11 +227,25 @@
       "name": "Cognitive Biases & Heuristics",
       "shortDescription": "Systematic, predictable deviations from normative rationality and probability theory arising from fast, intuitive cognitive heuristics.",
       "description": "Documented by Amos Tversky and Daniel Kahneman, cognitive biases (such as confirmation bias, availability bias, framing effects, and anchoring) emerge when fast, automatic 'System 1' heuristics substitute simple intuitive assessments for complex statistical computations, frequently generating systematic judgment errors under uncertainty.",
-      "domains": ["psychology", "behavioral-economics"],
-      "tags": ["heuristics", "system-1-system-2", "anchoring", "confirmation-bias", "bounded-rationality"],
-      "sourceIds": ["src-tversky-kahneman-1974"],
+      "domains": [
+        "psychology",
+        "behavioral-economics"
+      ],
+      "tags": [
+        "heuristics",
+        "system-1-system-2",
+        "anchoring",
+        "confirmation-bias",
+        "bounded-rationality"
+      ],
+      "sourceIds": [
+        "src-tversky-kahneman-1974"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Psychological Biases", "Heuristics and Biases"]
+      "aliases": [
+        "Psychological Biases",
+        "Heuristics and Biases"
+      ]
     },
     {
       "id": "concept-decision-making",
@@ -210,11 +253,27 @@
       "name": "Decision-Making & Rational Choice",
       "shortDescription": "The cognitive process of evaluating alternative courses of action and selecting a choice based on subjective preferences, values, and expected outcomes.",
       "description": "Normatively formalized by expected utility theory and empirically described by prospect theory, decision-making analyzes how agents weigh risks, discount future rewards, and trade off costs under uncertainty. Bounded rationality recognizes that biological and algorithmic decision-makers must operate within finite computational time and imperfect information.",
-      "domains": ["psychology", "cognitive-science", "economics"],
-      "tags": ["expected-utility", "prospect-theory", "rational-choice", "risk-assessment", "bounded-rationality"],
-      "sourceIds": ["src-simon-1955-rational-choice", "src-tversky-kahneman-1974"],
+      "domains": [
+        "psychology",
+        "cognitive-science",
+        "economics"
+      ],
+      "tags": [
+        "expected-utility",
+        "prospect-theory",
+        "rational-choice",
+        "risk-assessment",
+        "bounded-rationality"
+      ],
+      "sourceIds": [
+        "src-simon-1955-rational-choice",
+        "src-tversky-kahneman-1974"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Rational Choice Theory", "Behavioral Decision Making"]
+      "aliases": [
+        "Rational Choice Theory",
+        "Behavioral Decision Making"
+      ]
     },
     {
       "id": "concept-working-memory",
@@ -222,11 +281,25 @@
       "name": "Working Memory",
       "shortDescription": "A limited-capacity cognitive system responsible for temporarily holding, actively manipulating, and processing information in conscious awareness.",
       "description": "Formulated by Alan Baddeley, working memory dissociates into domain-specific storage buffers—the phonological loop for acoustic/verbal data and the visuospatial sketchpad for visual imagery—governed by an attentional central executive and linked to long-term memory via an episodic buffer, providing the mental workspace for reasoning and comprehension.",
-      "domains": ["psychology", "cognitive-science"],
-      "tags": ["baddeley-model", "central-executive", "phonological-loop", "short-term-storage", "cognitive-workspace"],
-      "sourceIds": ["src-baddeley-2012-working-memory"],
+      "domains": [
+        "psychology",
+        "cognitive-science"
+      ],
+      "tags": [
+        "baddeley-model",
+        "central-executive",
+        "phonological-loop",
+        "short-term-storage",
+        "cognitive-workspace"
+      ],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Working Memory Model", "Active Memory Workspace"]
+      "aliases": [
+        "Working Memory Model",
+        "Active Memory Workspace"
+      ]
     },
     {
       "id": "concept-epistemology",
@@ -234,11 +307,24 @@
       "name": "Epistemology",
       "shortDescription": "The foundational branch of philosophy concerned with the nature, origin, justification, scope, and validity of human knowledge.",
       "description": "Epistemology examines the criteria distinguishing warranted knowledge from mere opinion or belief. Analyzing the classical tri-partite definition of knowledge as justified true belief (and its Gettier counterexamples), epistemology investigates theories of justification (foundationalism, coherentism, reliabilism) and responds to philosophical skepticism.",
-      "domains": ["philosophy"],
-      "tags": ["justified-true-belief", "justification", "skepticism", "foundationalism", "truth-conditions"],
-      "sourceIds": ["src-sep-epistemology"],
+      "domains": [
+        "philosophy"
+      ],
+      "tags": [
+        "justified-true-belief",
+        "justification",
+        "skepticism",
+        "foundationalism",
+        "truth-conditions"
+      ],
+      "sourceIds": [
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Theory of Knowledge", "Epistemological Theory"]
+      "aliases": [
+        "Theory of Knowledge",
+        "Epistemological Theory"
+      ]
     },
     {
       "id": "concept-formal-logic",
@@ -246,11 +332,25 @@
       "name": "Formal Logic & Deductive Reasoning",
       "shortDescription": "The systematic study of valid inference, argumentation, and formal deductive systems independent of specific empirical subject matter.",
       "description": "Formal logic evaluates whether the truth of premises necessarily guarantees the truth of conclusions. Spanning propositional logic and first-order predicate calculus with quantifiers, it establishes syntactic proof systems and semantic model theory, underpinning mathematical rigor, computability proofs, and software type systems.",
-      "domains": ["philosophy", "mathematics"],
-      "tags": ["deduction", "soundness", "validity", "predicate-calculus", "inference-rules"],
-      "sourceIds": ["src-sep-logic-classical"],
+      "domains": [
+        "philosophy",
+        "mathematics"
+      ],
+      "tags": [
+        "deduction",
+        "soundness",
+        "validity",
+        "predicate-calculus",
+        "inference-rules"
+      ],
+      "sourceIds": [
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Deductive Logic", "Symbolic Logic"]
+      "aliases": [
+        "Deductive Logic",
+        "Symbolic Logic"
+      ]
     },
     {
       "id": "concept-scientific-method",
@@ -258,11 +358,26 @@
       "name": "Scientific Method & Falsification",
       "shortDescription": "An iterative empirical methodology for acquiring reliable knowledge, characterized by observation, hypothesis formulation, controlled experimentation, and rigorous testing.",
       "description": "The scientific method systematically reduces subjective bias through controlled empirical testing. Emphasized by Karl Popper, scientific hypotheses must make risky, empirically falsifiable predictions: theories cannot be verified with absolute certainty, but survive through rigorous attempts at experimental refutation and reproducible corroboration.",
-      "domains": ["philosophy", "science"],
-      "tags": ["falsification", "popper", "hypothesis-testing", "controlled-experiments", "empirical-inquiry"],
-      "sourceIds": ["src-popper-1959-logic-discovery", "src-sep-scientific-method"],
+      "domains": [
+        "philosophy",
+        "science"
+      ],
+      "tags": [
+        "falsification",
+        "popper",
+        "hypothesis-testing",
+        "controlled-experiments",
+        "empirical-inquiry"
+      ],
+      "sourceIds": [
+        "src-popper-1959-logic-discovery",
+        "src-sep-scientific-method"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Empirical Method", "Hypothetico-Deductive Method"]
+      "aliases": [
+        "Empirical Method",
+        "Hypothetico-Deductive Method"
+      ]
     },
     {
       "id": "concept-ethics",
@@ -270,11 +385,24 @@
       "name": "Ethics & Moral Philosophy",
       "shortDescription": "The branch of philosophy that systematically analyzes concepts of right and wrong conduct, moral obligation, virtue, and justice.",
       "description": "Normative ethics evaluates actions through major theoretical traditions: deontology (duty and categorical imperatives), consequentialism/utilitarianism (maximizing well-being outcomes), and virtue ethics (cultivating moral character). Applied ethics extends these frameworks to biomedical, technological, environmental, and artificial intelligence domains.",
-      "domains": ["philosophy"],
-      "tags": ["deontology", "utilitarianism", "virtue-ethics", "moral-philosophy", "normative-theory"],
-      "sourceIds": ["src-sep-epistemology"],
+      "domains": [
+        "philosophy"
+      ],
+      "tags": [
+        "deontology",
+        "utilitarianism",
+        "virtue-ethics",
+        "moral-philosophy",
+        "normative-theory"
+      ],
+      "sourceIds": [
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Moral Philosophy", "Normative Ethics"]
+      "aliases": [
+        "Moral Philosophy",
+        "Normative Ethics"
+      ]
     },
     {
       "id": "concept-philosophy-of-mind",
@@ -282,11 +410,25 @@
       "name": "Philosophy of Mind",
       "shortDescription": "The philosophical discipline studying the nature of mental phenomena, consciousness, subjective experience, and their relationship to the physical brain.",
       "description": "Centering on the mind-body problem, philosophy of mind debates how subjective conscious experiences (qualia) relate to physical brain states. Competing positions include substance dualism, identity theory physicalism, functionalism (which views mental states as computational functional roles), and property dualism.",
-      "domains": ["philosophy", "cognitive-science"],
-      "tags": ["mind-body-problem", "qualia", "dualism", "physicalism", "functionalism"],
-      "sourceIds": ["src-sep-epistemology"],
+      "domains": [
+        "philosophy",
+        "cognitive-science"
+      ],
+      "tags": [
+        "mind-body-problem",
+        "qualia",
+        "dualism",
+        "physicalism",
+        "functionalism"
+      ],
+      "sourceIds": [
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Mind-Body Philosophy", "Philosophy of Consciousness"]
+      "aliases": [
+        "Mind-Body Philosophy",
+        "Philosophy of Consciousness"
+      ]
     },
     {
       "id": "concept-free-will",
@@ -294,11 +436,24 @@
       "name": "Free Will & Determinism",
       "shortDescription": "The philosophical debate over whether conscious agents possess the genuine capacity to choose between alternative actions in a world governed by physical causality.",
       "description": "Free will interrogates moral agency and physical causation. Incompatibilists argue that universal physical determinism precludes genuine free choice, dividing into hard determinists (who deny free will) and libertarians (who posit indeterministic agency), while compatibilists maintain that freedom consists in acting according to desires unhindered by external coercion.",
-      "domains": ["philosophy"],
-      "tags": ["determinism", "compatibilism", "incompatibilism", "moral-responsibility", "agency"],
-      "sourceIds": ["src-sep-freewill"],
+      "domains": [
+        "philosophy"
+      ],
+      "tags": [
+        "determinism",
+        "compatibilism",
+        "incompatibilism",
+        "moral-responsibility",
+        "agency"
+      ],
+      "sourceIds": [
+        "src-sep-freewill"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Agency and Determinism", "Metaphysical Free Will"]
+      "aliases": [
+        "Agency and Determinism",
+        "Metaphysical Free Will"
+      ]
     },
     {
       "id": "concept-empiricism",
@@ -306,11 +461,24 @@
       "name": "Empiricism",
       "shortDescription": "An epistemological position asserting that all substantive knowledge regarding the world originates from sensory perception and empirical experience.",
       "description": "Championed historically by John Locke, George Berkeley, and David Hume, empiricism rejects innate conceptual knowledge, maintaining that the mind begins as a blank slate (tabula rasa). Inductive generalization from observation and experimental verification serve as the only legitimate basis for factual knowledge claims.",
-      "domains": ["philosophy"],
-      "tags": ["sensory-experience", "tabula-rasa", "hume", "locke", "inductive-evidence"],
-      "sourceIds": ["src-sep-rationalism-empiricism"],
+      "domains": [
+        "philosophy"
+      ],
+      "tags": [
+        "sensory-experience",
+        "tabula-rasa",
+        "hume",
+        "locke",
+        "inductive-evidence"
+      ],
+      "sourceIds": [
+        "src-sep-rationalism-empiricism"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Empirical Philosophy", "Epistemological Empiricism"]
+      "aliases": [
+        "Empirical Philosophy",
+        "Epistemological Empiricism"
+      ]
     },
     {
       "id": "concept-rationalism",
@@ -318,11 +486,24 @@
       "name": "Rationalism",
       "shortDescription": "An epistemological position holding that reason and intellect, rather than sensory experience, provide the primary foundation and justification of knowledge.",
       "description": "Exemplified by René Descartes, Baruch Spinoza, and Gottfried Wilhelm Leibniz, rationalism asserts that essential truths (such as mathematical axioms, logical relations, and fundamental metaphysics) are grasped a priori through rational intuition and deductive deduction rather than empirical observation.",
-      "domains": ["philosophy"],
-      "tags": ["a-priori", "descartes", "deductive-reasoning", "innate-ideas", "intellect"],
-      "sourceIds": ["src-sep-rationalism-empiricism"],
+      "domains": [
+        "philosophy"
+      ],
+      "tags": [
+        "a-priori",
+        "descartes",
+        "deductive-reasoning",
+        "innate-ideas",
+        "intellect"
+      ],
+      "sourceIds": [
+        "src-sep-rationalism-empiricism"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Epistemological Rationalism", "A Priori Rationalism"]
+      "aliases": [
+        "Epistemological Rationalism",
+        "A Priori Rationalism"
+      ]
     },
     {
       "id": "concept-cognitive-load-theory",
@@ -330,11 +511,25 @@
       "name": "Cognitive Load Theory",
       "shortDescription": "An instructional and cognitive theory analyzing how the information processing load placed on working memory affects learning and problem solving.",
       "description": "Formulated by John Sweller, cognitive load theory distinguishes three load types: intrinsic load (inherent material complexity), extraneous load (poor presentation design), and germane load (effort devoted to schema acquisition). Educational design must minimize extraneous load to avoid exceeding working memory limits.",
-      "domains": ["psychology", "education"],
-      "tags": ["sweller", "intrinsic-load", "extraneous-load", "working-memory-limits", "instructional-design"],
-      "sourceIds": ["src-sweller-1988-cognitive-load"],
+      "domains": [
+        "psychology",
+        "education"
+      ],
+      "tags": [
+        "sweller",
+        "intrinsic-load",
+        "extraneous-load",
+        "working-memory-limits",
+        "instructional-design"
+      ],
+      "sourceIds": [
+        "src-sweller-1988-cognitive-load"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["CLT", "Cognitive Architecture in Education"]
+      "aliases": [
+        "CLT",
+        "Cognitive Architecture in Education"
+      ]
     },
     {
       "id": "concept-metacognition",
@@ -342,11 +537,25 @@
       "name": "Metacognition",
       "shortDescription": "Higher-order cognitive awareness, monitoring, and active regulation of one's own thinking, learning processes, and cognitive strategies.",
       "description": "Popularly summarized as 'thinking about thinking', metacognition comprises metacognitive knowledge (understanding personal memory limits and task difficulties) and metacognitive regulation (planning strategies, monitoring comprehension, and revising approaches during problem-solving).",
-      "domains": ["psychology", "cognitive-science"],
-      "tags": ["self-regulation", "monitoring", "cognitive-strategies", "meta-reasoning", "learning-skills"],
-      "sourceIds": ["src-baddeley-2012-working-memory"],
+      "domains": [
+        "psychology",
+        "cognitive-science"
+      ],
+      "tags": [
+        "self-regulation",
+        "monitoring",
+        "cognitive-strategies",
+        "meta-reasoning",
+        "learning-skills"
+      ],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Metacognitive Regulation", "Self-Regulated Cognition"]
+      "aliases": [
+        "Metacognitive Regulation",
+        "Self-Regulated Cognition"
+      ]
     },
     {
       "id": "concept-perception-psychology",
@@ -354,11 +563,25 @@
       "name": "Perceptual Organization & Gestalt",
       "shortDescription": "The psychological investigation into how raw sensory stimuli are structured into meaningful, coherent perceptual wholes and conscious objects.",
       "description": "Pioneered by Gestalt psychologists, perceptual organization demonstrates that perception is not a passive sum of atomistic sensory signals. Governed by principles such as proximity, similarity, closure, and continuity, perceptual systems spontaneously group sensory features into stable figures against backgrounds.",
-      "domains": ["psychology", "cognitive-science"],
-      "tags": ["gestalt", "perceptual-grouping", "figure-ground", "visual-organization", "psychophysics"],
-      "sourceIds": ["src-posner-petersen-1990"],
+      "domains": [
+        "psychology",
+        "cognitive-science"
+      ],
+      "tags": [
+        "gestalt",
+        "perceptual-grouping",
+        "figure-ground",
+        "visual-organization",
+        "psychophysics"
+      ],
+      "sourceIds": [
+        "src-posner-petersen-1990"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Gestalt Psychology", "Perceptual Psychology"]
+      "aliases": [
+        "Gestalt Psychology",
+        "Perceptual Psychology"
+      ]
     },
     {
       "id": "concept-philosophy-of-science",
@@ -366,11 +589,26 @@
       "name": "Philosophy of Science & Paradigm Shifts",
       "shortDescription": "The philosophical branch examining the foundations, assumptions, validation methods, and historical dynamics of scientific inquiry and theory change.",
       "description": "Philosophy of science explores the ontological and methodological presuppositions of science. Contrastingly articulated by Thomas Kuhn, science alternates between puzzle-solving 'normal science' governed by prevailing disciplinary paradigms and crisis-induced 'scientific revolutions' that replace incommensurable theoretical frameworks.",
-      "domains": ["philosophy", "history-of-science"],
-      "tags": ["kuhn", "paradigm-shifts", "scientific-realism", "incommensurability", "epistemic-progress"],
-      "sourceIds": ["src-kuhn-1962-revolutions", "src-popper-1959-logic-discovery"],
+      "domains": [
+        "philosophy",
+        "history-of-science"
+      ],
+      "tags": [
+        "kuhn",
+        "paradigm-shifts",
+        "scientific-realism",
+        "incommensurability",
+        "epistemic-progress"
+      ],
+      "sourceIds": [
+        "src-kuhn-1962-revolutions",
+        "src-popper-1959-logic-discovery"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Metascience", "Theory of Science"]
+      "aliases": [
+        "Metascience",
+        "Theory of Science"
+      ]
     },
     {
       "id": "concept-semantics-and-semiotics",
@@ -378,11 +616,26 @@
       "name": "Philosophy of Language & Semantics",
       "shortDescription": "The study of how linguistic expressions, symbols, and signs relate to meaning, reference, truth conditions, and communicative understanding.",
       "description": "Analyzing how arbitrary symbols acquire meaning, philosophy of language explores Gottlob Frege's distinction between sense (Sinn) and reference (Bedeutung), Ludwig Wittgenstein's language games, and formal truth-conditional model theory, bridging linguistic communication with mathematical logic and computer programming languages.",
-      "domains": ["philosophy", "linguistics"],
-      "tags": ["meaning", "reference", "frege", "wittgenstein", "symbolic-representation"],
-      "sourceIds": ["src-sep-logic-classical"],
+      "domains": [
+        "philosophy",
+        "linguistics"
+      ],
+      "tags": [
+        "meaning",
+        "reference",
+        "frege",
+        "wittgenstein",
+        "symbolic-representation"
+      ],
+      "sourceIds": [
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Semantics", "Philosophy of Language", "Semiotics"]
+      "aliases": [
+        "Semantics",
+        "Philosophy of Language",
+        "Semiotics"
+      ]
     },
     {
       "id": "concept-heuristics",
@@ -390,11 +643,27 @@
       "name": "Heuristics & Bounded Rationality",
       "shortDescription": "Practical problem-solving and decision-making strategies that prioritize speed and tractability over exhaustive optimization under resource constraints.",
       "description": "Coined in cognitive decision theory by Herbert Simon, heuristics enable organisms and computational systems to 'satisfice'—finding satisfactory rather than strictly optimal solutions when search spaces are vast, information is incomplete, or computational time is restricted.",
-      "domains": ["psychology", "computer-science", "cognitive-science"],
-      "tags": ["simon", "satisficing", "rule-of-thumb", "tractability", "decision-strategies"],
-      "sourceIds": ["src-simon-1955-rational-choice", "src-tversky-kahneman-1974"],
+      "domains": [
+        "psychology",
+        "computer-science",
+        "cognitive-science"
+      ],
+      "tags": [
+        "simon",
+        "satisficing",
+        "rule-of-thumb",
+        "tractability",
+        "decision-strategies"
+      ],
+      "sourceIds": [
+        "src-simon-1955-rational-choice",
+        "src-tversky-kahneman-1974"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Cognitive Heuristics", "Satisficing Strategies"]
+      "aliases": [
+        "Cognitive Heuristics",
+        "Satisficing Strategies"
+      ]
     },
     {
       "id": "concept-pragmatism",
@@ -402,11 +671,24 @@
       "name": "Pragmatism",
       "shortDescription": "A philosophical tradition holding that the meaning, truth, and value of concepts and theories are determined by their practical consequences and success in action.",
       "description": "Developed by Charles Sanders Peirce, William James, and John Dewey, pragmatism rejects detached metaphysical foundationalism. It defines truth not as passive correspondence to unmediated reality, but dynamically as beliefs that prove reliable, fruitful, and self-correcting in practical human experience and empirical inquiry.",
-      "domains": ["philosophy"],
-      "tags": ["peirce", "james", "dewey", "practical-consequences", "instrumentalism"],
-      "sourceIds": ["src-sep-epistemology"],
+      "domains": [
+        "philosophy"
+      ],
+      "tags": [
+        "peirce",
+        "james",
+        "dewey",
+        "practical-consequences",
+        "instrumentalism"
+      ],
+      "sourceIds": [
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["American Pragmatism", "Instrumentalism"]
+      "aliases": [
+        "American Pragmatism",
+        "Instrumentalism"
+      ]
     }
   ],
   "relationships": [
@@ -417,7 +699,10 @@
       "type": "depends-on",
       "explanation": "Psychological learning mechanisms rely fundamentally on neuroplastic synaptic remodeling (such as LTP) in the brain to encode behavioral changes.",
       "strength": "primary",
-      "sourceIds": ["src-kandel-principles-neural", "src-baddeley-2012-working-memory"],
+      "sourceIds": [
+        "src-kandel-principles-neural",
+        "src-baddeley-2012-working-memory"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -427,7 +712,10 @@
       "type": "part-of",
       "explanation": "Selective attention is orchestrated by frontoparietal and thalamic networks across the human brain to filter competing sensory inputs.",
       "strength": "primary",
-      "sourceIds": ["src-posner-petersen-1990", "src-purves-neuroscience"],
+      "sourceIds": [
+        "src-posner-petersen-1990",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -437,7 +725,9 @@
       "type": "implemented-with",
       "explanation": "Cognitive biases arise systematically when fast intuitive heuristics substitute simplified mental shortcuts for normative probabilistic reasoning.",
       "strength": "primary",
-      "sourceIds": ["src-tversky-kahneman-1974"],
+      "sourceIds": [
+        "src-tversky-kahneman-1974"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -447,7 +737,10 @@
       "type": "uses",
       "explanation": "Human decision-makers employ heuristics under bounded rationality to reach satisficing choices within limited time and computational capacity.",
       "strength": "primary",
-      "sourceIds": ["src-simon-1955-rational-choice", "src-tversky-kahneman-1974"],
+      "sourceIds": [
+        "src-simon-1955-rational-choice",
+        "src-tversky-kahneman-1974"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -457,7 +750,10 @@
       "type": "depends-on",
       "explanation": "Working memory maintenance relies on the attentional central executive to focus cognitive resources and shield active items from distraction.",
       "strength": "primary",
-      "sourceIds": ["src-baddeley-2012-working-memory", "src-posner-petersen-1990"],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory",
+        "src-posner-petersen-1990"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -467,7 +763,10 @@
       "type": "leads-to",
       "explanation": "Information actively rehearsed in working memory is transferred through hippocampal consolidation circuits into stable long-term neocortical storage.",
       "strength": "primary",
-      "sourceIds": ["src-baddeley-2012-working-memory", "src-scoville-milner-1957"],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory",
+        "src-scoville-milner-1957"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -477,7 +776,10 @@
       "type": "depends-on",
       "explanation": "Cognitive Load Theory is founded directly upon the severe bandwidth and duration bottlenecks of human working memory.",
       "strength": "primary",
-      "sourceIds": ["src-sweller-1988-cognitive-load", "src-baddeley-2012-working-memory"],
+      "sourceIds": [
+        "src-sweller-1988-cognitive-load",
+        "src-baddeley-2012-working-memory"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -487,7 +789,10 @@
       "type": "part-of",
       "explanation": "The scientific method represents an applied epistemological framework for validating empirical hypotheses and establishing justified knowledge.",
       "strength": "primary",
-      "sourceIds": ["src-sep-scientific-method", "src-sep-epistemology"],
+      "sourceIds": [
+        "src-sep-scientific-method",
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -497,7 +802,10 @@
       "type": "manages",
       "explanation": "Philosophy of science critically examines the underlying logic, validity claims, and demarcation criteria of the scientific method.",
       "strength": "primary",
-      "sourceIds": ["src-popper-1959-logic-discovery", "src-sep-scientific-method"],
+      "sourceIds": [
+        "src-popper-1959-logic-discovery",
+        "src-sep-scientific-method"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -507,7 +815,10 @@
       "type": "related-to",
       "explanation": "Formal logic's propositional calculus was algebraically axiomatized by George Boole to yield modern Boolean logic.",
       "strength": "primary",
-      "sourceIds": ["src-sep-logic-classical", "src-boole-1854-laws"],
+      "sourceIds": [
+        "src-sep-logic-classical",
+        "src-boole-1854-laws"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -517,7 +828,10 @@
       "type": "related-to",
       "explanation": "Via the Curry-Howard isomorphism, formal logical propositions correspond directly to programming language types, and proofs correspond to programs.",
       "strength": "strong",
-      "sourceIds": ["src-sep-logic-classical", "src-pierce-tapl"],
+      "sourceIds": [
+        "src-sep-logic-classical",
+        "src-pierce-tapl"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -527,7 +841,9 @@
       "type": "contrasts-with",
       "explanation": "Empiricism contends that all substantive knowledge derives from sensory experience, contrasting with rationalism's claim of a priori innate knowledge.",
       "strength": "primary",
-      "sourceIds": ["src-sep-rationalism-empiricism"],
+      "sourceIds": [
+        "src-sep-rationalism-empiricism"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -537,7 +853,10 @@
       "type": "related-to",
       "explanation": "Philosophy of mind provides the theoretical formulations (such as the hard problem of consciousness) that guide neuroscientific research on conscious awareness.",
       "strength": "primary",
-      "sourceIds": ["src-crick-koch-2003", "src-sep-epistemology"],
+      "sourceIds": [
+        "src-crick-koch-2003",
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -547,7 +866,9 @@
       "type": "related-to",
       "explanation": "Attributions of moral responsibility in ethics depend conceptually upon whether human actors possess sufficient free agency in their choices.",
       "strength": "primary",
-      "sourceIds": ["src-sep-freewill"],
+      "sourceIds": [
+        "src-sep-freewill"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -557,7 +878,10 @@
       "type": "related-to",
       "explanation": "Gestalt perceptual grouping principles describe the high-level psychological organization that emerges from low-level visual cortex processing.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience", "src-posner-petersen-1990"],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-posner-petersen-1990"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -567,7 +891,10 @@
       "type": "manages",
       "explanation": "Metacognitive monitoring oversees active working memory contents to adjust problem-solving strategies and prevent cognitive overload.",
       "strength": "strong",
-      "sourceIds": ["src-baddeley-2012-working-memory", "src-sweller-1988-cognitive-load"],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory",
+        "src-sweller-1988-cognitive-load"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -577,7 +904,9 @@
       "type": "uses",
       "explanation": "Formal semantics applies model-theoretic logic to specify rigorous truth conditions and reference functions for linguistic expressions.",
       "strength": "primary",
-      "sourceIds": ["src-sep-logic-classical"],
+      "sourceIds": [
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -587,7 +916,9 @@
       "type": "part-of",
       "explanation": "Pragmatism offers a distinct epistemological theory by evaluating the truth and validity of beliefs through their practical consequences in inquiry.",
       "strength": "primary",
-      "sourceIds": ["src-sep-epistemology"],
+      "sourceIds": [
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review"
     }
   ]

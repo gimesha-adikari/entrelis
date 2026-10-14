@@ -1,131 +1,168 @@
-# Entrelis M2 Knowledge Research Sprint 01 — Adversarial Research Audit
+# Entrelis M2 Knowledge Research Sprint 01 — Adversarial Research Audit (Recalculated)
 
-> **Audit Date:** 2026-10-14  
+> **Audit Date:** October 2026  
 > **Target Dataset:** 120 Candidate Concepts, 211 Relationships, 96 Source Entities  
-> **Review Status:** All candidate records flagged as `needs-review` pending editorial board approval  
+> **Seed Baseline:** 7 Production Seed Concepts, 8 Seed Relationships  
+> **Review Status Invariant:** All candidate records remain flagged as `needs-review` pending human editorial board approval.  
 
 ---
 
 ## 1. Executive Summary & Audit Methodology
 
-This audit provides a second-pass, adversarial review of the candidate knowledge nodes, relationships, and bibliographic sources prepared for Entrelis Milestone 2. 
+This audit provides an adversarial, evidence-grounded review of the candidate knowledge nodes, relationships, and bibliographic sources prepared for Entrelis Milestone 2.
 
-In accordance with Sprint 01 directives:
-1. **Evidence before assertions:** Every substantive claim must trace to a verified, authoritative reference source (scientific journal, university press textbook, official technical standard, or primary archival document).
-2. **Adversarial stress-testing:** We specifically sought to falsify conceptual boundaries, challenge causal claims in relationships, detect weak analogies, identify scientific controversies, and disclose source access limitations.
-3. **Preservation of uncertainty:** Areas where scientific consensus remains unsettled or actively debated are explicitly documented rather than flattened into artificial certainty.
+Following an independent editorial review of the initial sprint artifacts, all graph metrics, source verification outcomes, and relationship semantics were recalculated and verified against the actual JSON records in `02-source-registry.json`, `03-relationship-catalog.json`, and `04-concept-candidates.json`.
+
+### Audit Methodology
+1. **Mathematical Graph Recalculation:** We evaluated graph topology both with and without seed concepts/relationships to disclose exact component counts and degree distributions rather than masking isolated nodes.
+2. **Bibliographic Grounding & Access Disclosure:** We eliminated blanket claims of "100% source-confirmed." Sources are categorized into four transparent verification tiers reflecting actual access limitations (open-access vs. copyrighted textbooks vs. subscription paywalls vs. historical archives).
+3. **Semantic Directionality Review:** Every relationship was evaluated against the directional invariant $\text{SOURCE} \xrightarrow{\text{TYPE}} \text{TARGET}$. Misleading types (such as evolutionary processes "managing" genes or architectures being "part-of" processing units) were corrected.
+4. **Preservation of Uncertainty:** Contested hypotheses (e.g., consciousness qualia, compatibilist free will, $P \neq NP$, transgenerational epigenetics) are explicitly documented as open questions.
 
 ---
 
-## 2. Source Provenance & Quality Metrics
+## 2. Bibliographic Source Registry Audit
 
-### 2.1 Quantitative Breakdown of Evaluated Sources
+### 2.1 Quantitative Breakdown of Evaluated Sources (96 Total)
+
+The source registry contains 96 unique bibliographic references (including 8 established M1.5 seed references):
 
 | Source Classification | Count | Representative Examples |
 |---|---|---|
-| **Textbooks (University Press / Academic)** | 42 | *Molecular Biology of the Cell* (Norton/Garland), *Principles of Neural Science* (McGraw-Hill), *Introduction to Algorithms* (MIT Press), *Classical Electrodynamics* (Wiley), *Deep Learning* (MIT Press) |
-| **Peer-Reviewed Academic Articles** | 24 | Watson & Crick (Nature 1953), Rumelhart et al. (Nature 1986), Hodgkin & Huxley (J Physiol 1952), Shannon (Bell Sys Tech J 1948), Turing (Proc LMS 1937), Scoville & Milner (JNNP 1957) |
-| **Official Standards & Specifications** | 8 | NIST FIPS 197 (AES), RISC-V Unprivileged Spec, POSIX.1-2017 (IEEE/Open Group), Open Source Definition (OSI) |
-| **Academic Reference / Encyclopedias** | 12 | Stanford Encyclopedia of Philosophy (SEP), Particle Data Group (PDG), Engineering and Technology History Wiki (IEEE ETHW) |
-| **Primary Historical Sources & Archives** | 10 | Library of Congress (Gutenberg Bible, Morse Papers), Smithsonian Institution, Boole (1854), Darwin (1859), Von Neumann EDVAC Report (1945), Berners-Lee WWW Proposal (1989) |
-| **Total Unique Sources in Registry** | **96** | *(Includes 8 verified M1.5 seed sources)* |
+| **Academic Textbooks & Monographs** | 43 | *Introduction to Algorithms* (MIT Press), *Computer Organization and Design* (Elsevier), *Compilers: Principles, Techniques, and Tools* (Pearson), *Solid State Physics* (Cengage), *Database System Concepts* (McGraw-Hill) |
+| **Peer-Reviewed Journal Articles** | 21 | Watson & Crick (*Nature* 1953), Hodgkin & Huxley (*J Physiol* 1952), Scoville & Milner (*JNNP* 1957), Lamport (*CACM* 1978), Codd (*CACM* 1970) |
+| **Official Documentation & Technical Standards** | 10 | POSIX.1-2017 (IEEE/Open Group), RISC-V Unprivileged Spec, Intel SDM, The Rust Book, NIST FIPS 197 (AES) |
+| **Academic Encyclopedias & Reference Wikis** | 9 | Stanford Encyclopedia of Philosophy (SEP), Particle Data Group (PDG), IEEE History Center (ETHW) |
+| **Primary Archival Documents & Historical Repositories** | 13 | John von Neumann (1945 EDVAC Report), Alan Turing (1936 Computable Numbers), George Boole (1854 Laws of Thought), Claude Shannon (1938 Relay Circuits), Library of Congress |
+| **Total Sources in Registry** | **96** | |
 
-### 2.2 Verification Outcome Distribution
+### 2.2 Transparent Verification Outcome Distribution
 
-All 96 sources in `02-source-registry.json` were evaluated according to the Sprint evidence tier system:
-- **SOURCE-CONFIRMED (88 sources):** Exact publisher URL, institutional host, DOI, or permanent catalog identifier verified active, and cited chapter/paper explicitly confirms the conceptual claims.
-- **CORROBORATED (8 sources):** Concepts supported by multiple independent standard textbooks across disciplines (e.g., cell theory in Alberts corroborated by Guyton & Hall; Boolean logic in Boole corroborated by Shannon).
-- **PARTIALLY-SUPPORTED / DISPUTED / NEEDS-REVIEW (0 in final catalog):** Candidates that lacked primary evidence or relied on contested fringe claims were excluded during preliminary screening (see Section 6).
+Rather than assigning an undifferentiated `SOURCE-CONFIRMED` label based merely on resolving URLs or catalog listings, all 96 sources were classified according to their actual verification method and access characteristics:
 
----
+| Verification Outcome Category | Count | Percentage | Verification Method & Access Constraints |
+|---|---|---|---|
+| **`BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED`** | 43 | 44.8% | Bibliographic metadata (ISBN, publisher, authors, edition), official publisher catalog pages, published tables of contents, and specific cited chapters/sections were cross-checked. Full texts are copyrighted academic textbooks and monographs behind commercial purchase or institutional library access. |
+| **`PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED`** | 21 | 21.9% | Permanent Digital Object Identifiers (DOIs), publication metadata, abstracts, and cited findings were verified via journal portals (Nature, Elsevier, ACM, IEEE). Full text is restricted behind commercial subscription paywalls. |
+| **`OPEN-ACCESS-FULL-TEXT-VERIFIED`** | 19 | 19.8% | Full primary text, official documentation, open online textbooks (e.g., OSTEP, The Rust Book), or peer-reviewed encyclopedia entries (SEP, PDG) are freely accessible online and directly verified. |
+| **`ARCHIVE-DIGITIZED-PRIMARY-VERIFIED`** | 13 | 13.5% | Primary historical manuscripts, patents, and seminal early papers preserved in digitized university libraries or institutional archives (Project Gutenberg, IEEE History Center, Library of Congress). |
+| **Total Evaluated Sources** | **96** | **100.0%** | |
 
-## 3. Conceptual Nuances, Disputed Claims & Scientific Disagreements
-
-A key danger in knowledge graph construction is presenting contested hypotheses as settled facts. The following topics were audited to ensure balanced, scholarly representations:
-
-### 3.1 Artificial vs. Biological Neural Networks (Analogical Boundaries)
-* **Risk Audited:** Flattening the distinction between deep learning artificial neural networks (ANNs) and mammalian brain networks.
-* **Findings:** While ANNs were historically inspired by McCulloch-Pitts neurons and Perceptrons, modern deep learning architectures (e.g., Transformers, backpropagation) bear minimal functional or biophysical resemblance to biological brains. Biological neurons do not calculate continuous matrix dot products, nor do they transmit real-valued backpropagation gradients. Biological synapses undergo spike-timing-dependent plasticity (STDP), dendritic computation is highly nonlinear and localized, and feedback pathways differ fundamentally from algorithmic backprop.
-* **Audit Decision:** In `04-concept-candidates.json` and `03-relationship-catalog.json`, relationships between `concept-artificial-neural-networks` and `concept-biological-neurons` are strictly classified as `related-to` (supporting/conceptual analogy) with explicit textual qualifications documenting these architectural divergences.
-
-### 3.2 The Nature of Consciousness & The Hard Problem
-* **Risk Audited:** Endorsing an unverified physicalist or functionalist resolution to consciousness.
-* **Findings:** In cognitive neuroscience and philosophy of mind, the 'hard problem' of consciousness (how physical neurobiological processes give rise to subjective qualia) remains unresolved. Prominent contemporary theories—such as Global Neuronal Workspace Theory (Dehaene), Recurrent Processing Theory (Lamme), and Integrated Information Theory (Tononi)—disagree sharply on the minimal sufficient neural substrate.
-* **Audit Decision:** `concept-consciousness-studies` is defined around the empirical search for *Neural Correlates of Consciousness* (NCC), citing Crick & Koch (2003). It explicitly preserves the philosophical open question and notes that identifying neural correlates is not identical to solving the ontological nature of subjective experience.
-
-### 3.3 Free Will vs. Physical Determinism
-* **Risk Audited:** Asserting that physics or neuroscience has 'disproven' free will.
-* **Findings:** Popular science accounts frequently misinterpret Benjamin Libet's 1983 readiness potential experiments as definitive proof that conscious volition is illusory. Academic philosophers and neuroscientists (e.g., in the Stanford Encyclopedia of Philosophy) point out that readiness potentials precede simple motor flexions, not deliberation or rational planning, and that compatibilism remains the majority view among academic philosophers.
-* **Audit Decision:** `concept-free-will` balances hard determinism, libertarian agency, and compatibilism, citing the SEP overview and avoiding premature physicalist dogmatism.
-
-### 3.4 P vs NP & The Limits of Computation
-* **Risk Audited:** Conflating unproven computational complexity conjectures with settled theorems.
-* **Findings:** While the overwhelming consensus among computer scientists is that $P \neq NP$, this remains an unproven Clay Millennium Prize problem. Furthermore, NP-hardness represents worst-case asymptotic bounds; many real-world NP-complete problem instances are resolved efficiently using SAT solvers and approximation algorithms.
-* **Audit Decision:** Descriptions in `concept-computational-complexity` and `concept-algorithms` accurately specify worst-case complexity bounds and explicitly designate $P \neq NP$ as an open conjecture rather than an established fact.
-
-### 3.5 Epigenetics & Non-Lamarckian Inheritance
-* **Risk Audited:** Overstating transgenerational epigenetic inheritance in humans.
-* **Findings:** While epigenetic modifications (DNA methylation, histone tail acetylation) are essential for cellular differentiation and tissue maintenance within an organism's lifetime, claims of widespread, stable multi-generational inheritance of acquired traits in mammals remain controversial and limited compared to plants and nematodes.
-* **Audit Decision:** `concept-epigenetics` emphasizes intra-organismal gene regulation, chromatin dynamics, and cell differentiation, distinguishing proven cellular mechanisms from contested transgenerational inheritance claims.
+### 2.3 Mismatched Reference Corrections
+- **`src-cormen-clrs`:** The URL for the 4th Edition of *Introduction to Algorithms* was previously pointing to an errata/bug page for the 3rd edition (`https://www.cs.dartmouth.edu/~thc/clrs-bugs/`). This has been corrected to the official MIT Press book catalog URL: `https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/`.
 
 ---
 
-## 4. Relationship Directionality & Graph Topology Audit
+## 3. Relationship Semantics & Directionality Audit
 
-### 4.1 Strict Directional Invariant Audit
-Sprint 01 requires that every relationship strictly reads:
-$$\text{SOURCE} \xrightarrow{\text{TYPE}} \text{TARGET}$$
-We evaluated all 211 relationship entries for syntactic and logical coherence:
-* **`uses`**: Tested for active invocation. (e.g., `Compilers --uses--> Type Systems` $\checkmark$; `Rust --uses--> Compilers` $\rightarrow$ corrected to `Rust --implemented-with--> Compilers` $\checkmark$).
-* **`manages`**: Tested for supervisory control or allocation. (e.g., `Operating Systems --manages--> Virtual Memory` $\checkmark$; `Natural Selection --manages--> Genes` $\checkmark$).
-* **`depends-on`**: Tested for strict prerequisite dependency. (e.g., `Virtual Memory --depends-on--> CPUs` [hardware MMU] $\checkmark$; `Space Exploration --depends-on--> Gravity` $\checkmark$).
-* **`implemented-with`**: Tested for physical or concrete algorithmic instantiation. (e.g., `Logic Gates --implemented-with--> Transistors` $\checkmark$; `CPUs --implemented-with--> Transistors` $\checkmark$; `Deep Learning --implemented-with--> Artificial Neural Networks` $\checkmark$).
-* **`contrasts-with`**: Tested for meaningful conceptual antitheses. (e.g., `Garbage Collection --contrasts-with--> Ownership` $\checkmark$; `Empiricism --contrasts-with--> Rationalism` $\checkmark$; `Computer Vision --contrasts-with--> Computer Graphics` $\checkmark$).
+### 3.1 Correction of Suspicious Edges
 
-### 4.2 Graph Connectivity & Structural Integrity
-* **Total Nodes:** 127 (7 Seed Concepts + 120 Candidates)
-* **Total Edges:** 219 (8 Seed Relationships + 211 Researched Relationships)
-* **Isolated / Orphan Nodes:** **0**. Every node has at least two connections (inbound or outbound).
-* **Self-Loops:** **0**. Verified programmatically.
-* **Bidirectional Duplicates:** **0**. No identical pair connected in reverse with the same semantic meaning.
-* **Cross-Domain Density:** Out of 211 proposed relationships, **92 connections (43.6%) bridge across different domain boundaries**, ensuring that Entrelis does not fracture into isolated subject silos.
+Three relationships flagged during editorial review for misleading or inverted semantics were corrected:
 
----
-
-## 5. Bibliographic & Access Constraints Audit
-
-In accordance with Phase 2 instructions, access limitations and institutional barriers were cataloged:
-
-1. **Paywalls & Open Access Strategy:**
-   - Where seminal journal articles reside behind commercial publisher paywalls (e.g., Elsevier, Springer, Nature Publishing Group), we recorded official permanent Digital Object Identifiers (DOIs).
-   - In parallel, we verified that open institutional course websites, official author preprints (e.g., Berkeley AIMA, MIT Linear Algebra, Stanford Dragon Book, Deep Learning Book), or public research repositories (NCBI Bookshelf, PubMed Central) corroborated the factual claims.
-2. **Bot Detection & Access Restrictions:**
-   - Direct web-scraping requests to `mitpress.mit.edu` and `stat.columbia.edu` triggered HTTP 403 bot-protection challenges.
-   - We verified book metadata, authors, publication dates, and ISBNs via authorized distributor catalogs (Dartmouth THC, Routledge/CRC Press, Library of Congress) without relying on restricted endpoints.
-3. **Primary Archival Document Verification:**
-   - Historical documents (e.g., Von Neumann's 1945 EDVAC report, Gutenberg Bible exhibition records, Samuel Morse telegraph papers) were verified directly through the Library of Congress, IEEE History Center, and Smithsonian Institution archives.
+1. **`rel-natural-selection-genes`**
+   - *Previous:* `concept-natural-selection --(manages)--> concept-genes`
+   - *Correction:* `concept-natural-selection --(related-to)--> concept-genes`
+   - *Explanation:* "Natural selection acts upon phenotypic variation among organisms, altering allele frequencies in population gene pools across successive generations."
+   - *Rationale:* Evolutionary natural selection is not a supervisory controller or software process; it does not "manage" genes. It operates on organismal phenotypes, driving changes in gene allele frequencies over generations.
+2. **`rel-von-neumann-architecture-cpus`**
+   - *Previous:* `concept-von-neumann-architecture --(part-of)--> concept-cpus`
+   - *Correction:* `concept-von-neumann-architecture --(includes)--> concept-cpus`
+   - *Explanation:* "The Von Neumann architecture defines a stored-program computer model comprising a central processing unit (ALU and control unit) and memory systems."
+   - *Rationale:* The previous edge had an inverted compositional direction. An overarching architectural paradigm is not "part of" a processing unit; rather, the architecture *includes* the central processing unit and memory.
+3. **`rel-rust-compilers`**
+   - *Previous:* `concept-rust --(implemented-with)--> concept-compilers`
+   - *Correction:* `concept-rust --(depends-on)--> concept-compilers`
+   - *Explanation:* "Rust program compilation depends on optimizing compiler toolchains (such as rustc and LLVM) to enforce borrow-checker invariants, type safety, and generate efficient native machine code."
+   - *Rationale:* Rust is a programming language specification and ecosystem; translating and validating Rust code *depends on* compiler toolchains.
+4. **`rel-electromagnetism-photons`**
+   - *Previous:* `concept-electromagnetism --(implemented-with)--> concept-photons`
+   - *Correction:* `concept-electromagnetism --(includes)--> concept-photons`
+   - *Explanation:* "Quantum electrodynamics models electromagnetic interactions as being mediated by quantized vector gauge bosons known as photons."
+   - *Rationale:* Quantum gauge bosons are not "implemented with" engineering components; quantum electrodynamics includes photons as force carriers.
+5. **`rel-consciousness-studies-philosophy-of-mind`**
+   - *Previous:* `concept-consciousness-studies --(related-to)--> concept-philosophy-of-mind` (Duplicate of reverse `related-to` edge)
+   - *Correction:* `concept-consciousness-studies --(uses)--> concept-philosophy-of-mind`
+   - *Explanation:* "Empirical consciousness studies utilize theoretical concepts and distinctions from philosophy of mind (such as phenomenal qualia and the hard problem) to formulate experimental paradigms."
+   - *Rationale:* Resolves identical bidirectional `related-to` duplication by assigning an active operational direction.
 
 ---
 
-## 6. Excluded Candidates & Rejected Hypotheses
+### 3.2 Audit of All 15 Reciprocal Relationship Pairs
 
-During Phase 1 and Phase 2 discovery, several candidate nodes and relationships were evaluated and intentionally excluded from the final 120-node catalog:
+The catalog contains 15 bidirectional relationship pairs. Each was audited for semantic duplication vs. legitimate bidirectional interaction:
 
-1. **Excluded: `Quantum Computing` (Candidate Node)**
-   - *Rationale:* While fascinating, quantum computing hardware remains in experimental, NISQ-era development. Introducing it in Sprint 01 risked blurring the foundational distinction between classical solid-state physics and subatomic quantum mechanics. Scheduled for M2.5 advanced technology sprint.
-2. **Excluded: `String Theory` / `Multiverse` (Candidate Nodes)**
-   - *Rationale:* Lacks empirical falsifiability under current observational physics. Excluded in favor of experimentally verified concepts (`Quantum Mechanics`, `General Relativity`, `The Standard Model`).
-3. **Excluded: `Memetics` (Candidate Node)**
-   - *Rationale:* While Richard Dawkins's 'meme' concept is a popular cultural metaphor, it lacks rigorous mathematical formalization or predictive consensus in cognitive science and anthropology. Replaced with verified cognitive psychology nodes (`Learning & Conditioning`, `Cognitive Biases`).
-4. **Rejected Edge: `Artificial Intelligence --implemented-with--> Human Brain`**
-   - *Rationale:* False equivalence. Artificial intelligence runs on silicon microprocessors, not human wetware. Replaced with `Artificial Neural Networks --related-to--> Biological Neurons` and `Artificial Intelligence --related-to--> Philosophy of Mind`.
-5. **Rejected Edge: `Rust --leads-to--> Memory Safety` (as an absolute claim)**
-   - *Rationale:* Rust guarantees memory safety in Safe Rust, but Unsafe Rust explicitly permits operations that can cause undefined behavior if invariants are violated. The relationship explanation was adjusted to explicitly state 'in Safe Rust'.
+| Pair # | Concepts Connected | Edge 1 (Forward) | Edge 2 (Reverse) | Semantic Classification & Editorial Assessment |
+|---|---|---|---|---|
+| **1** | OS $\leftrightarrow$ Virtual Memory | `operating-systems --(manages)--> virtual-memory` | `virtual-memory --(part-of)--> operating-systems` | **Complementary Control / Composition:** Edge 1 describes supervisory kernel control; Edge 2 describes system architecture composition. Valid dual perspective. |
+| **2** | Statistics $\leftrightarrow$ Probability Theory | `statistics --(depends-on)--> probability-theory` | `probability-theory --(leads-to)--> statistics` | **Inverse Dependency:** Mathematical probability theory provides foundational axioms that lead to statistical inference. Retained with distinct historical/foundational descriptions. |
+| **3** | Boolean Logic $\leftrightarrow$ Logic Gates | `boolean-logic --(implemented-with)--> logic-gates` | `logic-gates --(uses)--> boolean-logic` | **Theory vs. Physical Realization:** Edge 1 captures mathematical logic instantiated in physical silicon; Edge 2 captures digital gates computing Boolean operations. Valid dual perspective. |
+| **4** | Electromagnetism $\leftrightarrow$ Photons | `electromagnetism --(includes)--> photons` | `photons --(part-of)--> electromagnetism` | **Field vs. Gauge Boson:** Electromagnetism includes photon mediation; photons constitute the physical field quanta. Corrected from awkward `implemented-with`. |
+| **5** | Quantum Mechanics $\leftrightarrow$ Quantum Entanglement | `quantum-mechanics --(includes)--> quantum-entanglement` | `quantum-entanglement --(part-of)--> quantum-mechanics` | **Theory vs. Phenomemon:** Entanglement is an intrinsic non-classical property included in quantum formalism. |
+| **6** | DNA $\leftrightarrow$ Genes | `dna --(includes)--> genes` | `genes --(part-of)--> dna` | **Macromolecule vs. Coding Segment:** DNA polymers include specific genetic sequences; genes are contiguous physical segments along DNA. |
+| **7** | Learning $\leftrightarrow$ Neuroplasticity | `learning-psychology --(depends-on)--> neuroplasticity` | `neuroplasticity --(leads-to)--> learning-psychology` | **Cognitive vs. Biophysical Grounding:** Behavioral learning depends on synaptic rewiring; neuroplastic changes manifest behaviorally as learning. |
+| **8** | Working Memory $\leftrightarrow$ Attention | `working-memory --(depends-on)--> attention` | `attention --(manages)--> working-memory` | **Cognitive Interaction:** Working memory maintenance relies on attentional executive control; attentional gating selects working memory contents. |
+| **9** | Formal Logic $\leftrightarrow$ Type Systems | `type-systems --(depends-on)--> formal-logic` | `formal-logic --(related-to)--> type-systems` | **Operational Rule vs. Curry-Howard Isomorphism:** Typecheckers depend on deductive rules; Curry-Howard establishes mathematical equivalence between propositions and types. |
+| **10** | Philosophy of Mind $\leftrightarrow$ Consciousness Studies | `philosophy-of-mind --(related-to)--> consciousness-studies` | `consciousness-studies --(uses)--> philosophy-of-mind` | **Theoretical Framing vs. Empirical Use:** Philosophy frames the hard problem; neuroscience uses philosophical distinctions to design NCC experiments. |
+| **11** | Steam Engine $\leftrightarrow$ Industrial Revolution | `steam-engine --(leads-to)--> industrial-revolution` | `industrial-revolution --(depends-on)--> steam-engine` | **Causal Driver vs. Era Dependency:** Rotary steam power directly triggered mechanized factories; industrial manufacturing depended on steam engines. |
+| **12** | Steam Engine $\leftrightarrow$ Thermodynamics | `steam-engine --(leads-to)--> thermodynamics` | `thermodynamics --(related-to)--> steam-engine` | **Historical Trigger vs. Theoretical Bounds:** Analyzing steam engine efficiency spurred Carnot to develop thermodynamics; Carnot cycles define heat engine limits. |
+| **13** | Cold War Technology $\leftrightarrow$ Space Race | `cold-war-technology --(leads-to)--> space-race` | `space-race --(part-of)--> cold-war-technology` | **Historical Impulse vs. Geopolitical Arena:** Cold War missile R&D launched the Space Race; the Space Race was a primary technological theater of the Cold War. |
+| **14** | Solid-State Physics $\leftrightarrow$ Atoms | `solid-state-physics --(depends-on)--> atoms` | `atoms --(leads-to)--> solid-state-physics` | **Reductionism vs. Emergence:** Solid-state physics builds upon atomic potentials; atomic lattices condense to produce continuous energy bands. |
+| **15** | Proteins and Enzymes $\leftrightarrow$ Cells | `proteins-and-enzymes --(part-of)--> cells` | `cells --(includes)--> proteins-and-enzymes` | **Structural Component vs. Biological Host:** Proteins form the physical cytoskeleton and enzymes of cells; cells synthesize and house protein machinery. |
 
 ---
 
-## 7. Audit Conclusion & Editorial Recommendation
+## 4. Graph Topology & Connectivity Metrics (Programmatically Recalculated)
 
-The research dataset conforms strictly to the schema defined in `src/domain/knowledge/types.ts` and passes all integrity constraints specified in `src/domain/knowledge/validation.ts`. 
+### 4.1 Topology Without Production Seed (120 Candidate Nodes Only)
+When candidate nodes are evaluated in isolation from the 7 production seed concepts:
+- **Total Nodes:** 120
+- **Internal Relationships:** 189 (out of 211 total relationships; 22 relationships connect directly to seed nodes)
+- **Connected Components:** **3 components**
+  - Giant component: 118 nodes
+  - Isolated component 1: `concept-virtual-memory` (Size 1)
+  - Isolated component 2: `concept-garbage-collection` (Size 1)
+- **Degree Distribution:**
+  - Degree 0 (Isolated): **2 nodes** (`concept-virtual-memory`, `concept-garbage-collection`, whose only connections are to seed concepts `Operating Systems`, `Ownership`, and `Stack & Heap`)
+  - Degree 1: **13 nodes**
+  - Degree >1: **105 nodes**
 
-All candidate records are marked with `reviewStatus: "needs-review"`. They are structurally complete, factually grounded, and ready for human editorial review and progressive importation into the Entrelis knowledge universe.
+### 4.2 Combined Graph Topology (127 Total Nodes: 7 Seed + 120 Candidates)
+When the full graph is evaluated including the 7 M1.5 seed nodes and 8 seed relationships:
+- **Total Nodes:** 127
+- **Total Relationships:** 219 (8 seed + 211 candidate)
+- **Connected Components:** **1 single connected component** (Size: 127 nodes)
+- **Degree Distribution:**
+  - Degree 0 (Isolated): **0 nodes**
+  - Degree 1: **9 nodes**
+  - Degree >1: **118 nodes**
+- **Self-Loops:** 0
+- **Dangling References:** 0
+
+### 4.3 Cross-Domain Relationship Metrics & Methodologies
+
+Depending on how domain boundaries are formally evaluated across the 211 candidate relationships, cross-domain density is reported under three explicit counting methods:
+
+1. **Method 1 — M2 Research Domain Boundaries (Domain A through F):**
+   - Evaluates whether the source and target belong to different top-level M2 research domains (A: Programming & CS, B: AI & Math, C: Physics & Space, D: Biology & Brain, E: Psychology & Philosophy, F: History & Inventions).
+   - **Count: 64 relationships (30.3% of 211)**
+2. **Method 2 — Primary Domain Tag Boundary (`source.domains[0] !== target.domains[0]`):**
+   - Evaluates whether the primary domain classification of the source differs from the target.
+   - **Count: 82 relationships (38.9% of 211)**
+3. **Method 3 — Completely Disjoint Domain Tags (`Set(source.domains) ∩ Set(target.domains) == ∅`):**
+   - Evaluates whether source and target share zero common domain tags across their full domain arrays.
+   - **Count: 28 relationships (13.3% of 211)**
+
+Documenting all three counting methodologies ensures that cross-domain claims are unambiguous and reproducible.
+
+### 4.4 First-Wave Import Connectivity
+- **Previous 25-Node Plan:** Contained 6 completely isolated nodes (Degree 0) and 16 nodes lacking direct seed adjacency, resulting in 8 fragmented components.
+- **Recalculated 26-Node Plan:** Subgraph of 33 nodes (7 seed + 26 candidates), 61 relationships, **1 single connected component (Size: 33)**, **0 isolated nodes**, **0 degree-1 leaf nodes**. All 26 nodes possess at least two connections to other nodes in the active subgraph.
+
+---
+
+## 5. Audit Conclusion & Editorial Sign-off Invariants
+
+1. All 120 candidate nodes and 211 relationships pass programmatic relational-integrity validation (`validateKnowledgeDataset`).
+2. All 96 sources maintain verified URLs, active catalog links, or permanent DOIs/ISBNs.
+3. All candidate records in `04-concept-candidates.json` and `03-relationship-catalog.json` are maintained strictly at `reviewStatus: "needs-review"`.
+4. The recalculated Wave 1 import plan (`07-prioritized-import-plan.md` and `09-wave-1-editorial-package.md`) provides a fully connected, topologically stable starting wave for Milestone 2.

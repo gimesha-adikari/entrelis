@@ -172,7 +172,7 @@ This catalog presents **120 high-value candidate knowledge nodes** researched an
 - **Tags:** `asymptotic-analysis`, `computability`, `sorting`, `graph-algorithms`, `optimization`
 - **Aliases / Terminology:** Computational Algorithms
 - **Supporting Sources:**
-  - [src-cormen-clrs] *Introduction to Algorithms (4th Edition)* (The MIT Press, 2022) — [https://www.cs.dartmouth.edu/~thc/clrs-bugs/](https://www.cs.dartmouth.edu/~thc/clrs-bugs/)
+  - [src-cormen-clrs] *Introduction to Algorithms (4th Edition)* (The MIT Press, 2022) — [https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)
   - [src-knuth-taocp-v1] *The Art of Computer Programming, Volume 1: Fundamental Algorithms (3rd Edition)* (Addison-Wesley, 1997) — [https://www-cs-faculty.stanford.edu/~knuth/taocp.html](https://www-cs-faculty.stanford.edu/~knuth/taocp.html)
 - **Editorial Review Status:** `needs-review`
 
@@ -185,7 +185,7 @@ This catalog presents **120 high-value candidate knowledge nodes** researched an
 - **Tags:** `arrays`, `trees`, `hash-tables`, `graphs`, `memory-layout`
 - **Aliases / Terminology:** Data Formats, In-Memory Structures
 - **Supporting Sources:**
-  - [src-cormen-clrs] *Introduction to Algorithms (4th Edition)* (The MIT Press, 2022) — [https://www.cs.dartmouth.edu/~thc/clrs-bugs/](https://www.cs.dartmouth.edu/~thc/clrs-bugs/)
+  - [src-cormen-clrs] *Introduction to Algorithms (4th Edition)* (The MIT Press, 2022) — [https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)
   - [src-knuth-taocp-v1] *The Art of Computer Programming, Volume 1: Fundamental Algorithms (3rd Edition)* (Addison-Wesley, 1997) — [https://www-cs-faculty.stanford.edu/~knuth/taocp.html](https://www-cs-faculty.stanford.edu/~knuth/taocp.html)
 - **Editorial Review Status:** `needs-review`
 

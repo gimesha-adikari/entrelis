@@ -14,7 +14,7 @@
       "accessDate": "2026-10-14",
       "notes": "Foundational computer science textbook on lexical analysis, syntax parsing, syntax-directed translation, type checking, intermediate code generation, and machine-code optimization.",
       "isbn": "978-0-321-48681-3",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -28,7 +28,7 @@
       "accessDate": "2026-10-14",
       "notes": "Modern compiler engineering textbook detailing register allocation (graph coloring), instruction scheduling, static single assignment (SSA) form, and intermediate representation architectures.",
       "isbn": "978-0-12-088478-0",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -42,7 +42,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal graduate textbook on operational semantics, lambda calculus, type systems, subtyping, polymorphic typing (System F), and type safety theorems (progress and preservation).",
       "isbn": "978-0-262-16209-8",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -55,7 +55,7 @@
       "publicationDate": "2024-06",
       "accessDate": "2026-10-14",
       "notes": "Comprehensive official hardware reference defining instruction encoding, machine opcodes, processor execution modes, memory segmentation, paging, privilege rings, and hardware interrupts.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -68,7 +68,7 @@
       "publicationDate": "2019-12-13",
       "accessDate": "2026-10-14",
       "notes": "Open standard defining an open, modular instruction set architecture (ISA) based on established reduced instruction set computer (RISC) principles.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -82,7 +82,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal ACM Computing Surveys monograph articulating the architectural and theoretical foundations of virtual memory, page replacement algorithms, and the working set model.",
       "doi": "10.1145/356571.356573",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -96,7 +96,7 @@
       "accessDate": "2026-10-14",
       "notes": "Foundational distributed computing paper introducing partial ordering, logical timestamps (Lamport clocks), and distributed mutual exclusion.",
       "doi": "10.1145/359545.359563",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -110,7 +110,7 @@
       "accessDate": "2026-10-14",
       "notes": "Standard text on shared-memory concurrency, linearizability, mutual exclusion algorithms, lock-free and wait-free synchronization primitives, and memory consistency models.",
       "isbn": "978-0-12-397337-5",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -124,7 +124,7 @@
       "accessDate": "2026-10-14",
       "notes": "Authoritative networking textbook examining the protocol stack from the application layer down to the physical layer, covering packet switching, TCP/IP, and congestion control.",
       "isbn": "978-0-13-668155-7",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -138,7 +138,7 @@
       "accessDate": "2026-10-14",
       "notes": "Comprehensive treatise on network architectures, routing algorithms, media access control, error detection and correction, and transport protocols.",
       "isbn": "978-0-13-212695-3",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -152,7 +152,7 @@
       "accessDate": "2026-10-14",
       "notes": "Authoritative guide to distributed architecture paradigms, naming, synchronization, fault tolerance, replication, and distributed consensus algorithms (Paxos, Raft).",
       "isbn": "978-1-543-01869-1",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -166,7 +166,7 @@
       "accessDate": "2026-10-14",
       "notes": "Rigorous mathematical treatment of modern cryptography based on formal definitions of security, reductionist proofs, symmetric ciphers, hash functions, and public-key cryptography.",
       "isbn": "978-0-815-35436-9",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -180,13 +180,13 @@
       "accessDate": "2026-10-14",
       "notes": "Official U.S. Federal standard establishing the Rijndael algorithm as the Advanced Encryption Standard (AES) with key lengths of 128, 192, and 256 bits for electronic data protection.",
       "doi": "10.6028/NIST.FIPS.197",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
       "id": "src-cormen-clrs",
       "title": "Introduction to Algorithms (4th Edition)",
-      "url": "https://www.cs.dartmouth.edu/~thc/clrs-bugs/",
+      "url": "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/",
       "publisher": "The MIT Press",
       "author": "Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein",
       "type": "textbook",
@@ -194,7 +194,7 @@
       "accessDate": "2026-10-14",
       "notes": "The standard university algorithms textbook covering asymptotic analysis, divide-and-conquer, dynamic programming, greedy algorithms, graph search, and amortized data structure complexity.",
       "isbn": "978-0-262-04630-5",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -208,7 +208,7 @@
       "accessDate": "2026-10-14",
       "notes": "Foundational classic of computer science formalizing algorithm analysis, discrete mathematical prerequisites, and essential linear/tree data structures.",
       "isbn": "978-0-201-89683-1",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -222,7 +222,7 @@
       "accessDate": "2026-10-14",
       "notes": "Landmark master's thesis demonstrating that Boolean algebra could model and optimize electromechanical relay and switching circuits, establishing the theoretical basis for digital logic design.",
       "doi": "10.1109/T-AIEE.1938.5057767",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -236,7 +236,7 @@
       "accessDate": "2026-10-14",
       "notes": "Authoritative engineering textbook covering crystal lattices, quantum mechanical band theory, carrier concentrations, p-n junctions, and field-effect transistors.",
       "isbn": "978-0-13-335603-8",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -250,7 +250,7 @@
       "accessDate": "2026-10-14",
       "notes": "Comprehensive treatise on automated memory management covering mark-sweep, copying, generational, reference counting, concurrent, and real-time garbage collection algorithms.",
       "isbn": "978-0-367-75943-8",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -264,7 +264,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal 1977 ACM Turing Award lecture criticizing the 'von Neumann bottleneck' of mutable state manipulation and presenting functional programming with algebraic program reasoning.",
       "doi": "10.1145/359576.359579",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -277,7 +277,7 @@
       "publicationDate": "2018",
       "accessDate": "2026-10-14",
       "notes": "Official standard defining the portable operating system interface (POSIX) including system interfaces, asynchronous I/O, signals, and process management.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -291,7 +291,7 @@
       "accessDate": "2026-10-14",
       "notes": "Classic comprehensive reference on computer graphics fundamentals, affine transformations, rasterization, lighting models, ray tracing, and programmable GPU shaders.",
       "isbn": "978-0-321-39952-6",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -305,7 +305,7 @@
       "accessDate": "2026-10-14",
       "notes": "Core graphics curriculum textbook analyzing mathematical foundations, linear transformations, perspective projection, surface reflection, and modern rendering pipelines.",
       "isbn": "978-0-367-50503-5",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -318,7 +318,7 @@
       "publicationDate": "1998",
       "accessDate": "2026-10-14",
       "notes": "Standard criteria defining open source software, including free redistribution, source code access, derived works allowance, and non-discrimination.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -332,7 +332,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal analysis contrasting centralized, top-down software engineering ('the Cathedral') with decentralized, peer-reviewed open collaboration ('the Bazaar').",
       "isbn": "978-0-596-00108-7",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -346,7 +346,7 @@
       "accessDate": "2026-10-14",
       "notes": "Authoritative database textbook covering relational models, relational algebra, SQL, indexing structures (B+ trees), transaction management, and ACID guarantees.",
       "isbn": "978-0-078-02215-9",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -360,7 +360,7 @@
       "accessDate": "2026-10-14",
       "notes": "Foundational ACM paper proposing the relational database model based on mathematical n-ary relations, liberating database users from hardware-dependent navigational pointers.",
       "doi": "10.1145/362384.362685",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     }
   ],
@@ -371,11 +371,26 @@
       "name": "Compilers",
       "shortDescription": "Software systems that translate human-readable source code in high-level programming languages into lower-level target representations such as machine code or bytecode.",
       "description": "Compilers translate structured source code into executable instructions through a multi-stage pipeline: lexical analysis tokenizes characters, syntax parsing builds abstract syntax trees (ASTs), semantic analysis enforces typing invariants, intermediate representations (IR) decouple frontends from backends, and optimization passes transform code for execution efficiency before emitting native machine code or bytecode.",
-      "domains": ["computer-science", "programming-languages"],
-      "tags": ["parsing", "lexical-analysis", "code-generation", "optimization", "intermediate-representation"],
-      "sourceIds": ["src-dragon-book", "src-cooper-compiler"],
+      "domains": [
+        "computer-science",
+        "programming-languages"
+      ],
+      "tags": [
+        "parsing",
+        "lexical-analysis",
+        "code-generation",
+        "optimization",
+        "intermediate-representation"
+      ],
+      "sourceIds": [
+        "src-dragon-book",
+        "src-cooper-compiler"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Language Compilers", "Language Translators"]
+      "aliases": [
+        "Language Compilers",
+        "Language Translators"
+      ]
     },
     {
       "id": "concept-type-systems",
@@ -383,11 +398,25 @@
       "name": "Type Systems",
       "shortDescription": "Tractable syntactic methods for proving the absence of certain program behaviors by classifying phrases according to the kinds of values they compute.",
       "description": "Type systems define formal logical rules that evaluate source expressions before or during execution. By associating data values and functions with static types, compilers verify memory layouts, enforce access permissions, verify interface contracts, and formally prove soundness properties—such as progress (well-typed programs do not get stuck) and preservation (evaluating an expression preserves its type).",
-      "domains": ["computer-science", "programming-languages"],
-      "tags": ["type-safety", "static-typing", "type-inference", "semantics", "formal-methods"],
-      "sourceIds": ["src-pierce-tapl"],
+      "domains": [
+        "computer-science",
+        "programming-languages"
+      ],
+      "tags": [
+        "type-safety",
+        "static-typing",
+        "type-inference",
+        "semantics",
+        "formal-methods"
+      ],
+      "sourceIds": [
+        "src-pierce-tapl"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Type Theory", "Static Type Systems"]
+      "aliases": [
+        "Type Theory",
+        "Static Type Systems"
+      ]
     },
     {
       "id": "concept-machine-code",
@@ -395,11 +424,28 @@
       "name": "Machine Code",
       "shortDescription": "The lowest-level stream of raw binary instructions executed directly by a computer's central processing unit.",
       "description": "Machine code represents software in its purest physical execution format: binary patterns of opcodes, register specifiers, and memory offsets decoded directly by CPU execution units. High-level abstractions are stripped away, leaving arithmetic operations, memory loads, stores, and conditional jumps that manipulate hardware state registers and physical or virtual address spaces.",
-      "domains": ["computer-science", "computer-architecture", "hardware"],
-      "tags": ["binary-instructions", "opcodes", "execution", "assembly", "microarchitecture"],
-      "sourceIds": ["src-patterson-hennessy-cod", "src-intel-sdm"],
+      "domains": [
+        "computer-science",
+        "computer-architecture",
+        "hardware"
+      ],
+      "tags": [
+        "binary-instructions",
+        "opcodes",
+        "execution",
+        "assembly",
+        "microarchitecture"
+      ],
+      "sourceIds": [
+        "src-patterson-hennessy-cod",
+        "src-intel-sdm"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Machine Language", "Native Code", "Binary Code"]
+      "aliases": [
+        "Machine Language",
+        "Native Code",
+        "Binary Code"
+      ]
     },
     {
       "id": "concept-instruction-set-architecture",
@@ -407,11 +453,26 @@
       "name": "Instruction Set Architecture",
       "shortDescription": "The abstract interface between software and hardware that defines supported instructions, registers, addressing modes, and memory models.",
       "description": "An Instruction Set Architecture (ISA) establishes the programmer-visible contract of a processor. It defines the word size, available architectural registers, binary instruction encoding formats, interrupt models, and memory consistency semantics, allowing software compilers to generate target code independently of whether the underlying silicon microarchitecture uses out-of-order execution, deep pipelining, or multithreading.",
-      "domains": ["computer-architecture", "hardware"],
-      "tags": ["isa", "risc", "cisc", "microarchitecture", "hardware-software-interface"],
-      "sourceIds": ["src-patterson-hennessy-cod", "src-riscv-spec"],
+      "domains": [
+        "computer-architecture",
+        "hardware"
+      ],
+      "tags": [
+        "isa",
+        "risc",
+        "cisc",
+        "microarchitecture",
+        "hardware-software-interface"
+      ],
+      "sourceIds": [
+        "src-patterson-hennessy-cod",
+        "src-riscv-spec"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["ISA", "Processor Architecture"]
+      "aliases": [
+        "ISA",
+        "Processor Architecture"
+      ]
     },
     {
       "id": "concept-virtual-memory",
@@ -419,11 +480,26 @@
       "name": "Virtual Memory",
       "shortDescription": "An architectural memory management scheme that provides an idealized, contiguous abstraction of storage, isolating process address spaces and mapping them to physical storage.",
       "description": "Virtual memory decouples the address space seen by an application from the physical RAM installed in a computer. Using hardware memory management units (MMUs) and operating system page tables, virtual memory translates virtual page addresses into physical frames, isolates concurrent processes into protected address spaces, prevents invalid memory accesses, and allows programs to exceed physical memory limits via paging.",
-      "domains": ["computer-science", "systems-architecture"],
-      "tags": ["paging", "mmu", "page-tables", "address-translation", "memory-protection"],
-      "sourceIds": ["src-denning-virtual-memory", "src-arpaci-ostep"],
+      "domains": [
+        "computer-science",
+        "systems-architecture"
+      ],
+      "tags": [
+        "paging",
+        "mmu",
+        "page-tables",
+        "address-translation",
+        "memory-protection"
+      ],
+      "sourceIds": [
+        "src-denning-virtual-memory",
+        "src-arpaci-ostep"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Paging", "Virtual Addressing"]
+      "aliases": [
+        "Paging",
+        "Virtual Addressing"
+      ]
     },
     {
       "id": "concept-concurrency",
@@ -431,11 +507,26 @@
       "name": "Concurrency",
       "shortDescription": "The composition and execution of multiple computational tasks whose lifetimes overlap, enabling non-sequential progress and parallel execution.",
       "description": "Concurrency coordinates overlapping computational sequences over time. In single-core environments, concurrency is achieved through preemptive time-slicing and context switching, while in multicore architectures, tasks execute physically in parallel. Safe concurrency requires synchronization primitives (such as mutexes, semaphores, and atomic operations) to prevent data races and avoid deadlocks.",
-      "domains": ["computer-science", "systems-architecture"],
-      "tags": ["multithreading", "parallelism", "synchronization", "deadlock", "race-conditions"],
-      "sourceIds": ["src-lamport-clocks-1978", "src-herlihy-multiprocessor"],
+      "domains": [
+        "computer-science",
+        "systems-architecture"
+      ],
+      "tags": [
+        "multithreading",
+        "parallelism",
+        "synchronization",
+        "deadlock",
+        "race-conditions"
+      ],
+      "sourceIds": [
+        "src-lamport-clocks-1978",
+        "src-herlihy-multiprocessor"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Multithreading", "Concurrent Programming"]
+      "aliases": [
+        "Multithreading",
+        "Concurrent Programming"
+      ]
     },
     {
       "id": "concept-computer-networks",
@@ -443,11 +534,27 @@
       "name": "Computer Networks",
       "shortDescription": "Interconnected collections of autonomous computing devices that exchange digital data using shared communication protocols and physical transmission media.",
       "description": "Computer networks link disparate hardware nodes to exchange digital signals across copper wire, fiber optics, or radio frequencies. Organized through layered protocol models such as TCP/IP, networks partition continuous data streams into addressed packets, dynamically route packets through switching nodes, recover from transmission errors, and govern end-to-end flow and congestion control.",
-      "domains": ["computer-science", "systems-architecture", "telecommunications"],
-      "tags": ["protocols", "packet-switching", "tcp-ip", "routing", "osi-model"],
-      "sourceIds": ["src-kurose-ross", "src-tanenbaum-networks"],
+      "domains": [
+        "computer-science",
+        "systems-architecture",
+        "telecommunications"
+      ],
+      "tags": [
+        "protocols",
+        "packet-switching",
+        "tcp-ip",
+        "routing",
+        "osi-model"
+      ],
+      "sourceIds": [
+        "src-kurose-ross",
+        "src-tanenbaum-networks"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Networking", "Digital Telecommunications"]
+      "aliases": [
+        "Networking",
+        "Digital Telecommunications"
+      ]
     },
     {
       "id": "concept-distributed-systems",
@@ -455,11 +562,25 @@
       "name": "Distributed Systems",
       "shortDescription": "Collections of independent computers that communicate over a network and coordinate their actions by passing messages, appearing to users as a coherent single system.",
       "description": "Distributed systems coordinate physically separated computing nodes that share no physical memory or central clock. To maintain coherent global state across unreliable networks, distributed architectures employ message-passing protocols, logical clocks, failure detectors, consensus algorithms (such as Paxos and Raft), and replication strategies that balance consistency, availability, and partition tolerance.",
-      "domains": ["computer-science", "systems-architecture"],
-      "tags": ["consensus", "fault-tolerance", "replication", "cap-theorem", "message-passing"],
-      "sourceIds": ["src-tanenbaum-distributed", "src-lamport-clocks-1978"],
+      "domains": [
+        "computer-science",
+        "systems-architecture"
+      ],
+      "tags": [
+        "consensus",
+        "fault-tolerance",
+        "replication",
+        "cap-theorem",
+        "message-passing"
+      ],
+      "sourceIds": [
+        "src-tanenbaum-distributed",
+        "src-lamport-clocks-1978"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Distributed Computing"]
+      "aliases": [
+        "Distributed Computing"
+      ]
     },
     {
       "id": "concept-cryptography",
@@ -467,11 +588,27 @@
       "name": "Cryptography",
       "shortDescription": "The mathematical and algorithmic discipline of securing communication and computation in the presence of adversarial third parties.",
       "description": "Modern cryptography relies on computational hardness assumptions (such as the discrete logarithm or factoring problem) to guarantee confidentiality, integrity, authenticity, and non-repudiation. Core primitives include symmetric block ciphers (such as AES) for bulk encryption, asymmetric key pairs (such as RSA or elliptic curve cryptography) for key exchange and digital signatures, and cryptographic hash functions for tamper detection.",
-      "domains": ["computer-science", "mathematics", "security"],
-      "tags": ["encryption", "ciphers", "public-key", "hashing", "digital-signatures"],
-      "sourceIds": ["src-katz-lindell-crypto", "src-nist-fips-197"],
+      "domains": [
+        "computer-science",
+        "mathematics",
+        "security"
+      ],
+      "tags": [
+        "encryption",
+        "ciphers",
+        "public-key",
+        "hashing",
+        "digital-signatures"
+      ],
+      "sourceIds": [
+        "src-katz-lindell-crypto",
+        "src-nist-fips-197"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Cryptographic Systems", "Information Security"]
+      "aliases": [
+        "Cryptographic Systems",
+        "Information Security"
+      ]
     },
     {
       "id": "concept-algorithms",
@@ -479,11 +616,25 @@
       "name": "Algorithms",
       "shortDescription": "Finite, well-defined sequences of computational instructions that take inputs, perform unambiguous operations, and terminate to produce desired outputs.",
       "description": "An algorithm provides a step-by-step mathematical recipe for solving a computational problem. Analyzed via asymptotic notation (Big-O, Big-Theta) to quantify scaling behavior in time and space, algorithms employ fundamental algorithmic paradigms such as divide-and-conquer, greedy heuristics, dynamic programming, and graph traversals to optimize resource utilization.",
-      "domains": ["computer-science", "mathematics"],
-      "tags": ["asymptotic-analysis", "computability", "sorting", "graph-algorithms", "optimization"],
-      "sourceIds": ["src-cormen-clrs", "src-knuth-taocp-v1"],
+      "domains": [
+        "computer-science",
+        "mathematics"
+      ],
+      "tags": [
+        "asymptotic-analysis",
+        "computability",
+        "sorting",
+        "graph-algorithms",
+        "optimization"
+      ],
+      "sourceIds": [
+        "src-cormen-clrs",
+        "src-knuth-taocp-v1"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Computational Algorithms"]
+      "aliases": [
+        "Computational Algorithms"
+      ]
     },
     {
       "id": "concept-data-structures",
@@ -491,11 +642,26 @@
       "name": "Data Structures",
       "shortDescription": "Specialized formats for organizing, storing, and indexing data in memory to enable efficient access, modification, and algorithmic manipulation.",
       "description": "Data structures provide concrete memory layouts that dictate how data elements relate to one another. From contiguous linear arrays and linked nodes to binary search trees, hash tables, and spatial graphs, selecting an appropriate data structure establishes the fundamental time and space trade-offs for searching, inserting, and traversing application data.",
-      "domains": ["computer-science", "software-engineering"],
-      "tags": ["arrays", "trees", "hash-tables", "graphs", "memory-layout"],
-      "sourceIds": ["src-cormen-clrs", "src-knuth-taocp-v1"],
+      "domains": [
+        "computer-science",
+        "software-engineering"
+      ],
+      "tags": [
+        "arrays",
+        "trees",
+        "hash-tables",
+        "graphs",
+        "memory-layout"
+      ],
+      "sourceIds": [
+        "src-cormen-clrs",
+        "src-knuth-taocp-v1"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Data Formats", "In-Memory Structures"]
+      "aliases": [
+        "Data Formats",
+        "In-Memory Structures"
+      ]
     },
     {
       "id": "concept-logic-gates",
@@ -503,11 +669,27 @@
       "name": "Logic Gates",
       "shortDescription": "Idealized physical devices implementing Boolean functions that transform one or more binary electrical inputs into a single binary output.",
       "description": "Logic gates physically realize Boolean logic functions (AND, OR, NOT, NAND, NOR, XOR) in electronic hardware. Combining transistors into gate topologies creates combinational circuits (such as half-adders and multiplexers) and sequential storage circuits (such as flip-flops and latches) that together form arithmetic logic units (ALUs) and processor control registers.",
-      "domains": ["computer-architecture", "electronics", "hardware"],
-      "tags": ["boolean-algebra", "nand", "nor", "digital-circuits", "switching"],
-      "sourceIds": ["src-shannon-1938-relay", "src-patterson-hennessy-cod"],
+      "domains": [
+        "computer-architecture",
+        "electronics",
+        "hardware"
+      ],
+      "tags": [
+        "boolean-algebra",
+        "nand",
+        "nor",
+        "digital-circuits",
+        "switching"
+      ],
+      "sourceIds": [
+        "src-shannon-1938-relay",
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Digital Logic Gates", "Boolean Gates"]
+      "aliases": [
+        "Digital Logic Gates",
+        "Boolean Gates"
+      ]
     },
     {
       "id": "concept-semiconductors",
@@ -515,11 +697,27 @@
       "name": "Semiconductors",
       "shortDescription": "Materials whose electrical conductivity lies between conductors and insulators, enabling controlled modulation of electrical current via doping and electric fields.",
       "description": "Semiconductors (most prominently silicon and gallium arsenide) exhibit an energy bandgap that prevents free conduction at absolute zero but permits electron excitation at ambient temperatures. By introducing dopant impurities to create surplus mobile electrons (n-type) or electron vacancies (p-type holes), semiconductor junctions form diodes and transistors whose conductivity is modulated by electric voltages.",
-      "domains": ["physics", "materials-science", "electronics"],
-      "tags": ["bandgap", "silicon", "doping", "carrier-transport", "solid-state"],
-      "sourceIds": ["src-sze-semiconductor", "src-streetman-solid-state"],
+      "domains": [
+        "physics",
+        "materials-science",
+        "electronics"
+      ],
+      "tags": [
+        "bandgap",
+        "silicon",
+        "doping",
+        "carrier-transport",
+        "solid-state"
+      ],
+      "sourceIds": [
+        "src-sze-semiconductor",
+        "src-streetman-solid-state"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Semiconductor Materials", "Solid-State Semiconductors"]
+      "aliases": [
+        "Semiconductor Materials",
+        "Solid-State Semiconductors"
+      ]
     },
     {
       "id": "concept-garbage-collection",
@@ -527,11 +725,25 @@
       "name": "Garbage Collection",
       "shortDescription": "An automated memory management discipline where a runtime system identifies and reclaims dynamically allocated heap memory that is no longer reachable by the program.",
       "description": "Garbage collection relieves developers from manual allocation tracking by automatically detecting unreachable objects on the heap. Using techniques such as mark-and-sweep, generational scavenging, and reference counting with cycle detection, the runtime environment periodically reclaims memory, trading off predictable latency and CPU overhead against the elimination of dangling pointers and use-after-free bugs.",
-      "domains": ["computer-science", "programming-languages"],
-      "tags": ["runtime-systems", "heap-reclamation", "tracing", "reference-counting", "memory-management"],
-      "sourceIds": ["src-jones-gc-handbook"],
+      "domains": [
+        "computer-science",
+        "programming-languages"
+      ],
+      "tags": [
+        "runtime-systems",
+        "heap-reclamation",
+        "tracing",
+        "reference-counting",
+        "memory-management"
+      ],
+      "sourceIds": [
+        "src-jones-gc-handbook"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["GC", "Automatic Memory Management"]
+      "aliases": [
+        "GC",
+        "Automatic Memory Management"
+      ]
     },
     {
       "id": "concept-file-systems",
@@ -539,11 +751,26 @@
       "name": "File Systems",
       "shortDescription": "Operating system abstractions that manage how persistent storage is structured, indexed, retrieved, and protected as hierarchical files and directories.",
       "description": "File systems bridge volatile main memory and block-oriented persistent storage (such as NVMe SSDs or magnetic hard drives). By organizing bytes into named streams, mapping logical file offsets to disk blocks via metadata structures (such as inodes or extents), providing directory hierarchies, and maintaining write journals, file systems guarantee data durability and crash consistency.",
-      "domains": ["computer-science", "systems-architecture"],
-      "tags": ["inodes", "storage", "metadata", "journaling", "directories"],
-      "sourceIds": ["src-arpaci-ostep", "src-tanenbaum-mos"],
+      "domains": [
+        "computer-science",
+        "systems-architecture"
+      ],
+      "tags": [
+        "inodes",
+        "storage",
+        "metadata",
+        "journaling",
+        "directories"
+      ],
+      "sourceIds": [
+        "src-arpaci-ostep",
+        "src-tanenbaum-mos"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Filesystem", "Persistent Storage Systems"]
+      "aliases": [
+        "Filesystem",
+        "Persistent Storage Systems"
+      ]
     },
     {
       "id": "concept-functional-programming",
@@ -551,11 +778,26 @@
       "name": "Functional Programming",
       "shortDescription": "A programming paradigm that treats computation as the evaluation of mathematical functions, avoiding mutable state and side effects.",
       "description": "Functional programming grounds program design in mathematical lambda calculus. By emphasizing first-class and higher-order functions, immutable data structures, declarative transformations, and referential transparency (where expressions can be replaced by their values without altering behavior), functional languages facilitate algebraic reasoning, modular composition, and lock-free concurrency.",
-      "domains": ["computer-science", "programming-languages"],
-      "tags": ["immutability", "pure-functions", "higher-order-functions", "lambda-calculus", "declarative"],
-      "sourceIds": ["src-backus-1978-fp", "src-pierce-tapl"],
+      "domains": [
+        "computer-science",
+        "programming-languages"
+      ],
+      "tags": [
+        "immutability",
+        "pure-functions",
+        "higher-order-functions",
+        "lambda-calculus",
+        "declarative"
+      ],
+      "sourceIds": [
+        "src-backus-1978-fp",
+        "src-pierce-tapl"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["FP", "Functional Paradigm"]
+      "aliases": [
+        "FP",
+        "Functional Paradigm"
+      ]
     },
     {
       "id": "concept-asynchronous-io",
@@ -563,11 +805,27 @@
       "name": "Asynchronous I/O",
       "shortDescription": "A non-blocking input/output processing mechanism allowing an execution thread to initiate I/O operations and proceed with other work before data transfer completes.",
       "description": "Asynchronous I/O eliminates blocking system call overhead by decoupling the initiation of an I/O request (such as reading a socket or writing a file) from its eventual completion. Operating system event demultiplexers (such as Linux epoll, BSD kqueue, or Windows IOCP) notify an application's event loop when descriptors become ready, enabling single threads to efficiently handle tens of thousands of concurrent connections.",
-      "domains": ["computer-science", "systems-architecture"],
-      "tags": ["non-blocking", "event-loop", "epoll", "io-multiplexing", "system-calls"],
-      "sourceIds": ["src-posix-base-spec", "src-arpaci-ostep"],
+      "domains": [
+        "computer-science",
+        "systems-architecture"
+      ],
+      "tags": [
+        "non-blocking",
+        "event-loop",
+        "epoll",
+        "io-multiplexing",
+        "system-calls"
+      ],
+      "sourceIds": [
+        "src-posix-base-spec",
+        "src-arpaci-ostep"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Async I/O", "Non-blocking I/O", "Event-Driven I/O"]
+      "aliases": [
+        "Async I/O",
+        "Non-blocking I/O",
+        "Event-Driven I/O"
+      ]
     },
     {
       "id": "concept-computer-graphics",
@@ -575,11 +833,26 @@
       "name": "Computer Graphics",
       "shortDescription": "The subfield of computer science focused on computationally generating, manipulating, and rendering visual images, 3D geometry, and animations.",
       "description": "Computer graphics translates mathematical descriptions of 3D virtual scenes into 2D rasterized pixel grids or simulated photon paths. Modern graphics systems leverage linear algebra transformations, projection matrices, lighting approximations (Phong, physically based rendering), and parallel hardware graphics processing units (GPUs) executing programmable vertex and fragment shaders.",
-      "domains": ["computer-science", "computer-graphics"],
-      "tags": ["rendering", "rasterization", "ray-tracing", "shaders", "gpu-pipeline"],
-      "sourceIds": ["src-foley-graphics", "src-shirley-graphics"],
+      "domains": [
+        "computer-science",
+        "computer-graphics"
+      ],
+      "tags": [
+        "rendering",
+        "rasterization",
+        "ray-tracing",
+        "shaders",
+        "gpu-pipeline"
+      ],
+      "sourceIds": [
+        "src-foley-graphics",
+        "src-shirley-graphics"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Digital Imaging", "3D Rendering"]
+      "aliases": [
+        "Digital Imaging",
+        "3D Rendering"
+      ]
     },
     {
       "id": "concept-open-source",
@@ -587,11 +860,28 @@
       "name": "Open Source Software",
       "shortDescription": "A collaborative software development and licensing model where source code is made publicly available for inspection, modification, and redistribution under permissive or copyleft licenses.",
       "description": "Open source software establishes a public commons of code governed by legal licenses (such as MIT, Apache 2.0, or GPL) that guarantee transparency, inspectability, and the right to fork and improve tools. This paradigm transforms software engineering from isolated corporate silos into global collaborative ecosystems, underpinning foundational internet protocols, operating systems, and developer tools.",
-      "domains": ["computer-science", "software-engineering", "civilization"],
-      "tags": ["licensing", "collaboration", "permissive-license", "copyleft", "public-software"],
-      "sourceIds": ["src-osi-definition", "src-raymond-cathedral"],
+      "domains": [
+        "computer-science",
+        "software-engineering",
+        "civilization"
+      ],
+      "tags": [
+        "licensing",
+        "collaboration",
+        "permissive-license",
+        "copyleft",
+        "public-software"
+      ],
+      "sourceIds": [
+        "src-osi-definition",
+        "src-raymond-cathedral"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["FOSS", "FLOSS", "Open Source"]
+      "aliases": [
+        "FOSS",
+        "FLOSS",
+        "Open Source"
+      ]
     },
     {
       "id": "concept-database-systems",
@@ -599,11 +889,26 @@
       "name": "Database Systems",
       "shortDescription": "Software systems designed to systematically define, store, query, and maintain structured data collections while guaranteeing transactional consistency and durability.",
       "description": "Database management systems (DBMS) provide structured data storage independent of physical file layouts. Through declarative query languages (such as SQL) grounded in relational algebra, indexing data structures (B+ trees, LSM trees), write-ahead logging (WAL), and concurrency control (two-phase locking or multi-version concurrency control), database systems enforce ACID transaction properties across concurrent access.",
-      "domains": ["computer-science", "systems-architecture"],
-      "tags": ["relational-model", "acid", "sql", "transactions", "indexing"],
-      "sourceIds": ["src-silberschatz-db", "src-codd-1970-relational"],
+      "domains": [
+        "computer-science",
+        "systems-architecture"
+      ],
+      "tags": [
+        "relational-model",
+        "acid",
+        "sql",
+        "transactions",
+        "indexing"
+      ],
+      "sourceIds": [
+        "src-silberschatz-db",
+        "src-codd-1970-relational"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["DBMS", "Database Management Systems"]
+      "aliases": [
+        "DBMS",
+        "Database Management Systems"
+      ]
     }
   ],
   "relationships": [
@@ -614,7 +919,10 @@
       "type": "leads-to",
       "explanation": "Compilers translate structured source code representations through optimization passes to emit executable machine code targeted to specific CPU architectures.",
       "strength": "primary",
-      "sourceIds": ["src-dragon-book", "src-cooper-compiler"],
+      "sourceIds": [
+        "src-dragon-book",
+        "src-cooper-compiler"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -624,17 +932,23 @@
       "type": "uses",
       "explanation": "Compilers invoke type-checking phases during semantic analysis to enforce type safety rules and prevent runtime evaluation errors before machine code generation.",
       "strength": "primary",
-      "sourceIds": ["src-dragon-book", "src-pierce-tapl"],
+      "sourceIds": [
+        "src-dragon-book",
+        "src-pierce-tapl"
+      ],
       "reviewStatus": "needs-review"
     },
     {
       "id": "rel-rust-compilers",
       "sourceConceptId": "concept-rust",
       "targetConceptId": "concept-compilers",
-      "type": "implemented-with",
-      "explanation": "The Rust language relies on a specialized compiler (rustc/LLVM) to perform borrow checking, lifetime validation, and monomorphization before emitting optimized binary code.",
+      "type": "depends-on",
+      "explanation": "Rust program compilation depends on optimizing compiler toolchains (such as rustc and LLVM) to enforce borrow-checker invariants, type safety, and generate efficient native machine code.",
       "strength": "primary",
-      "sourceIds": ["src-rust-book", "src-dragon-book"],
+      "sourceIds": [
+        "src-rust-book",
+        "src-dragon-book"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -644,7 +958,10 @@
       "type": "uses",
       "explanation": "Rust extends classical type systems with affine types and lifetime bounds to statically ensure memory safety without runtime garbage collection.",
       "strength": "primary",
-      "sourceIds": ["src-rust-book", "src-pierce-tapl"],
+      "sourceIds": [
+        "src-rust-book",
+        "src-pierce-tapl"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -654,7 +971,10 @@
       "type": "depends-on",
       "explanation": "Machine code instructions are decoded and executed directly by CPU arithmetic logic units, registers, and execution pipelines.",
       "strength": "primary",
-      "sourceIds": ["src-patterson-hennessy-cod", "src-intel-sdm"],
+      "sourceIds": [
+        "src-patterson-hennessy-cod",
+        "src-intel-sdm"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -664,7 +984,10 @@
       "type": "uses",
       "explanation": "CPUs realize the architectural specification and instruction encoding defined by their instruction set architecture.",
       "strength": "primary",
-      "sourceIds": ["src-patterson-hennessy-cod", "src-riscv-spec"],
+      "sourceIds": [
+        "src-patterson-hennessy-cod",
+        "src-riscv-spec"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -674,7 +997,10 @@
       "type": "manages",
       "explanation": "Operating systems construct and manage virtual memory page tables to isolate user processes and coordinate hardware memory management units.",
       "strength": "primary",
-      "sourceIds": ["src-denning-virtual-memory", "src-arpaci-ostep"],
+      "sourceIds": [
+        "src-denning-virtual-memory",
+        "src-arpaci-ostep"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -684,7 +1010,10 @@
       "type": "manages",
       "explanation": "Virtual memory maps isolated logical process addresses onto physical memory frames while swapping inactive segments to disk.",
       "strength": "primary",
-      "sourceIds": ["src-denning-virtual-memory", "src-bryant-csapp"],
+      "sourceIds": [
+        "src-denning-virtual-memory",
+        "src-bryant-csapp"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -694,7 +1023,10 @@
       "type": "depends-on",
       "explanation": "Thread-level concurrency depends on the operating system kernel for thread scheduling, context switching, and inter-thread synchronization primitives.",
       "strength": "primary",
-      "sourceIds": ["src-arpaci-ostep", "src-herlihy-multiprocessor"],
+      "sourceIds": [
+        "src-arpaci-ostep",
+        "src-herlihy-multiprocessor"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -704,7 +1036,10 @@
       "type": "depends-on",
       "explanation": "Distributed systems rely on underlying computer networks to pass messages between physically separated nodes that share no physical memory.",
       "strength": "primary",
-      "sourceIds": ["src-tanenbaum-distributed", "src-kurose-ross"],
+      "sourceIds": [
+        "src-tanenbaum-distributed",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -714,7 +1049,10 @@
       "type": "related-to",
       "explanation": "Cryptographic protocols such as TLS and IPSec protect data confidentiality and integrity across open, untrusted computer networks.",
       "strength": "strong",
-      "sourceIds": ["src-katz-lindell-crypto", "src-kurose-ross"],
+      "sourceIds": [
+        "src-katz-lindell-crypto",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -724,7 +1062,10 @@
       "type": "uses",
       "explanation": "Algorithms operate on and manipulate specialized data structures to achieve optimal time and space computational efficiency.",
       "strength": "primary",
-      "sourceIds": ["src-cormen-clrs", "src-knuth-taocp-v1"],
+      "sourceIds": [
+        "src-cormen-clrs",
+        "src-knuth-taocp-v1"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -734,7 +1075,10 @@
       "type": "implemented-with",
       "explanation": "Digital logic gates are implemented by interconnecting transistors to form switching circuits that execute Boolean functions.",
       "strength": "primary",
-      "sourceIds": ["src-shannon-1938-relay", "src-sze-semiconductor"],
+      "sourceIds": [
+        "src-shannon-1938-relay",
+        "src-sze-semiconductor"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -744,7 +1088,10 @@
       "type": "implemented-with",
       "explanation": "Transistors are manufactured using semiconductor materials whose conductive properties are modulated by doping and electric gate voltages.",
       "strength": "primary",
-      "sourceIds": ["src-sze-semiconductor", "src-streetman-solid-state"],
+      "sourceIds": [
+        "src-sze-semiconductor",
+        "src-streetman-solid-state"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -754,7 +1101,10 @@
       "type": "contrasts-with",
       "explanation": "Garbage collection automatically identifies and reclaims unreachable heap allocations at runtime, contrasting with Rust's compile-time ownership model.",
       "strength": "primary",
-      "sourceIds": ["src-jones-gc-handbook", "src-rust-book"],
+      "sourceIds": [
+        "src-jones-gc-handbook",
+        "src-rust-book"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -764,7 +1114,10 @@
       "type": "part-of",
       "explanation": "File systems operate as a core component of operating system kernels to manage structured, durable persistent storage access.",
       "strength": "primary",
-      "sourceIds": ["src-arpaci-ostep", "src-tanenbaum-mos"],
+      "sourceIds": [
+        "src-arpaci-ostep",
+        "src-tanenbaum-mos"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -774,7 +1127,10 @@
       "type": "uses",
       "explanation": "Functional programming paradigms leverage advanced type systems (such as algebraic data types and parametric polymorphism) to verify program correctness.",
       "strength": "strong",
-      "sourceIds": ["src-backus-1978-fp", "src-pierce-tapl"],
+      "sourceIds": [
+        "src-backus-1978-fp",
+        "src-pierce-tapl"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -784,7 +1140,10 @@
       "type": "uses",
       "explanation": "Asynchronous I/O utilizes operating system notification facilities (such as epoll and kqueue) to execute non-blocking event loops.",
       "strength": "primary",
-      "sourceIds": ["src-posix-base-spec", "src-arpaci-ostep"],
+      "sourceIds": [
+        "src-posix-base-spec",
+        "src-arpaci-ostep"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -794,7 +1153,10 @@
       "type": "uses",
       "explanation": "Computer graphics applies geometric, spatial partitioning, and rasterization algorithms to render 3D scenes into 2D display frames.",
       "strength": "primary",
-      "sourceIds": ["src-foley-graphics", "src-cormen-clrs"],
+      "sourceIds": [
+        "src-foley-graphics",
+        "src-cormen-clrs"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -804,7 +1166,10 @@
       "type": "depends-on",
       "explanation": "Database engines write data pages, index structures, and transaction write-ahead logs to underlying file systems or raw block storage devices.",
       "strength": "primary",
-      "sourceIds": ["src-silberschatz-db", "src-arpaci-ostep"],
+      "sourceIds": [
+        "src-silberschatz-db",
+        "src-arpaci-ostep"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -814,7 +1179,10 @@
       "type": "uses",
       "explanation": "Database systems rely on specialized indexing data structures, such as B+ trees and hash indices, to locate records in logarithmic time.",
       "strength": "primary",
-      "sourceIds": ["src-silberschatz-db", "src-cormen-clrs"],
+      "sourceIds": [
+        "src-silberschatz-db",
+        "src-cormen-clrs"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -824,7 +1192,10 @@
       "type": "related-to",
       "explanation": "Collaborative open source development drove the creation and global adoption of production operating system kernels, most prominently Linux.",
       "strength": "strong",
-      "sourceIds": ["src-raymond-cathedral", "src-osi-definition"],
+      "sourceIds": [
+        "src-raymond-cathedral",
+        "src-osi-definition"
+      ],
       "reviewStatus": "needs-review"
     }
   ]

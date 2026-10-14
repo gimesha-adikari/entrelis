@@ -13,7 +13,7 @@
       "publicationDate": "2018",
       "accessDate": "2026-10-14",
       "notes": "Historical exhibition and provenance records documenting Johannes Gutenberg's perfection of movable metal type printing in Mainz around 1455, marking the dawn of mass print communication.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -25,7 +25,7 @@
       "publicationDate": "2009-02-14",
       "accessDate": "2026-10-14",
       "notes": "Official IEEE milestone record commemorating Jack Kilby's 1958 invention of the monolithic integrated circuit at Texas Instruments and Robert Noyce's subsequent planar silicon IC at Fairchild.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -37,7 +37,7 @@
       "publicationDate": "2010-06-18",
       "accessDate": "2026-10-14",
       "notes": "Official IEEE milestone honoring the transmission of the first message over the ARPANET on October 29, 1969 between UCLA and SRI, pioneering packet switching networks.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -51,7 +51,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal paper presenting the Transmission Control Protocol (TCP) architecture, enabling decentralized inter-networking across heterogeneous packet-switched communication networks.",
       "doi": "10.1109/TCOM.1974.1092259",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -64,7 +64,7 @@
       "publicationDate": "1989-03",
       "accessDate": "2026-10-14",
       "notes": "The original proposal written at CERN formulating a universal linked hypertext information system based on uniform resource identifiers (URIs), HTTP, and HTML.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -78,7 +78,7 @@
       "accessDate": "2026-10-14",
       "notes": "Historical document (originally issued June 30, 1945) formalizing the stored-program computer architecture: central arithmetic unit, central control unit, memory, and input/output organs.",
       "doi": "10.1109/85.238389",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -91,7 +91,7 @@
       "publicationDate": "2022",
       "accessDate": "2026-10-14",
       "notes": "Curatorial exhibition history detailing the development of incandescent electric lighting, dynamos, and the alternating-current electrical grid engineered by Edison, Tesla, and Westinghouse.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -104,7 +104,7 @@
       "publicationDate": "2023",
       "accessDate": "2026-10-14",
       "notes": "Authoritative historical treatise chronicling the Cold War technological trajectory of the Apollo program, Saturn V launch architecture, and the 1969 Apollo 11 lunar landing.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -117,7 +117,7 @@
       "publicationDate": "2015",
       "accessDate": "2026-10-14",
       "notes": "Archival documentation detailing the invention of the electromagnetic recording telegraph and Morse code in the 1830s-1840s, inaugurating the electronic telecommunications era.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     }
   ],
@@ -128,11 +128,26 @@
       "name": "The Printing Press & Movable Type",
       "shortDescription": "The 15th-century mechanical invention that mechanized text reproduction through movable metal type, democratizing literacy and knowledge dissemination across Europe.",
       "description": "Developed by Johannes Gutenberg in Mainz around 1450, the movable metal type press combined oil-based ink, adjustable hand molds, and screw-press mechanics. By reducing book production costs by orders of magnitude, it ended monastic copying monopolies, accelerated the Protestant Reformation, and provided the information distribution substrate for the Scientific Revolution.",
-      "domains": ["history", "civilization", "technology"],
-      "tags": ["gutenberg", "movable-type", "mass-communication", "renaissance", "information-revolution"],
-      "sourceIds": ["src-loc-gutenberg-bible"],
+      "domains": [
+        "history",
+        "civilization",
+        "technology"
+      ],
+      "tags": [
+        "gutenberg",
+        "movable-type",
+        "mass-communication",
+        "renaissance",
+        "information-revolution"
+      ],
+      "sourceIds": [
+        "src-loc-gutenberg-bible"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Gutenberg Press", "Movable Type Printing"]
+      "aliases": [
+        "Gutenberg Press",
+        "Movable Type Printing"
+      ]
     },
     {
       "id": "concept-scientific-revolution",
@@ -140,11 +155,25 @@
       "name": "The Scientific Revolution",
       "shortDescription": "A transformative historical period in early modern Europe (circa 1543–1687) that replaced scholastic natural philosophy with empirical experimentation and mathematical laws.",
       "description": "Bookended by Nicolaus Copernicus's heliocentric model and Isaac Newton's Principia Mathematica, the Scientific Revolution revolutionized human inquiry. Rejecting reliance on Aristotelian scholasticism, pioneers including Galileo Galilei, Johannes Kepler, and Francis Bacon established mathematical modeling, systematic observation with instruments (telescope, microscope), and reproducible experimentation.",
-      "domains": ["history", "history-of-science", "philosophy"],
-      "tags": ["copernicus", "galileo", "newton", "empiricism", "heliocentrism"],
-      "sourceIds": ["src-sep-scientific-method"],
+      "domains": [
+        "history",
+        "history-of-science",
+        "philosophy"
+      ],
+      "tags": [
+        "copernicus",
+        "galileo",
+        "newton",
+        "empiricism",
+        "heliocentrism"
+      ],
+      "sourceIds": [
+        "src-sep-scientific-method"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Early Modern Scientific Revolution"]
+      "aliases": [
+        "Early Modern Scientific Revolution"
+      ]
     },
     {
       "id": "concept-industrial-revolution",
@@ -152,11 +181,25 @@
       "name": "The Industrial Revolution",
       "shortDescription": "The socioeconomic transition from agrarian handicraft economies to machine-driven industrial manufacturing, powered by fossil fuels and steam engines.",
       "description": "Originating in Great Britain during the mid-18th century, the Industrial Revolution mechanized textile production, revolutionized iron smelting via coking coal, and replaced muscle and water power with steam engines. It restructured human civilization through urbanization, factory systems, international trade networks, and rapid technological acceleration.",
-      "domains": ["history", "civilization", "technology"],
-      "tags": ["mechanization", "steam-power", "factory-system", "urbanization", "modernity"],
-      "sourceIds": ["src-smithsonian-lighting-revolution"],
+      "domains": [
+        "history",
+        "civilization",
+        "technology"
+      ],
+      "tags": [
+        "mechanization",
+        "steam-power",
+        "factory-system",
+        "urbanization",
+        "modernity"
+      ],
+      "sourceIds": [
+        "src-smithsonian-lighting-revolution"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["First Industrial Revolution"]
+      "aliases": [
+        "First Industrial Revolution"
+      ]
     },
     {
       "id": "concept-harnessing-electricity",
@@ -164,11 +207,26 @@
       "name": "Harnessing Electricity",
       "shortDescription": "The scientific discovery, generation, and commercial distribution of electric power and lighting that formed the technological foundation of modern industrial civilization.",
       "description": "Evolving from Faraday's discovery of electromagnetic induction to the late-19th-century 'War of the Currents' between Thomas Edison's direct current (DC) and Nikola Tesla/George Westinghouse's alternating current (AC), the electrification of cities created the universal power grid, electrifying factories, homes, and global communications.",
-      "domains": ["history", "technology", "physics"],
-      "tags": ["electrical-grid", "edison", "tesla", "faraday", "alternating-current"],
-      "sourceIds": ["src-smithsonian-lighting-revolution"],
+      "domains": [
+        "history",
+        "technology",
+        "physics"
+      ],
+      "tags": [
+        "electrical-grid",
+        "edison",
+        "tesla",
+        "faraday",
+        "alternating-current"
+      ],
+      "sourceIds": [
+        "src-smithsonian-lighting-revolution"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Electrification", "The Electric Power Revolution"]
+      "aliases": [
+        "Electrification",
+        "The Electric Power Revolution"
+      ]
     },
     {
       "id": "concept-telecommunications",
@@ -176,11 +234,26 @@
       "name": "Telecommunications & Telegraphy",
       "shortDescription": "The transmission of information and signals across long distances using electromagnetic media, beginning with the electrical telegraph in the 19th century.",
       "description": "Inaugurated by Samuel Morse's 1844 telegraph and transoceanic submarine telegraph cables, electrical telecommunications decoupled information transmission speed from the physical transportation of paper. Subsequent telephone networks and wireless radio broadcasting transformed financial markets, diplomacy, warfare, and social connectivity.",
-      "domains": ["history", "technology", "telecommunications"],
-      "tags": ["telegraph", "morse-code", "submarine-cables", "telephone", "long-distance-communication"],
-      "sourceIds": ["src-loc-morse-telegraph"],
+      "domains": [
+        "history",
+        "technology",
+        "telecommunications"
+      ],
+      "tags": [
+        "telegraph",
+        "morse-code",
+        "submarine-cables",
+        "telephone",
+        "long-distance-communication"
+      ],
+      "sourceIds": [
+        "src-loc-morse-telegraph"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Electric Telegraphy", "Telecommunications History"]
+      "aliases": [
+        "Electric Telegraphy",
+        "Telecommunications History"
+      ]
     },
     {
       "id": "concept-transistor-invention",
@@ -188,11 +261,26 @@
       "name": "Invention of the Transistor",
       "shortDescription": "The 1947 breakthrough at Bell Laboratories that produced the first solid-state semiconductor amplifier, replacing fragile, power-hungry vacuum tubes.",
       "description": "Invented in December 1947 by John Bardeen, Walter Brattain, and William Shockley at Bell Labs, the point-contact and subsequent junction transistors utilized semiconductor physics to switch and amplify currents without heated filaments or moving parts, launching the microelectronics era.",
-      "domains": ["history", "technology", "physics"],
-      "tags": ["bell-labs", "bardeen", "brattain", "shockley", "solid-state-revolution"],
-      "sourceIds": ["src-ieee-transistor-milestone"],
+      "domains": [
+        "history",
+        "technology",
+        "physics"
+      ],
+      "tags": [
+        "bell-labs",
+        "bardeen",
+        "brattain",
+        "shockley",
+        "solid-state-revolution"
+      ],
+      "sourceIds": [
+        "src-ieee-transistor-milestone"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Point-Contact Transistor", "1947 Bell Labs Breakthrough"]
+      "aliases": [
+        "Point-Contact Transistor",
+        "1947 Bell Labs Breakthrough"
+      ]
     },
     {
       "id": "concept-integrated-circuit",
@@ -200,11 +288,27 @@
       "name": "The Integrated Circuit",
       "shortDescription": "The microelectronic breakthrough of fabricating multiple interconnected transistors, diodes, and resistors onto a single monolithic semiconductor chip.",
       "description": "Invented independently by Jack Kilby (hybrid germanium circuit, 1958) and Robert Noyce (monolithic silicon planar IC, 1959), the integrated circuit solved the 'tyranny of numbers' by eliminating manual wire interconnections, enabling exponential scaling in computing density and reliability described by Moore's Law.",
-      "domains": ["history", "technology", "hardware"],
-      "tags": ["microchip", "kilby", "noyce", "planar-process", "moores-law"],
-      "sourceIds": ["src-ethw-integrated-circuit"],
+      "domains": [
+        "history",
+        "technology",
+        "hardware"
+      ],
+      "tags": [
+        "microchip",
+        "kilby",
+        "noyce",
+        "planar-process",
+        "moores-law"
+      ],
+      "sourceIds": [
+        "src-ethw-integrated-circuit"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Microchip", "IC", "Monolithic Integrated Circuit"]
+      "aliases": [
+        "Microchip",
+        "IC",
+        "Monolithic Integrated Circuit"
+      ]
     },
     {
       "id": "concept-history-of-computing",
@@ -212,11 +316,25 @@
       "name": "History of Computing",
       "shortDescription": "The evolutionary trajectory of automated calculation machines from mechanical calculators to programmable electronic digital computers.",
       "description": "Spanning Charles Babbage's Analytical Engine and Ada Lovelace's first computer algorithm in the 1840s to electromechanical codebreakers and giant electronic vacuum-tube systems like ENIAC (1945), computing evolved from specialized arithmetic calculators into general-purpose, stored-program information processors.",
-      "domains": ["history", "computer-science"],
-      "tags": ["babbage", "ada-lovelace", "eniac", "stored-program", "computing-pioneers"],
-      "sourceIds": ["src-von-neumann-1945-edvac"],
+      "domains": [
+        "history",
+        "computer-science"
+      ],
+      "tags": [
+        "babbage",
+        "ada-lovelace",
+        "eniac",
+        "stored-program",
+        "computing-pioneers"
+      ],
+      "sourceIds": [
+        "src-von-neumann-1945-edvac"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Computing History", "Evolution of Computers"]
+      "aliases": [
+        "Computing History",
+        "Evolution of Computers"
+      ]
     },
     {
       "id": "concept-turing-machine-history",
@@ -224,11 +342,26 @@
       "name": "The 1936 Turing Universal Machine",
       "shortDescription": "The historic 1936 theoretical formulation of a universal tape-manipulating computing machine that mathematically defined the limits and nature of mechanical calculation.",
       "description": "In his seminal 1936 paper resolving Hilbert's Entscheidungsproblem, Alan Turing conceptualized an abstract machine consisting of a tape, read/write head, and transition table. Critically, he introduced the Universal Turing Machine—a single machine capable of simulating any other machine by reading its description, establishing the stored-program computing paradigm.",
-      "domains": ["history", "computer-science", "mathematics"],
-      "tags": ["turing-1936", "universal-machine", "entscheidungsproblem", "theoretical-foundations", "stored-program"],
-      "sourceIds": ["src-turing-1936-computable"],
+      "domains": [
+        "history",
+        "computer-science",
+        "mathematics"
+      ],
+      "tags": [
+        "turing-1936",
+        "universal-machine",
+        "entscheidungsproblem",
+        "theoretical-foundations",
+        "stored-program"
+      ],
+      "sourceIds": [
+        "src-turing-1936-computable"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Universal Turing Machine", "1936 Turing Paper"]
+      "aliases": [
+        "Universal Turing Machine",
+        "1936 Turing Paper"
+      ]
     },
     {
       "id": "concept-internet-history",
@@ -236,11 +369,26 @@
       "name": "History of the Internet & TCP/IP",
       "shortDescription": "The historical development and standardization of global interconnected packet networks governed by open protocol suites.",
       "description": "Pioneered by Vinton Cerf and Robert Kahn in 1974, the Internet architecture separated network routing from host-to-host reliability through TCP/IP. Transitioning from military and academic ARPANET roots in the 1980s, the Internet expanded into a resilient, decentralized global communications commons supporting commerce, science, and public discourse.",
-      "domains": ["history", "telecommunications", "computer-science"],
-      "tags": ["tcp-ip", "cerf-kahn", "packet-networking", "inter-networking", "global-commons"],
-      "sourceIds": ["src-cerf-kahn-1974-tcp"],
+      "domains": [
+        "history",
+        "telecommunications",
+        "computer-science"
+      ],
+      "tags": [
+        "tcp-ip",
+        "cerf-kahn",
+        "packet-networking",
+        "inter-networking",
+        "global-commons"
+      ],
+      "sourceIds": [
+        "src-cerf-kahn-1974-tcp"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Internet Evolution", "History of TCP/IP"]
+      "aliases": [
+        "Internet Evolution",
+        "History of TCP/IP"
+      ]
     },
     {
       "id": "concept-arpanet",
@@ -248,11 +396,25 @@
       "name": "ARPANET & Packet Switching",
       "shortDescription": "The pioneering packet-switching network commissioned by the U.S. Department of Defense's Advanced Research Projects Agency (DARPA) in 1969.",
       "description": "Conceived by J. C. R. Licklider, Paul Baran, Donald Davies, and Larry Roberts, ARPANET replaced vulnerable circuit-switched communications with distributed packet switching. Deploying minicomputer Interface Message Processors (IMPs) between university nodes, ARPANET served as the operational testbed that gave birth to the modern Internet.",
-      "domains": ["history", "computer-science", "telecommunications"],
-      "tags": ["darpa", "packet-switching", "imp", "kleinrock", "network-history"],
-      "sourceIds": ["src-ethw-arpanet-1969"],
+      "domains": [
+        "history",
+        "computer-science",
+        "telecommunications"
+      ],
+      "tags": [
+        "darpa",
+        "packet-switching",
+        "imp",
+        "kleinrock",
+        "network-history"
+      ],
+      "sourceIds": [
+        "src-ethw-arpanet-1969"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Advanced Research Projects Agency Network"]
+      "aliases": [
+        "Advanced Research Projects Agency Network"
+      ]
     },
     {
       "id": "concept-world-wide-web",
@@ -260,11 +422,27 @@
       "name": "The World Wide Web",
       "shortDescription": "The global hypertext information system invented by Tim Berners-Lee in 1989, enabling documents and resources to be interconnected via URLs, HTTP, and HTML.",
       "description": "Invented at CERN by Tim Berners-Lee to facilitate collaborative scientific document sharing, the World Wide Web unified global internet resources through Uniform Resource Locators (URLs), Hypertext Transfer Protocol (HTTP), and Hypertext Markup Language (HTML). Made royalty-free, the Web transformed the Internet into a universal, accessible information medium.",
-      "domains": ["history", "computer-science", "civilization"],
-      "tags": ["berners-lee", "cern", "http", "html", "hypertext"],
-      "sourceIds": ["src-berners-lee-1989-proposal"],
+      "domains": [
+        "history",
+        "computer-science",
+        "civilization"
+      ],
+      "tags": [
+        "berners-lee",
+        "cern",
+        "http",
+        "html",
+        "hypertext"
+      ],
+      "sourceIds": [
+        "src-berners-lee-1989-proposal"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["WWW", "The Web", "W3"]
+      "aliases": [
+        "WWW",
+        "The Web",
+        "W3"
+      ]
     },
     {
       "id": "concept-space-race",
@@ -272,11 +450,26 @@
       "name": "The Space Race & Apollo Program",
       "shortDescription": "The mid-20th-century technological and ideological competition between the United States and Soviet Union to achieve human spaceflight and reach the Moon.",
       "description": "Triggered by the Soviet launch of Sputnik 1 in 1957, the Space Race accelerated breakthroughs in rocketry, telemetry, guidance computing, and materials science. Culminating in NASA's Apollo 11 lunar landing in July 1969, the program demonstrated massive mission-oriented technological management and established the orbital space age.",
-      "domains": ["history", "space", "technology"],
-      "tags": ["apollo-11", "sputnik", "cold-war", "nasa", "lunar-landing"],
-      "sourceIds": ["src-smithsonian-apollo-history"],
+      "domains": [
+        "history",
+        "space",
+        "technology"
+      ],
+      "tags": [
+        "apollo-11",
+        "sputnik",
+        "cold-war",
+        "nasa",
+        "lunar-landing"
+      ],
+      "sourceIds": [
+        "src-smithsonian-apollo-history"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Space Race", "Apollo Project"]
+      "aliases": [
+        "Space Race",
+        "Apollo Project"
+      ]
     },
     {
       "id": "concept-satellite-technology",
@@ -284,11 +477,26 @@
       "name": "Satellite Technology & Orbital Communications",
       "shortDescription": "The engineering discipline of placing artificial payloads into stable Earth orbits to provide global communication relays, navigation, and environmental observation.",
       "description": "First articulated conceptually by Arthur C. Clarke in 1945 and realized with Telstar 1 in 1962, artificial satellites in geostationary, medium, and low Earth orbits transformed global telecommunications, weather forecasting, defense surveillance, and satellite positioning systems (such as GPS).",
-      "domains": ["technology", "space", "telecommunications"],
-      "tags": ["orbital-satellites", "geostationary", "gps", "telecom-satellites", "earth-observation"],
-      "sourceIds": ["src-curtis-orbital-mechanics"],
+      "domains": [
+        "technology",
+        "space",
+        "telecommunications"
+      ],
+      "tags": [
+        "orbital-satellites",
+        "geostationary",
+        "gps",
+        "telecom-satellites",
+        "earth-observation"
+      ],
+      "sourceIds": [
+        "src-curtis-orbital-mechanics"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Artificial Satellites", "Satellite Communications"]
+      "aliases": [
+        "Artificial Satellites",
+        "Satellite Communications"
+      ]
     },
     {
       "id": "concept-information-age",
@@ -296,11 +504,27 @@
       "name": "The Information Age & Digital Revolution",
       "shortDescription": "The contemporary historical era characterized by the rapid transition from traditional industrial economy to an economy based on information technology.",
       "description": "Underpinned by microelectronics, personal computers, software ecosystems, and high-speed telecommunications networks, the Information Age restructured human civilization. Digital data creation, automated computation, and instantaneous global connectivity redefined global finance, manufacturing, governance, and culture.",
-      "domains": ["history", "civilization", "technology"],
-      "tags": ["digital-revolution", "digital-economy", "mass-connectivity", "knowledge-society", "modern-era"],
-      "sourceIds": ["src-raymond-cathedral", "src-berners-lee-1989-proposal"],
+      "domains": [
+        "history",
+        "civilization",
+        "technology"
+      ],
+      "tags": [
+        "digital-revolution",
+        "digital-economy",
+        "mass-connectivity",
+        "knowledge-society",
+        "modern-era"
+      ],
+      "sourceIds": [
+        "src-raymond-cathedral",
+        "src-berners-lee-1989-proposal"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Digital Age", "Computer Age"]
+      "aliases": [
+        "Digital Age",
+        "Computer Age"
+      ]
     },
     {
       "id": "concept-steam-engine",
@@ -308,11 +532,26 @@
       "name": "The Steam Engine & Thermodynamics",
       "shortDescription": "The external combustion heat engine that converts thermal energy of pressurized steam into mechanical work, catalyzing the Industrial Revolution.",
       "description": "Evolving from Thomas Newcomen's atmospheric engine to James Watt's separate-condenser design, the steam engine liberated mechanical power from geographical dependence on flowing water. Analyzing the theoretical thermodynamic efficiency of steam engines inspired Sadi Carnot's foundational work that birthed classical thermodynamics.",
-      "domains": ["history", "technology", "physics"],
-      "tags": ["watt", "newcomen", "heat-engine", "carnot", "industrial-power"],
-      "sourceIds": ["src-callen-thermodynamics"],
+      "domains": [
+        "history",
+        "technology",
+        "physics"
+      ],
+      "tags": [
+        "watt",
+        "newcomen",
+        "heat-engine",
+        "carnot",
+        "industrial-power"
+      ],
+      "sourceIds": [
+        "src-callen-thermodynamics"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Steam Power", "Watt Steam Engine"]
+      "aliases": [
+        "Steam Power",
+        "Watt Steam Engine"
+      ]
     },
     {
       "id": "concept-cold-war-technology",
@@ -320,11 +559,27 @@
       "name": "Cold War & Defense-Driven R&D",
       "shortDescription": "The post-WWII geopolitical rivalry between superpowers that funded and accelerated landmark technological breakthroughs in computing, aerospace, and networking.",
       "description": "The strategic standoff between the Western and Eastern blocs mobilized national scientific budgets on an unprecedented scale. Cold War defense initiatives directly funded radar development, the SAGE computer air defense system, silicon microelectronics, satellite surveillance, the Apollo space program, and the ARPANET.",
-      "domains": ["history", "civilization", "technology"],
-      "tags": ["darpa", "defense-rd", "geopolitics", "superpower-rivalry", "aerospace"],
-      "sourceIds": ["src-ethw-arpanet-1969", "src-smithsonian-apollo-history"],
+      "domains": [
+        "history",
+        "civilization",
+        "technology"
+      ],
+      "tags": [
+        "darpa",
+        "defense-rd",
+        "geopolitics",
+        "superpower-rivalry",
+        "aerospace"
+      ],
+      "sourceIds": [
+        "src-ethw-arpanet-1969",
+        "src-smithsonian-apollo-history"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Cold War R&D", "Military-Industrial-Academic Complex"]
+      "aliases": [
+        "Cold War R&D",
+        "Military-Industrial-Academic Complex"
+      ]
     },
     {
       "id": "concept-microprocessor-revolution",
@@ -332,11 +587,26 @@
       "name": "The Microprocessor Revolution",
       "shortDescription": "The technological leap of integrating an entire central processing unit onto a single silicon chip, democratizing personal computing.",
       "description": "Triggered by the commercial introduction of the Intel 4004 in 1971, designed by Federico Faggin, Ted Hoff, and Stanley Mazor, microprocessors collapsed multiple circuit boards into a single microchip. This miniaturization powered the personal computer revolution (Apple, IBM PC) and embedded computing across modern appliances.",
-      "domains": ["history", "technology", "hardware"],
-      "tags": ["intel-4004", "microprocessors", "personal-computing", "faggin", "silicon-valley"],
-      "sourceIds": ["src-patterson-hennessy-cod"],
+      "domains": [
+        "history",
+        "technology",
+        "hardware"
+      ],
+      "tags": [
+        "intel-4004",
+        "microprocessors",
+        "personal-computing",
+        "faggin",
+        "silicon-valley"
+      ],
+      "sourceIds": [
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Microprocessor Era", "Personal Computer Revolution"]
+      "aliases": [
+        "Microprocessor Era",
+        "Personal Computer Revolution"
+      ]
     },
     {
       "id": "concept-von-neumann-architecture",
@@ -344,11 +614,27 @@
       "name": "Von Neumann Architecture",
       "shortDescription": "A theoretical and practical computer design model where instructions and data are stored in the same physical or addressable memory space.",
       "description": "Articulated in John von Neumann's 1945 EDVAC report (building on discussions with Eckert and Mauchly), this architecture outlines five primary units: arithmetic logic unit, control unit, memory, input/output, and bus interfaces. By treating program instructions identically to numeric data in memory, it established the foundational blueprint of modern general-purpose digital computers.",
-      "domains": ["computer-architecture", "history", "computer-science"],
-      "tags": ["stored-program", "edvac", "instruction-cycle", "fetch-decode-execute", "von-neumann-bottleneck"],
-      "sourceIds": ["src-von-neumann-1945-edvac", "src-patterson-hennessy-cod"],
+      "domains": [
+        "computer-architecture",
+        "history",
+        "computer-science"
+      ],
+      "tags": [
+        "stored-program",
+        "edvac",
+        "instruction-cycle",
+        "fetch-decode-execute",
+        "von-neumann-bottleneck"
+      ],
+      "sourceIds": [
+        "src-von-neumann-1945-edvac",
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Stored-Program Concept", "Von Neumann Model"]
+      "aliases": [
+        "Stored-Program Concept",
+        "Von Neumann Model"
+      ]
     },
     {
       "id": "concept-writing-systems",
@@ -356,11 +642,26 @@
       "name": "Writing Systems & Knowledge Records",
       "shortDescription": "The historical invention of visual symbolic systems (cuneiform, hieroglyphs, alphabets) that enabled human societies to record and preserve language across time and space.",
       "description": "Originating in ancient Mesopotamia, Egypt, and China around the 4th millennium BCE, writing systems transformed ephemeral spoken human language into durable external symbolic records. Enabling legal codes, administration, mathematics, literature, and cumulative scientific knowledge, writing represents the foundational intellectual technology of human civilization.",
-      "domains": ["history", "civilization", "linguistics"],
-      "tags": ["cuneiform", "alphabet", "symbolic-records", "literacy", "early-civilization"],
-      "sourceIds": ["src-loc-gutenberg-bible"],
+      "domains": [
+        "history",
+        "civilization",
+        "linguistics"
+      ],
+      "tags": [
+        "cuneiform",
+        "alphabet",
+        "symbolic-records",
+        "literacy",
+        "early-civilization"
+      ],
+      "sourceIds": [
+        "src-loc-gutenberg-bible"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Invention of Writing", "Written Records"]
+      "aliases": [
+        "Invention of Writing",
+        "Written Records"
+      ]
     }
   ],
   "relationships": [
@@ -371,7 +672,9 @@
       "type": "leads-to",
       "explanation": "The 1947 breakthrough at Bell Laboratories directly produced the semiconductor transistor, launching modern solid-state electronics.",
       "strength": "primary",
-      "sourceIds": ["src-ieee-transistor-milestone"],
+      "sourceIds": [
+        "src-ieee-transistor-milestone"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -381,7 +684,10 @@
       "type": "uses",
       "explanation": "Integrated circuits manufacture microscopic networks of interconnected transistors directly on monolithic semiconductor wafers.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-integrated-circuit", "src-patterson-hennessy-cod"],
+      "sourceIds": [
+        "src-ethw-integrated-circuit",
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -391,7 +697,10 @@
       "type": "depends-on",
       "explanation": "The microprocessor revolution was enabled by high-density silicon integrated circuit planar processes that could place complete CPUs on a single die.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-integrated-circuit", "src-patterson-hennessy-cod"],
+      "sourceIds": [
+        "src-ethw-integrated-circuit",
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -401,17 +710,22 @@
       "type": "leads-to",
       "explanation": "Microprocessors transformed CPUs from room-sized cabinets of discrete circuits into single-chip processors that power personal computers and mobile devices.",
       "strength": "primary",
-      "sourceIds": ["src-patterson-hennessy-cod"],
+      "sourceIds": [
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review"
     },
     {
       "id": "rel-von-neumann-architecture-cpus",
       "sourceConceptId": "concept-von-neumann-architecture",
       "targetConceptId": "concept-cpus",
-      "type": "part-of",
-      "explanation": "The Von Neumann architecture defines the central processing unit (ALU and control registers) as the core computational engine executing the instruction cycle.",
+      "type": "includes",
+      "explanation": "The Von Neumann architecture defines a stored-program computer model comprising a central processing unit (ALU and control unit) and memory systems.",
       "strength": "primary",
-      "sourceIds": ["src-von-neumann-1945-edvac", "src-patterson-hennessy-cod"],
+      "sourceIds": [
+        "src-von-neumann-1945-edvac",
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -421,7 +735,10 @@
       "type": "uses",
       "explanation": "In Von Neumann architecture, a single addressable memory subsystem stores both program instructions and runtime data values.",
       "strength": "primary",
-      "sourceIds": ["src-von-neumann-1945-edvac", "src-bryant-csapp"],
+      "sourceIds": [
+        "src-von-neumann-1945-edvac",
+        "src-bryant-csapp"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -431,7 +748,9 @@
       "type": "related-to",
       "explanation": "The theoretical Universal Turing Machine was invented by Alan Turing in his landmark 1936 paper on computable numbers.",
       "strength": "primary",
-      "sourceIds": ["src-turing-1936-computable"],
+      "sourceIds": [
+        "src-turing-1936-computable"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -441,7 +760,10 @@
       "type": "depends-on",
       "explanation": "Long-distance electrical telecommunications (starting with the telegraph) required controlled electrical current generation and transmission wires.",
       "strength": "primary",
-      "sourceIds": ["src-loc-morse-telegraph", "src-smithsonian-lighting-revolution"],
+      "sourceIds": [
+        "src-loc-morse-telegraph",
+        "src-smithsonian-lighting-revolution"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -451,7 +773,10 @@
       "type": "depends-on",
       "explanation": "All telecommunication media—from copper telegraph cables to radio broadcasting and optical fibers—rely on electromagnetic wave propagation.",
       "strength": "primary",
-      "sourceIds": ["src-loc-morse-telegraph", "src-jackson-electrodynamics"],
+      "sourceIds": [
+        "src-loc-morse-telegraph",
+        "src-jackson-electrodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -461,7 +786,9 @@
       "type": "depends-on",
       "explanation": "ARPANET leased high-speed telephone lines from telecommunication carriers to interconnect Interface Message Processors across university sites.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-arpanet-1969"],
+      "sourceIds": [
+        "src-ethw-arpanet-1969"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -471,7 +798,10 @@
       "type": "leads-to",
       "explanation": "ARPANET proved the viability of packet switching, establishing the prototype for modern digital computer networks.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-arpanet-1969", "src-kurose-ross"],
+      "sourceIds": [
+        "src-ethw-arpanet-1969",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -481,7 +811,10 @@
       "type": "leads-to",
       "explanation": "ARPANET served as the direct technological and operational precursor that evolved into the global Internet upon adopting TCP/IP.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-arpanet-1969", "src-cerf-kahn-1974-tcp"],
+      "sourceIds": [
+        "src-ethw-arpanet-1969",
+        "src-cerf-kahn-1974-tcp"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -491,7 +824,10 @@
       "type": "leads-to",
       "explanation": "The global TCP/IP internet infrastructure provided the network substrate upon which Tim Berners-Lee deployed the World Wide Web.",
       "strength": "primary",
-      "sourceIds": ["src-cerf-kahn-1974-tcp", "src-berners-lee-1989-proposal"],
+      "sourceIds": [
+        "src-cerf-kahn-1974-tcp",
+        "src-berners-lee-1989-proposal"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -501,7 +837,10 @@
       "type": "related-to",
       "explanation": "CERN released Web protocols into the public domain without royalties, fostering a global open-source software and standards ecosystem.",
       "strength": "strong",
-      "sourceIds": ["src-berners-lee-1989-proposal", "src-osi-definition"],
+      "sourceIds": [
+        "src-berners-lee-1989-proposal",
+        "src-osi-definition"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -511,7 +850,9 @@
       "type": "leads-to",
       "explanation": "The World Wide Web transformed computers from calculation engines into universal media portals, accelerating the Information Age.",
       "strength": "primary",
-      "sourceIds": ["src-berners-lee-1989-proposal"],
+      "sourceIds": [
+        "src-berners-lee-1989-proposal"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -521,7 +862,9 @@
       "type": "leads-to",
       "explanation": "James Watt's rotary steam engine provided mechanical power independent of flowing water, powering the factories of the Industrial Revolution.",
       "strength": "primary",
-      "sourceIds": ["src-callen-thermodynamics"],
+      "sourceIds": [
+        "src-callen-thermodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -531,7 +874,9 @@
       "type": "leads-to",
       "explanation": "Investigating theoretical efficiency limits of steam engines directly prompted Sadi Carnot and Rudolf Clausius to develop thermodynamics.",
       "strength": "primary",
-      "sourceIds": ["src-callen-thermodynamics"],
+      "sourceIds": [
+        "src-callen-thermodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -541,7 +886,10 @@
       "type": "leads-to",
       "explanation": "Movable type printing allowed rapid, accurate reproduction of empirical astronomical charts and scientific treatises across Europe.",
       "strength": "primary",
-      "sourceIds": ["src-loc-gutenberg-bible", "src-sep-scientific-method"],
+      "sourceIds": [
+        "src-loc-gutenberg-bible",
+        "src-sep-scientific-method"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -551,7 +899,9 @@
       "type": "leads-to",
       "explanation": "The Scientific Revolution replaced scholastic deference to authority with reproducible experimentation and mathematical hypothesis testing.",
       "strength": "primary",
-      "sourceIds": ["src-sep-scientific-method"],
+      "sourceIds": [
+        "src-sep-scientific-method"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -561,7 +911,9 @@
       "type": "leads-to",
       "explanation": "Superpower geopolitical rivalry during the Cold War funded ballistic missile R&D that directly launched the Space Race and Apollo program.",
       "strength": "primary",
-      "sourceIds": ["src-smithsonian-apollo-history"],
+      "sourceIds": [
+        "src-smithsonian-apollo-history"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -571,7 +923,10 @@
       "type": "leads-to",
       "explanation": "The launch of Sputnik and the development of orbital launch vehicles during the Space Race established orbital satellite communications.",
       "strength": "primary",
-      "sourceIds": ["src-smithsonian-apollo-history", "src-curtis-orbital-mechanics"],
+      "sourceIds": [
+        "src-smithsonian-apollo-history",
+        "src-curtis-orbital-mechanics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -581,7 +936,9 @@
       "type": "leads-to",
       "explanation": "Written alphabetic scripts provided the phonemic discrete units that Gutenberg cast into movable metal type for mechanical printing.",
       "strength": "primary",
-      "sourceIds": ["src-loc-gutenberg-bible"],
+      "sourceIds": [
+        "src-loc-gutenberg-bible"
+      ],
       "reviewStatus": "needs-review"
     }
   ]

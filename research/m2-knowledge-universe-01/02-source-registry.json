@@ -9,7 +9,7 @@
     "accessDate": "2026-10-06",
     "notes": "Official living documentation detailing Rust language semantics, ownership, borrowing, lifetimes, and safety guarantees. Published in print by No Starch Press.",
     "license": "MIT / Apache-2.0 dual license",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -22,7 +22,7 @@
     "accessDate": "2026-10-06",
     "notes": "Primary language reference specifying memory layout, drop semantics, and type rules.",
     "license": "MIT / Apache-2.0 dual license",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -36,7 +36,7 @@
     "accessDate": "2026-10-06",
     "notes": "Core systems architecture textbook covering virtual memory, process address spaces, stack frames, heap allocation, and hardware interaction.",
     "isbn": "978-0-13-409266-9",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -49,7 +49,7 @@
     "publicationDate": "2023-11",
     "accessDate": "2026-10-06",
     "notes": "Foundational operating systems textbook (Version 1.10) covering virtualization of processor time and physical memory.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -63,7 +63,7 @@
     "accessDate": "2026-10-06",
     "notes": "Comprehensive systems treatise analyzing kernel architectures, preemptive scheduling, CPU registers, and hardware virtualization.",
     "isbn": "978-0-13-359162-0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -77,7 +77,7 @@
     "accessDate": "2026-10-06",
     "notes": "Standard university textbook explaining processor execution pipelines, logic gates, arithmetic units, and transistor-level silicon circuits.",
     "isbn": "978-0-12-820109-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -89,7 +89,7 @@
     "publicationDate": "2009-12-08",
     "accessDate": "2026-10-06",
     "notes": "Historical milestone record commemorating the 1947 achievement of the point-contact transistor at Bell Labs.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -103,7 +103,7 @@
     "accessDate": "2026-10-06",
     "notes": "Classical physics and engineering text covering solid-state carrier transport, MOSFET gate switching, and microelectronic integration.",
     "isbn": "978-0-470-53794-7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -117,7 +117,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational computer science textbook on lexical analysis, syntax parsing, syntax-directed translation, type checking, intermediate code generation, and machine-code optimization.",
     "isbn": "978-0-321-48681-3",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -131,7 +131,7 @@
     "accessDate": "2026-10-14",
     "notes": "Modern compiler engineering textbook detailing register allocation (graph coloring), instruction scheduling, static single assignment (SSA) form, and intermediate representation architectures.",
     "isbn": "978-0-12-088478-0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -145,7 +145,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal graduate textbook on operational semantics, lambda calculus, type systems, subtyping, polymorphic typing (System F), and type safety theorems (progress and preservation).",
     "isbn": "978-0-262-16209-8",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -158,7 +158,7 @@
     "publicationDate": "2024-06",
     "accessDate": "2026-10-14",
     "notes": "Comprehensive official hardware reference defining instruction encoding, machine opcodes, processor execution modes, memory segmentation, paging, privilege rings, and hardware interrupts.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -171,7 +171,7 @@
     "publicationDate": "2019-12-13",
     "accessDate": "2026-10-14",
     "notes": "Open standard defining an open, modular instruction set architecture (ISA) based on established reduced instruction set computer (RISC) principles.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -185,7 +185,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal ACM Computing Surveys monograph articulating the architectural and theoretical foundations of virtual memory, page replacement algorithms, and the working set model.",
     "doi": "10.1145/356571.356573",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -199,7 +199,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational distributed computing paper introducing partial ordering, logical timestamps (Lamport clocks), and distributed mutual exclusion.",
     "doi": "10.1145/359545.359563",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -213,7 +213,7 @@
     "accessDate": "2026-10-14",
     "notes": "Standard text on shared-memory concurrency, linearizability, mutual exclusion algorithms, lock-free and wait-free synchronization primitives, and memory consistency models.",
     "isbn": "978-0-12-397337-5",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -227,7 +227,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative networking textbook examining the protocol stack from the application layer down to the physical layer, covering packet switching, TCP/IP, and congestion control.",
     "isbn": "978-0-13-668155-7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -241,7 +241,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive treatise on network architectures, routing algorithms, media access control, error detection and correction, and transport protocols.",
     "isbn": "978-0-13-212695-3",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -255,7 +255,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative guide to distributed architecture paradigms, naming, synchronization, fault tolerance, replication, and distributed consensus algorithms (Paxos, Raft).",
     "isbn": "978-1-543-01869-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -269,7 +269,7 @@
     "accessDate": "2026-10-14",
     "notes": "Rigorous mathematical treatment of modern cryptography based on formal definitions of security, reductionist proofs, symmetric ciphers, hash functions, and public-key cryptography.",
     "isbn": "978-0-815-35436-9",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -283,13 +283,13 @@
     "accessDate": "2026-10-14",
     "notes": "Official U.S. Federal standard establishing the Rijndael algorithm as the Advanced Encryption Standard (AES) with key lengths of 128, 192, and 256 bits for electronic data protection.",
     "doi": "10.6028/NIST.FIPS.197",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
     "id": "src-cormen-clrs",
     "title": "Introduction to Algorithms (4th Edition)",
-    "url": "https://www.cs.dartmouth.edu/~thc/clrs-bugs/",
+    "url": "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/",
     "publisher": "The MIT Press",
     "author": "Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein",
     "type": "textbook",
@@ -297,7 +297,7 @@
     "accessDate": "2026-10-14",
     "notes": "The standard university algorithms textbook covering asymptotic analysis, divide-and-conquer, dynamic programming, greedy algorithms, graph search, and amortized data structure complexity.",
     "isbn": "978-0-262-04630-5",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -311,7 +311,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational classic of computer science formalizing algorithm analysis, discrete mathematical prerequisites, and essential linear/tree data structures.",
     "isbn": "978-0-201-89683-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -325,7 +325,7 @@
     "accessDate": "2026-10-14",
     "notes": "Landmark master's thesis demonstrating that Boolean algebra could model and optimize electromechanical relay and switching circuits, establishing the theoretical basis for digital logic design.",
     "doi": "10.1109/T-AIEE.1938.5057767",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -339,7 +339,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative engineering textbook covering crystal lattices, quantum mechanical band theory, carrier concentrations, p-n junctions, and field-effect transistors.",
     "isbn": "978-0-13-335603-8",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -353,7 +353,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive treatise on automated memory management covering mark-sweep, copying, generational, reference counting, concurrent, and real-time garbage collection algorithms.",
     "isbn": "978-0-367-75943-8",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -367,7 +367,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal 1977 ACM Turing Award lecture criticizing the 'von Neumann bottleneck' of mutable state manipulation and presenting functional programming with algebraic program reasoning.",
     "doi": "10.1145/359576.359579",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -380,7 +380,7 @@
     "publicationDate": "2018",
     "accessDate": "2026-10-14",
     "notes": "Official standard defining the portable operating system interface (POSIX) including system interfaces, asynchronous I/O, signals, and process management.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -394,7 +394,7 @@
     "accessDate": "2026-10-14",
     "notes": "Classic comprehensive reference on computer graphics fundamentals, affine transformations, rasterization, lighting models, ray tracing, and programmable GPU shaders.",
     "isbn": "978-0-321-39952-6",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -408,7 +408,7 @@
     "accessDate": "2026-10-14",
     "notes": "Core graphics curriculum textbook analyzing mathematical foundations, linear transformations, perspective projection, surface reflection, and modern rendering pipelines.",
     "isbn": "978-0-367-50503-5",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -421,7 +421,7 @@
     "publicationDate": "1998",
     "accessDate": "2026-10-14",
     "notes": "Standard criteria defining open source software, including free redistribution, source code access, derived works allowance, and non-discrimination.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -435,7 +435,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal analysis contrasting centralized, top-down software engineering ('the Cathedral') with decentralized, peer-reviewed open collaboration ('the Bazaar').",
     "isbn": "978-0-596-00108-7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -449,7 +449,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative database textbook covering relational models, relational algebra, SQL, indexing structures (B+ trees), transaction management, and ACID guarantees.",
     "isbn": "978-0-078-02215-9",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -463,7 +463,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational ACM paper proposing the relational database model based on mathematical n-ary relations, liberating database users from hardware-dependent navigational pointers.",
     "doi": "10.1145/362384.362685",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -477,7 +477,7 @@
     "accessDate": "2026-10-14",
     "notes": "The standard worldwide textbook on artificial intelligence, defining intelligent agents, search algorithms, knowledge representation, probabilistic reasoning, machine learning, and natural language processing.",
     "isbn": "978-0-13-461099-3",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -491,7 +491,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative textbook covering mathematical prerequisites (linear algebra, probability, information theory), multilayer perceptrons, convolutional networks, sequence modeling, and deep generative models.",
     "isbn": "978-0-262-03561-3",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -505,7 +505,7 @@
     "accessDate": "2026-10-14",
     "notes": "Landmark Nature paper demonstrating that backward error propagation through internal hidden representations enables artificial neural networks to learn nonlinear mappings.",
     "doi": "10.1038/323533a0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -519,7 +519,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational treatise on reinforcement learning formalizing Markov decision processes, dynamic programming, temporal-difference learning, Q-learning, and policy gradient methods.",
     "isbn": "978-0-262-03924-6",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -533,7 +533,7 @@
     "accessDate": "2026-10-14",
     "notes": "Standard MIT linear algebra textbook explaining vector spaces, linear transformations, matrix factorizations (LU, QR, SVD), eigenvalues, and positive definite matrices.",
     "isbn": "978-0-9802327-7-6",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -547,7 +547,7 @@
     "accessDate": "2026-10-14",
     "notes": "MIT curriculum textbook introducing measure-theoretic probability intuitions, conditional probability, random variables, probability density functions, and limit theorems.",
     "isbn": "978-1-886529-23-6",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -561,7 +561,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative reference text on Bayesian statistical inference, prior specification, posterior computation, Markov chain Monte Carlo (MCMC), and model checking.",
     "isbn": "978-1-4398-4095-5",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -575,7 +575,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational paper that established modern information theory, defining information entropy, the bit as a unit of measurement, source coding theorem, and channel capacity limits.",
     "doi": "10.1002/j.1538-7305.1948.tb01338.x",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -589,7 +589,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal paper introducing abstract universal computing machines (Turing machines), proving the undecidability of the halting problem, and resolving Hilbert's Entscheidungsproblem.",
     "doi": "10.1112/plms/s2-42.1.230",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -603,7 +603,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative textbook on automata, formal languages, Turing reducibility, computability, and computational complexity classes (P, NP, NP-completeness, space complexity).",
     "isbn": "978-1-133-18779-0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -617,7 +617,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive graduate treatise on computational complexity, circuit complexity, randomized computation, interactive proofs, and quantum computation.",
     "isbn": "978-0-521-42426-4",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -630,7 +630,7 @@
     "publicationDate": "1854",
     "accessDate": "2026-10-14",
     "notes": "Historical classic establishing algebraic logic, formulating the laws of thought as symbolic operations that represent propositions and truth values algebraically.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -644,7 +644,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative optimization textbook detailing convex sets, convex functions, duality theory, unconstrained and constrained optimization, interior-point methods, and engineering applications.",
     "isbn": "978-0-521-83378-3",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -657,7 +657,7 @@
     "publicationDate": "2024",
     "accessDate": "2026-10-14",
     "notes": "Primary reference on computational linguistics and natural language processing, covering n-grams, word embeddings, transformer architectures, sequence labeling, and syntactic parsing.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -671,7 +671,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive survey of computer vision techniques, covering image processing, feature detection, structure from motion, optical flow, deep learning vision models, and 3D reconstruction.",
     "isbn": "978-3-030-34371-2",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -685,7 +685,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal theoretical text establishing statistical learning theory, empirical risk minimization, VC dimension, generalization bounds, and support vector machines.",
     "doi": "10.1007/978-1-4757-3264-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -699,7 +699,7 @@
     "accessDate": "2026-10-14",
     "notes": "Standard university undergraduate quantum mechanics textbook covering wave functions, the Schrödinger equation, Hilbert spaces, quantum spin, perturbation theory, and Bell's theorem.",
     "isbn": "978-1-107-18963-8",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -713,7 +713,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal paper demonstrating that light is emitted and absorbed in localized energy quanta (later named photons), explaining the photoelectric effect and earning Einstein the 1921 Nobel Prize in Physics.",
     "doi": "10.1002/andp.19053220607",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -727,7 +727,7 @@
     "accessDate": "2026-10-14",
     "notes": "Historical paper introducing special relativity, uniting mechanics and electromagnetism by postulating the principle of relativity and the constancy of the speed of light in vacuum.",
     "doi": "10.1002/andp.19053221004",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -741,7 +741,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational treatise on general relativity establishing that gravity is not a Newtonian force but geometric curvature of four-dimensional spacetime induced by mass-energy distribution.",
     "doi": "10.1002/andp.19163540702",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -755,7 +755,7 @@
     "accessDate": "2026-10-14",
     "notes": "The definitive graduate textbook on Maxwell's equations, electrostatic boundary-value problems, magnetostatics, electromagnetic radiation, and relativistic electrodynamics.",
     "isbn": "978-0-471-30932-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -769,7 +769,7 @@
     "accessDate": "2026-10-14",
     "notes": "Classic textbook formalizing thermodynamics through axiomatic postulates, Legendre transforms, thermodynamic potentials, and microstate statistical ensembles.",
     "isbn": "978-0-471-86256-7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -783,7 +783,7 @@
     "accessDate": "2026-10-14",
     "notes": "Definitive solid-state physics text covering Drude theory, crystal lattices, reciprocal lattice, Bloch's theorem, energy band structures, and electron dynamics in crystals.",
     "isbn": "978-0-03-083993-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -797,7 +797,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive astrophysics curriculum text covering stellar structure, hydrostatic equilibrium, nucleosynthesis, degenerate remnants (white dwarfs, neutron stars), and black hole physics.",
     "isbn": "978-1-108-42216-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -811,7 +811,7 @@
     "accessDate": "2026-10-14",
     "notes": "Historical astronomical achievement presenting the first direct horizon-scale image of the supermassive black hole at the center of the giant elliptical galaxy Messier 87.",
     "doi": "10.3847/2041-8213/ab0ec7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -824,7 +824,7 @@
     "publicationDate": "2014",
     "accessDate": "2026-10-14",
     "notes": "Authoritative mission archives establishing high-precision parameters for the Standard Model of Cosmology (Lambda-CDM), confirming the universe's age at 13.77 billion years.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -838,7 +838,7 @@
     "accessDate": "2026-10-14",
     "notes": "Core aerospace engineering text detailing Kepler's laws, the two-body problem, orbital maneuvering (Hohmann transfers), rocket propulsion kinematics, and satellite perturbations.",
     "isbn": "978-0-08-102133-0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -852,7 +852,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational physics paper deriving Bell's inequality, demonstrating that local hidden-variable theories cannot reproduce all predictions of quantum mechanics.",
     "doi": "10.1103/PhysicsPhysiqueFizika.1.195",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -866,7 +866,7 @@
     "accessDate": "2026-10-14",
     "notes": "Historical communication postulating that matter exhibits wave-like characteristics with wavelength inversely proportional to momentum, establishing wave-particle duality.",
     "doi": "10.1038/112540a0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -879,7 +879,7 @@
     "publicationDate": "2024",
     "accessDate": "2026-10-14",
     "notes": "The globally recognized international reference compiling empirical measurements and theoretical consensus on quarks, leptons, gauge bosons, and fundamental particle interactions.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -893,7 +893,7 @@
     "accessDate": "2026-10-14",
     "notes": "The primary worldwide reference text on cell biology, molecular genetics, membrane structure, organelle biochemistry, protein synthesis, and cellular signaling cascades.",
     "isbn": "978-0-393-88482-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -907,7 +907,7 @@
     "accessDate": "2026-10-14",
     "notes": "The authoritative clinical and academic treatise on neuroscience, detailing nerve cells, ion channel biophysics, synaptic transmission, sensory perception, and neural mechanisms of learning and memory.",
     "isbn": "978-1-259-64223-4",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -921,7 +921,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive university curriculum textbook on neuroanatomy, neural signaling, sensory processing systems, motor control pathways, and cognitive brain functions.",
     "isbn": "978-1-60535-380-7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -935,7 +935,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal Nature paper proposing the double-helix molecular model of DNA with complementary base pairing, immediately suggesting a copying mechanism for genetic material.",
     "doi": "10.1038/171737a0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -949,7 +949,7 @@
     "accessDate": "2026-10-14",
     "notes": "Classic electrophysiology paper establishing the mathematical model of voltage-gated sodium and potassium conductances responsible for the generation and propagation of action potentials in nerve axons.",
     "doi": "10.1113/jphysiol.1952.sp004764",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -962,7 +962,7 @@
     "publicationDate": "1859-11-24",
     "accessDate": "2026-10-14",
     "notes": "Foundational text of evolutionary biology presenting empirical evidence that biological diversity arises through descent with modification governed by natural selection.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -976,7 +976,7 @@
     "accessDate": "2026-10-14",
     "notes": "Standard university evolution textbook explaining population genetics, speciation, molecular phylogenetics, adaptation, and the modern evolutionary synthesis.",
     "isbn": "978-1-60535-605-1",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -990,7 +990,7 @@
     "accessDate": "2026-10-14",
     "notes": "Landmark neurosurgical case report on patient H.M. demonstrating that bilateral hippocampal excision produces severe anterograde amnesia, proving that memory consolidation is anatomically localized.",
     "doi": "10.1136/jnnp.20.1.11",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1004,7 +1004,7 @@
     "accessDate": "2026-10-14",
     "notes": "Influential theoretical framework in cognitive neuroscience proposing neurobiological approaches for identifying neural correlates of consciousness (NCC) within corticothalamic circuits.",
     "doi": "10.1038/nn0203-119",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1018,7 +1018,7 @@
     "accessDate": "2026-10-14",
     "notes": "Comprehensive medical physiology treatise explaining homeostasis, negative feedback regulation, cardiovascular transport, renal clearance, and autonomic nervous system coordination.",
     "isbn": "978-0-323-59712-8",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1031,7 +1031,7 @@
     "publicationDate": "2017-10-02",
     "accessDate": "2026-10-14",
     "notes": "Official scientific background detailing the discovery of transcriptional autoregulatory feedback loops (PER, TIM, CLOCK) that generate cell-autonomous 24-hour biological oscillations.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1044,7 +1044,7 @@
     "publicationDate": "2020",
     "accessDate": "2026-10-14",
     "notes": "Peer-reviewed philosophical treatise on the nature, sources, and scope of knowledge, truth conditions, justification theories (foundationalism vs coherentism), and the Gettier problem.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1057,7 +1057,7 @@
     "publicationDate": "2021",
     "accessDate": "2026-10-14",
     "notes": "Authoritative reference analyzing propositional and first-order predicate logic, model-theoretic semantics, deductive validity, soundness, and completeness theorems.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1070,7 +1070,7 @@
     "publicationDate": "2020",
     "accessDate": "2026-10-14",
     "notes": "Historical and conceptual evaluation of scientific methodology, inductivism, hypothetico-deductivism, Bayesian confirmation theory, and historical challenges to universal method.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1083,7 +1083,7 @@
     "publicationDate": "2021",
     "accessDate": "2026-10-14",
     "notes": "Comprehensive survey of metaphysical positions on free agency, causal determinism, incompatibilism, compatibilism, and moral responsibility.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1096,7 +1096,7 @@
     "publicationDate": "2021",
     "accessDate": "2026-10-14",
     "notes": "Rigorous comparison contrasting the empiricist thesis (all knowledge derives from sense experience) with the rationalist thesis (substantial knowledge is grasped a priori by reason).",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1110,7 +1110,7 @@
     "accessDate": "2026-10-14",
     "notes": "Landmark Science paper establishing the heuristics and biases research program, demonstrating that human probabilistic judgment relies on representativeness, availability, and anchoring shortcuts.",
     "doi": "10.1126/science.185.4157.1124",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1124,7 +1124,7 @@
     "accessDate": "2026-10-14",
     "notes": "Authoritative review synthesizing the multi-component working memory model: phonological loop, visuospatial sketchpad, central executive, and episodic buffer.",
     "doi": "10.1146/annurev-psych-120710-100422",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1138,7 +1138,7 @@
     "accessDate": "2026-10-14",
     "notes": "Foundational cognitive science paper introducing Cognitive Load Theory, establishing how working memory capacity limitations constrain schema acquisition during complex problem solving.",
     "doi": "10.1207/s15516709cog1202_4",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1152,7 +1152,7 @@
     "accessDate": "2026-10-14",
     "notes": "Classical philosophy of science treatise rejecting inductivism and proposing empirical falsifiability as the criterion of demarcation between empirical science and pseudo-science.",
     "isbn": "978-0-415-27844-7",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1166,7 +1166,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal work demonstrating that scientific advancement does not proceed linearly but through periods of normal science governed by paradigms interrupted by revolutionary paradigm shifts.",
     "isbn": "978-0-226-45812-0",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1180,7 +1180,7 @@
     "accessDate": "2026-10-14",
     "notes": "Landmark neurocognitive paper establishing the three anatomical attention networks: alerting, orienting, and executive control.",
     "doi": "10.1146/annurev.ne.13.030190.000325",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1194,7 +1194,7 @@
     "accessDate": "2026-10-14",
     "notes": "Pioneering paper introducing bounded rationality, arguing that human decision-makers satisfice rather than optimize due to cognitive processing and information limits.",
     "doi": "10.2307/1884852",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1207,7 +1207,7 @@
     "publicationDate": "2018",
     "accessDate": "2026-10-14",
     "notes": "Historical exhibition and provenance records documenting Johannes Gutenberg's perfection of movable metal type printing in Mainz around 1455, marking the dawn of mass print communication.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1219,7 +1219,7 @@
     "publicationDate": "2009-02-14",
     "accessDate": "2026-10-14",
     "notes": "Official IEEE milestone record commemorating Jack Kilby's 1958 invention of the monolithic integrated circuit at Texas Instruments and Robert Noyce's subsequent planar silicon IC at Fairchild.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1231,7 +1231,7 @@
     "publicationDate": "2010-06-18",
     "accessDate": "2026-10-14",
     "notes": "Official IEEE milestone honoring the transmission of the first message over the ARPANET on October 29, 1969 between UCLA and SRI, pioneering packet switching networks.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1245,7 +1245,7 @@
     "accessDate": "2026-10-14",
     "notes": "Seminal paper presenting the Transmission Control Protocol (TCP) architecture, enabling decentralized inter-networking across heterogeneous packet-switched communication networks.",
     "doi": "10.1109/TCOM.1974.1092259",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1258,7 +1258,7 @@
     "publicationDate": "1989-03",
     "accessDate": "2026-10-14",
     "notes": "The original proposal written at CERN formulating a universal linked hypertext information system based on uniform resource identifiers (URIs), HTTP, and HTML.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1272,7 +1272,7 @@
     "accessDate": "2026-10-14",
     "notes": "Historical document (originally issued June 30, 1945) formalizing the stored-program computer architecture: central arithmetic unit, central control unit, memory, and input/output organs.",
     "doi": "10.1109/85.238389",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1285,7 +1285,7 @@
     "publicationDate": "2022",
     "accessDate": "2026-10-14",
     "notes": "Curatorial exhibition history detailing the development of incandescent electric lighting, dynamos, and the alternating-current electrical grid engineered by Edison, Tesla, and Westinghouse.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1298,7 +1298,7 @@
     "publicationDate": "2023",
     "accessDate": "2026-10-14",
     "notes": "Authoritative historical treatise chronicling the Cold War technological trajectory of the Apollo program, Saturn V launch architecture, and the 1969 Apollo 11 lunar landing.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   },
   {
@@ -1311,7 +1311,7 @@
     "publicationDate": "2015",
     "accessDate": "2026-10-14",
     "notes": "Archival documentation detailing the invention of the electromagnetic recording telegraph and Morse code in the 1830s-1840s, inaugurating the electronic telecommunications era.",
-    "verificationOutcome": "SOURCE-CONFIRMED",
+    "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
     "evidenceTier": "Tier 2"
   }
 ]

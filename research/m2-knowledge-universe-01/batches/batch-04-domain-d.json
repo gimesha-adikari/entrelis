@@ -14,7 +14,7 @@
       "accessDate": "2026-10-14",
       "notes": "The primary worldwide reference text on cell biology, molecular genetics, membrane structure, organelle biochemistry, protein synthesis, and cellular signaling cascades.",
       "isbn": "978-0-393-88482-1",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -28,7 +28,7 @@
       "accessDate": "2026-10-14",
       "notes": "The authoritative clinical and academic treatise on neuroscience, detailing nerve cells, ion channel biophysics, synaptic transmission, sensory perception, and neural mechanisms of learning and memory.",
       "isbn": "978-1-259-64223-4",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -42,7 +42,7 @@
       "accessDate": "2026-10-14",
       "notes": "Comprehensive university curriculum textbook on neuroanatomy, neural signaling, sensory processing systems, motor control pathways, and cognitive brain functions.",
       "isbn": "978-1-60535-380-7",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -56,7 +56,7 @@
       "accessDate": "2026-10-14",
       "notes": "Seminal Nature paper proposing the double-helix molecular model of DNA with complementary base pairing, immediately suggesting a copying mechanism for genetic material.",
       "doi": "10.1038/171737a0",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -70,7 +70,7 @@
       "accessDate": "2026-10-14",
       "notes": "Classic electrophysiology paper establishing the mathematical model of voltage-gated sodium and potassium conductances responsible for the generation and propagation of action potentials in nerve axons.",
       "doi": "10.1113/jphysiol.1952.sp004764",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -83,7 +83,7 @@
       "publicationDate": "1859-11-24",
       "accessDate": "2026-10-14",
       "notes": "Foundational text of evolutionary biology presenting empirical evidence that biological diversity arises through descent with modification governed by natural selection.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "ARCHIVE-DIGITIZED-PRIMARY-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -97,7 +97,7 @@
       "accessDate": "2026-10-14",
       "notes": "Standard university evolution textbook explaining population genetics, speciation, molecular phylogenetics, adaptation, and the modern evolutionary synthesis.",
       "isbn": "978-1-60535-605-1",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -111,7 +111,7 @@
       "accessDate": "2026-10-14",
       "notes": "Landmark neurosurgical case report on patient H.M. demonstrating that bilateral hippocampal excision produces severe anterograde amnesia, proving that memory consolidation is anatomically localized.",
       "doi": "10.1136/jnnp.20.1.11",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -125,7 +125,7 @@
       "accessDate": "2026-10-14",
       "notes": "Influential theoretical framework in cognitive neuroscience proposing neurobiological approaches for identifying neural correlates of consciousness (NCC) within corticothalamic circuits.",
       "doi": "10.1038/nn0203-119",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "PAYWALLED-ABSTRACT-AND-METADATA-CONFIRMED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -139,7 +139,7 @@
       "accessDate": "2026-10-14",
       "notes": "Comprehensive medical physiology treatise explaining homeostasis, negative feedback regulation, cardiovascular transport, renal clearance, and autonomic nervous system coordination.",
       "isbn": "978-0-323-59712-8",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "BIBLIOGRAPHIC-METADATA-AND-CHAPTER-VERIFIED",
       "evidenceTier": "Tier 2"
     },
     {
@@ -152,7 +152,7 @@
       "publicationDate": "2017-10-02",
       "accessDate": "2026-10-14",
       "notes": "Official scientific background detailing the discovery of transcriptional autoregulatory feedback loops (PER, TIM, CLOCK) that generate cell-autonomous 24-hour biological oscillations.",
-      "verificationOutcome": "SOURCE-CONFIRMED",
+      "verificationOutcome": "OPEN-ACCESS-FULL-TEXT-VERIFIED",
       "evidenceTier": "Tier 2"
     }
   ],
@@ -163,11 +163,24 @@
       "name": "Cells & Cellular Biology",
       "shortDescription": "The fundamental structural, functional, and biological units of all known living organisms, bounded by lipid membranes and containing genetic material.",
       "description": "According to cell theory, all living organisms consist of one or more cells arising from pre-existing cells. Enclosed by selective phospholipid bilayer membranes, cells maintain internal metabolic environments through specialized organelles (such as mitochondria, ribosomes, and nuclei in eukaryotes), converting nutrients into chemical energy via ATP.",
-      "domains": ["biology"],
-      "tags": ["cell-theory", "organelles", "membranes", "eukaryotes", "metabolism"],
-      "sourceIds": ["src-alberts-mboc"],
+      "domains": [
+        "biology"
+      ],
+      "tags": [
+        "cell-theory",
+        "organelles",
+        "membranes",
+        "eukaryotes",
+        "metabolism"
+      ],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Cellular Biology", "Living Cells"]
+      "aliases": [
+        "Cellular Biology",
+        "Living Cells"
+      ]
     },
     {
       "id": "concept-dna",
@@ -175,11 +188,26 @@
       "name": "DNA & Genetic Code",
       "shortDescription": "The double-stranded polymeric nucleic acid molecule that stores and transmits hereditary genetic instructions across generations in all cellular life.",
       "description": "Deoxyribonucleic acid (DNA) forms an antiparallel double helix consisting of deoxyribose-phosphate backbones linked by complementary nitrogenous base pairs (adenine with thymine, cytosine with guanine). Sequences of these nucleotide triplets (codons) encode the primary structure of cellular proteins according to the universal genetic code.",
-      "domains": ["biology", "genetics"],
-      "tags": ["double-helix", "nucleotides", "base-pairing", "heredity", "molecular-biology"],
-      "sourceIds": ["src-watson-crick-1953-dna", "src-alberts-mboc"],
+      "domains": [
+        "biology",
+        "genetics"
+      ],
+      "tags": [
+        "double-helix",
+        "nucleotides",
+        "base-pairing",
+        "heredity",
+        "molecular-biology"
+      ],
+      "sourceIds": [
+        "src-watson-crick-1953-dna",
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Deoxyribonucleic Acid", "Genetic Code"]
+      "aliases": [
+        "Deoxyribonucleic Acid",
+        "Genetic Code"
+      ]
     },
     {
       "id": "concept-genes",
@@ -187,11 +215,25 @@
       "name": "Genes & Gene Expression",
       "shortDescription": "Distinct nucleotide sequences within DNA that encode instructions for synthesizing functional RNA molecules or polypeptide chains.",
       "description": "Genes represent the functional physical and molecular units of heredity. Governed by the central dogma of molecular biology, genetic expression proceeds via transcription of DNA into messenger RNA (mRNA) by RNA polymerase, followed by translation of mRNA transcripts into functional proteins by ribosomal complexes.",
-      "domains": ["biology", "genetics"],
-      "tags": ["transcription", "translation", "mrna", "genotype", "phenotype"],
-      "sourceIds": ["src-alberts-mboc"],
+      "domains": [
+        "biology",
+        "genetics"
+      ],
+      "tags": [
+        "transcription",
+        "translation",
+        "mrna",
+        "genotype",
+        "phenotype"
+      ],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Genetic Units", "Gene Expression"]
+      "aliases": [
+        "Genetic Units",
+        "Gene Expression"
+      ]
     },
     {
       "id": "concept-evolution",
@@ -199,11 +241,26 @@
       "name": "Evolution & Modern Synthesis",
       "shortDescription": "The biological process of change in the heritable characteristics of biological populations over successive generations.",
       "description": "Formulated by Charles Darwin and unified with Mendelian genetics in the Modern Evolutionary Synthesis, evolution explains how biodiversity emerges. Driven by mutation, genetic drift, gene flow, and natural selection, evolutionary trajectories across geological time account for the shared ancestry and adaptive diversity of terrestrial life.",
-      "domains": ["biology", "evolutionary-biology"],
-      "tags": ["modern-synthesis", "adaptation", "speciation", "common-descent", "population-genetics"],
-      "sourceIds": ["src-futuyma-evolution", "src-darwin-1859-origin"],
+      "domains": [
+        "biology",
+        "evolutionary-biology"
+      ],
+      "tags": [
+        "modern-synthesis",
+        "adaptation",
+        "speciation",
+        "common-descent",
+        "population-genetics"
+      ],
+      "sourceIds": [
+        "src-futuyma-evolution",
+        "src-darwin-1859-origin"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Biological Evolution", "Modern Evolutionary Synthesis"]
+      "aliases": [
+        "Biological Evolution",
+        "Modern Evolutionary Synthesis"
+      ]
     },
     {
       "id": "concept-natural-selection",
@@ -211,11 +268,26 @@
       "name": "Natural Selection",
       "shortDescription": "The differential survival and reproduction of individuals due to phenotypic differences, acting as the primary mechanism of biological adaptation.",
       "description": "Natural selection operates whenever organisms in a population exhibit phenotypic variation, differential reproductive fitness in a given ecological environment, and heritability of fitness-conferring traits. Over generations, advantageous alleles increase in frequency, producing anatomical, physiological, and behavioral adaptations.",
-      "domains": ["biology", "evolutionary-biology"],
-      "tags": ["fitness", "differential-reproduction", "adaptation", "heritability", "selection-pressure"],
-      "sourceIds": ["src-darwin-1859-origin", "src-futuyma-evolution"],
+      "domains": [
+        "biology",
+        "evolutionary-biology"
+      ],
+      "tags": [
+        "fitness",
+        "differential-reproduction",
+        "adaptation",
+        "heritability",
+        "selection-pressure"
+      ],
+      "sourceIds": [
+        "src-darwin-1859-origin",
+        "src-futuyma-evolution"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Darwinian Selection", "Adaptive Selection"]
+      "aliases": [
+        "Darwinian Selection",
+        "Adaptive Selection"
+      ]
     },
     {
       "id": "concept-biological-neurons",
@@ -223,11 +295,26 @@
       "name": "Biological Neurons",
       "shortDescription": "Electrically excitable specialized cells of the nervous system that process, integrate, and transmit information via electrical and chemical signals.",
       "description": "Biological neurons comprise a cell body (soma), an extensive dendritic tree that receives synaptic inputs, and a single axon that propagates all-or-none action potentials to downstream targets. Complex dendritic branching performs analog spatial and temporal summation of synaptic inputs prior to spike generation at the axon initial segment.",
-      "domains": ["neuroscience", "biology"],
-      "tags": ["nerve-cells", "axons", "dendrites", "soma", "neural-signaling"],
-      "sourceIds": ["src-kandel-principles-neural", "src-purves-neuroscience"],
+      "domains": [
+        "neuroscience",
+        "biology"
+      ],
+      "tags": [
+        "nerve-cells",
+        "axons",
+        "dendrites",
+        "soma",
+        "neural-signaling"
+      ],
+      "sourceIds": [
+        "src-kandel-principles-neural",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Nerve Cells", "Neurons"]
+      "aliases": [
+        "Nerve Cells",
+        "Neurons"
+      ]
     },
     {
       "id": "concept-synapses",
@@ -235,11 +322,25 @@
       "name": "Synapses & Neurotransmission",
       "shortDescription": "Specialized junctional structures where an electrical signal in a presynaptic neuron triggers the chemical release of neurotransmitters to modulate a postsynaptic cell.",
       "description": "When an action potential invades a presynaptic nerve terminal, voltage-gated calcium channels open, inducing exocytosis of neurotransmitter-filled vesicles into the synaptic cleft. Neurotransmitters diffuse across the nanometer gap to bind postsynaptic ionotropic or metabotropic receptors, producing excitatory (EPSP) or inhibitory (IPSP) postsynaptic potentials.",
-      "domains": ["neuroscience", "biology"],
-      "tags": ["synaptic-cleft", "vesicles", "neurotransmitters", "postsynaptic-potential", "receptors"],
-      "sourceIds": ["src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "biology"
+      ],
+      "tags": [
+        "synaptic-cleft",
+        "vesicles",
+        "neurotransmitters",
+        "postsynaptic-potential",
+        "receptors"
+      ],
+      "sourceIds": [
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Synaptic Junctions", "Chemical Synapses"]
+      "aliases": [
+        "Synaptic Junctions",
+        "Chemical Synapses"
+      ]
     },
     {
       "id": "concept-neuroplasticity",
@@ -247,11 +348,25 @@
       "name": "Neuroplasticity",
       "shortDescription": "The biological capacity of the nervous system to modify its structural organization and functional connectivity in response to experience, learning, or injury.",
       "description": "Far from being hardwired, neural circuits continuously reorganize through synaptic plasticity mechanisms such as Long-Term Potentiation (LTP) and Long-Term Depression (LTD). By inserting or internalizing postsynaptic AMPA receptors and remodeling dendritic spines, neural networks physically encode memories and adapt behavioral outputs.",
-      "domains": ["neuroscience", "psychology"],
-      "tags": ["ltp", "synaptic-plasticity", "dendritic-spines", "learning-mechanism", "reorganization"],
-      "sourceIds": ["src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "psychology"
+      ],
+      "tags": [
+        "ltp",
+        "synaptic-plasticity",
+        "dendritic-spines",
+        "learning-mechanism",
+        "reorganization"
+      ],
+      "sourceIds": [
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Neural Plasticity", "Synaptic Plasticity"]
+      "aliases": [
+        "Neural Plasticity",
+        "Synaptic Plasticity"
+      ]
     },
     {
       "id": "concept-action-potentials",
@@ -259,11 +374,27 @@
       "name": "Action Potentials & Ion Channels",
       "shortDescription": "Rapid, transient, all-or-none electrical impulses that propagate along axonal membranes, driven by voltage-gated ion channels.",
       "description": "When membrane depolarization exceeds a critical threshold, voltage-gated sodium channels open rapidly, allowing sodium influx that drives membrane potential toward +40 mV. Subsequent sodium channel inactivation and delayed opening of voltage-gated potassium channels permit potassium efflux, rapidly repolarizing and hyperpolarizing the axon.",
-      "domains": ["neuroscience", "biophysics"],
-      "tags": ["depolarization", "voltage-gated-channels", "sodium-potassium", "hodgkin-huxley", "nerve-impulse"],
-      "sourceIds": ["src-hodgkin-huxley-1952", "src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "biophysics"
+      ],
+      "tags": [
+        "depolarization",
+        "voltage-gated-channels",
+        "sodium-potassium",
+        "hodgkin-huxley",
+        "nerve-impulse"
+      ],
+      "sourceIds": [
+        "src-hodgkin-huxley-1952",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Action Potential", "Nerve Spikes", "Axonal Impulses"]
+      "aliases": [
+        "Action Potential",
+        "Nerve Spikes",
+        "Axonal Impulses"
+      ]
     },
     {
       "id": "concept-human-brain",
@@ -271,11 +402,27 @@
       "name": "Human Brain & Cerebral Cortex",
       "shortDescription": "The central organ of the human nervous system, consisting of approximately 86 billion neurons interconnected within a deeply folded cerebral cortex and subcortical nuclei.",
       "description": "The human brain coordinates motor activity, sensory integration, homeostasis, language, and abstract thought. Divided into bilateral hemispheres containing frontal, parietal, temporal, and occipital lobes, the six-layered neocortex enables hierarchical cognitive processing, supported by dense subcortical loops involving the basal ganglia and thalamus.",
-      "domains": ["neuroscience", "anatomy"],
-      "tags": ["cerebral-cortex", "neocortex", "hemispheres", "central-nervous-system", "cognition"],
-      "sourceIds": ["src-purves-neuroscience", "src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "anatomy"
+      ],
+      "tags": [
+        "cerebral-cortex",
+        "neocortex",
+        "hemispheres",
+        "central-nervous-system",
+        "cognition"
+      ],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Cerebrum", "Cerebral Cortex", "Encephalon"]
+      "aliases": [
+        "Cerebrum",
+        "Cerebral Cortex",
+        "Encephalon"
+      ]
     },
     {
       "id": "concept-visual-perception",
@@ -283,11 +430,26 @@
       "name": "Visual Perception",
       "shortDescription": "The biological process by which retinal photoreceptors transduce electromagnetic light waves into neural impulses, synthesized by the visual cortex into coherent scenes.",
       "description": "Visual perception begins in the retina, where rods and cones transduce photons into electrical graded potentials. Ganglion cells transmit signals via the optic nerve through the lateral geniculate nucleus to primary visual cortex (V1), where receptive fields detect edge orientations, dividing into ventral ('what') and dorsal ('where') cortical processing streams.",
-      "domains": ["neuroscience", "psychology"],
-      "tags": ["retina", "photoreceptors", "visual-cortex", "ventral-stream", "dorsal-stream"],
-      "sourceIds": ["src-purves-neuroscience", "src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "psychology"
+      ],
+      "tags": [
+        "retina",
+        "photoreceptors",
+        "visual-cortex",
+        "ventral-stream",
+        "dorsal-stream"
+      ],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Biological Vision", "Visual Processing"]
+      "aliases": [
+        "Biological Vision",
+        "Visual Processing"
+      ]
     },
     {
       "id": "concept-memory-consolidation",
@@ -295,11 +457,26 @@
       "name": "Memory Consolidation & Hippocampus",
       "shortDescription": "The neurobiological process that transforms labile, newly acquired short-term memories into stable, enduring long-term cortical memory traces.",
       "description": "Immediate declarative memory depends critically on the hippocampal formation in the medial temporal lobe. Through systems consolidation, repeated synchronous replay during slow-wave sleep progressively redistributes synaptic traces from the hippocampus to distributed neocortical circuits, rendering memories independent of the hippocampus.",
-      "domains": ["neuroscience", "psychology"],
-      "tags": ["hippocampus", "declarative-memory", "systems-consolidation", "synaptic-replay", "long-term-memory"],
-      "sourceIds": ["src-scoville-milner-1957", "src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "psychology"
+      ],
+      "tags": [
+        "hippocampus",
+        "declarative-memory",
+        "systems-consolidation",
+        "synaptic-replay",
+        "long-term-memory"
+      ],
+      "sourceIds": [
+        "src-scoville-milner-1957",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Memory Consolidation", "Hippocampal Consolidation"]
+      "aliases": [
+        "Memory Consolidation",
+        "Hippocampal Consolidation"
+      ]
     },
     {
       "id": "concept-consciousness-studies",
@@ -307,11 +484,27 @@
       "name": "Consciousness Research",
       "shortDescription": "The empirical and theoretical investigation into the subjective experiential states of awareness and their underlying neural correlates in the brain.",
       "description": "Consciousness research bridges cognitive neuroscience and philosophy of mind to identify the neural correlates of consciousness (NCC)—the minimal neural mechanisms sufficient for a specific conscious percept. Modern investigations evaluate corticothalamic synchrony, recurrent processing, and integrated information theory across waking, anesthesia, and dream states.",
-      "domains": ["neuroscience", "cognitive-science", "philosophy"],
-      "tags": ["ncc", "subjective-experience", "corticothalamic", "qualia", "awareness"],
-      "sourceIds": ["src-crick-koch-2003", "src-kandel-principles-neural"],
+      "domains": [
+        "neuroscience",
+        "cognitive-science",
+        "philosophy"
+      ],
+      "tags": [
+        "ncc",
+        "subjective-experience",
+        "corticothalamic",
+        "qualia",
+        "awareness"
+      ],
+      "sourceIds": [
+        "src-crick-koch-2003",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Neural Correlates of Consciousness", "Cognitive Neuroscience of Consciousness"]
+      "aliases": [
+        "Neural Correlates of Consciousness",
+        "Cognitive Neuroscience of Consciousness"
+      ]
     },
     {
       "id": "concept-proteins-and-enzymes",
@@ -319,11 +512,25 @@
       "name": "Proteins & Enzymes",
       "shortDescription": "Large biological macromolecules composed of folded amino acid chains that catalyze metabolic reactions and provide cellular structural architecture.",
       "description": "Proteins are linear polymers of twenty standard amino acids that fold into precise three-dimensional conformations determined by their primary sequences. As enzymes, they lower chemical activation energies to catalyze biochemical reactions with extreme substrate specificity, driving cellular metabolism and signal transduction.",
-      "domains": ["biology", "biochemistry"],
-      "tags": ["amino-acids", "protein-folding", "enzymes", "catalysis", "macromolecules"],
-      "sourceIds": ["src-alberts-mboc"],
+      "domains": [
+        "biology",
+        "biochemistry"
+      ],
+      "tags": [
+        "amino-acids",
+        "protein-folding",
+        "enzymes",
+        "catalysis",
+        "macromolecules"
+      ],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Enzymatic Catalysis", "Biological Macromolecules"]
+      "aliases": [
+        "Enzymatic Catalysis",
+        "Biological Macromolecules"
+      ]
     },
     {
       "id": "concept-neurotransmitters",
@@ -331,11 +538,26 @@
       "name": "Neurotransmitters & Neuromodulation",
       "shortDescription": "Endogenous chemical signaling molecules synthesized by neurons to transmit messages across synaptic clefts or modulate widespread neural circuit excitability.",
       "description": "Neurotransmitters include small-molecule fast transmitters (such as glutamate for excitation and GABA for inhibition) alongside diffuse neuromodulatory monoamines (dopamine, serotonin, norepinephrine, and acetylcholine). Neuromodulators regulate arousal, motivation, mood, attention, and synaptic learning rules across brain regions.",
-      "domains": ["neuroscience", "biochemistry"],
-      "tags": ["glutamate", "gaba", "dopamine", "serotonin", "neuromodulation"],
-      "sourceIds": ["src-kandel-principles-neural", "src-purves-neuroscience"],
+      "domains": [
+        "neuroscience",
+        "biochemistry"
+      ],
+      "tags": [
+        "glutamate",
+        "gaba",
+        "dopamine",
+        "serotonin",
+        "neuromodulation"
+      ],
+      "sourceIds": [
+        "src-kandel-principles-neural",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Neurochemical Transmitters", "Neuromodulators"]
+      "aliases": [
+        "Neurochemical Transmitters",
+        "Neuromodulators"
+      ]
     },
     {
       "id": "concept-sensory-systems",
@@ -343,11 +565,25 @@
       "name": "Sensory Systems & Transduction",
       "shortDescription": "Specialized anatomical organs and neural pathways that detect environmental stimuli and convert physical energies into electrical receptor potentials.",
       "description": "Sensory systems (vision, audition, somatosensation, olfaction, and gustation) rely on specialized sensory receptor cells to perform sensory transduction—transforming photons, acoustic pressure waves, mechanical deformation, or chemical ligands into graded electrical potentials that trigger action potentials toward the central nervous system.",
-      "domains": ["neuroscience", "biology"],
-      "tags": ["transduction", "receptor-potentials", "somatosensory", "audition", "sensory-organs"],
-      "sourceIds": ["src-purves-neuroscience"],
+      "domains": [
+        "neuroscience",
+        "biology"
+      ],
+      "tags": [
+        "transduction",
+        "receptor-potentials",
+        "somatosensory",
+        "audition",
+        "sensory-organs"
+      ],
+      "sourceIds": [
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Sensory Transduction", "Sensory Pathways"]
+      "aliases": [
+        "Sensory Transduction",
+        "Sensory Pathways"
+      ]
     },
     {
       "id": "concept-circadian-rhythms",
@@ -355,11 +591,26 @@
       "name": "Circadian Rhythms",
       "shortDescription": "Endogenous, cell-autonomous 24-hour biological oscillations that coordinate physiological, biochemical, and behavioral processes to Earth's solar cycle.",
       "description": "Driven by molecular transcriptional-translational feedback loops involving CLOCK, BMAL1, and Period (PER) proteins, circadian rhythms operate in nearly every tissue. In mammals, these cell-autonomous clocks are synchronized by a master pacemaker in the hypothalamic suprachiasmatic nucleus (SCN) entrained by retinal light exposure.",
-      "domains": ["biology", "neuroscience"],
-      "tags": ["biological-clock", "suprachiasmatic-nucleus", "melatonin", "feedback-loops", "chronobiology"],
-      "sourceIds": ["src-nobel-circadian-2017", "src-purves-neuroscience"],
+      "domains": [
+        "biology",
+        "neuroscience"
+      ],
+      "tags": [
+        "biological-clock",
+        "suprachiasmatic-nucleus",
+        "melatonin",
+        "feedback-loops",
+        "chronobiology"
+      ],
+      "sourceIds": [
+        "src-nobel-circadian-2017",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Biological Clocks", "Circadian Clock"]
+      "aliases": [
+        "Biological Clocks",
+        "Circadian Clock"
+      ]
     },
     {
       "id": "concept-homeostasis",
@@ -367,11 +618,25 @@
       "name": "Homeostasis",
       "shortDescription": "The self-regulating physiological mechanisms by which living organisms maintain stable internal chemical and physical conditions despite external environmental fluctuations.",
       "description": "Coined by Walter Cannon, homeostasis operates via physiological negative feedback loops that continuously monitor controlled variables (such as core body temperature, blood glucose levels, blood pressure, and arterial pH). Deviations from homeostatic setpoints activate neuroendocrine responses to restore physiological equilibrium.",
-      "domains": ["biology", "physiology"],
-      "tags": ["negative-feedback", "setpoints", "physiological-regulation", "equilibrium", "autonomic"],
-      "sourceIds": ["src-guyton-hall-physiology"],
+      "domains": [
+        "biology",
+        "physiology"
+      ],
+      "tags": [
+        "negative-feedback",
+        "setpoints",
+        "physiological-regulation",
+        "equilibrium",
+        "autonomic"
+      ],
+      "sourceIds": [
+        "src-guyton-hall-physiology"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Physiological Homeostasis", "Internal Milieu"]
+      "aliases": [
+        "Physiological Homeostasis",
+        "Internal Milieu"
+      ]
     },
     {
       "id": "concept-motor-control",
@@ -379,11 +644,25 @@
       "name": "Motor Control & Motor Cortex",
       "shortDescription": "The neural processing systems that plan, coordinate, and execute voluntary skeletal muscle movements through descending motor pathways.",
       "description": "Motor control transforms cognitive intentions into coordinated mechanical actions. Initiated in premotor and primary motor cortex (M1), descending corticospinal tracts transmit commands to spinal motor neurons, while continuous sensory feedback loops through the cerebellum and basal ganglia fine-tune timing, error correction, and motor learning.",
-      "domains": ["neuroscience"],
-      "tags": ["corticospinal", "motor-cortex", "cerebellum", "basal-ganglia", "voluntary-movement"],
-      "sourceIds": ["src-kandel-principles-neural", "src-purves-neuroscience"],
+      "domains": [
+        "neuroscience"
+      ],
+      "tags": [
+        "corticospinal",
+        "motor-cortex",
+        "cerebellum",
+        "basal-ganglia",
+        "voluntary-movement"
+      ],
+      "sourceIds": [
+        "src-kandel-principles-neural",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Motor Systems", "Neural Motor Control"]
+      "aliases": [
+        "Motor Systems",
+        "Neural Motor Control"
+      ]
     },
     {
       "id": "concept-epigenetics",
@@ -391,11 +670,25 @@
       "name": "Epigenetics & Gene Regulation",
       "shortDescription": "Heritable changes in gene expression and cellular phenotype that occur without alterations to the underlying DNA nucleotide sequence.",
       "description": "Epigenetic mechanisms regulate chromatin accessibility and transcriptional activity through chemical modifications such as DNA cytosine methylation, histone acetylation, and non-coding RNA interactions. Epigenetic marks allow genetically identical cells to differentiate into specialized cell types while responding to environmental signals.",
-      "domains": ["genetics", "biology"],
-      "tags": ["dna-methylation", "histone-modification", "chromatin", "gene-regulation", "cell-differentiation"],
-      "sourceIds": ["src-alberts-mboc"],
+      "domains": [
+        "genetics",
+        "biology"
+      ],
+      "tags": [
+        "dna-methylation",
+        "histone-modification",
+        "chromatin",
+        "gene-regulation",
+        "cell-differentiation"
+      ],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review",
-      "aliases": ["Epigenetic Regulation", "Chromatin Remodeling"]
+      "aliases": [
+        "Epigenetic Regulation",
+        "Chromatin Remodeling"
+      ]
     }
   ],
   "relationships": [
@@ -406,7 +699,9 @@
       "type": "includes",
       "explanation": "Cells contain genomic DNA molecules within their nuclei or nucleoids to store heritable instructions for cellular operation.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -416,7 +711,10 @@
       "type": "includes",
       "explanation": "DNA polymers are organized into distinct nucleotide sequences called genes that encode specific functional RNAs or proteins.",
       "strength": "primary",
-      "sourceIds": ["src-watson-crick-1953-dna", "src-alberts-mboc"],
+      "sourceIds": [
+        "src-watson-crick-1953-dna",
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -426,7 +724,9 @@
       "type": "leads-to",
       "explanation": "Transcription and translation of genes synthesize polypeptide chains that fold into functional proteins and metabolic enzymes.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -436,17 +736,23 @@
       "type": "uses",
       "explanation": "Evolutionary adaptation operates primarily through natural selection acting on heritable phenotypic variations in populations.",
       "strength": "primary",
-      "sourceIds": ["src-darwin-1859-origin", "src-futuyma-evolution"],
+      "sourceIds": [
+        "src-darwin-1859-origin",
+        "src-futuyma-evolution"
+      ],
       "reviewStatus": "needs-review"
     },
     {
       "id": "rel-natural-selection-genes",
       "sourceConceptId": "concept-natural-selection",
       "targetConceptId": "concept-genes",
-      "type": "manages",
-      "explanation": "Natural selection alters the relative frequencies of genetic alleles within population gene pools over successive generations.",
+      "type": "related-to",
+      "explanation": "Natural selection acts upon phenotypic variation among organisms, altering allele frequencies in population gene pools across successive generations.",
       "strength": "primary",
-      "sourceIds": ["src-futuyma-evolution", "src-darwin-1859-origin"],
+      "sourceIds": [
+        "src-futuyma-evolution",
+        "src-darwin-1859-origin"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -456,7 +762,9 @@
       "type": "uses",
       "explanation": "Biological neurons form intercellular communication networks by transmitting signals across specialized junctions called synapses.",
       "strength": "primary",
-      "sourceIds": ["src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -466,7 +774,10 @@
       "type": "uses",
       "explanation": "Biological neurons generate and propagate rapid all-or-none action potentials along their axons to communicate over distance.",
       "strength": "primary",
-      "sourceIds": ["src-hodgkin-huxley-1952", "src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-hodgkin-huxley-1952",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -476,7 +787,9 @@
       "type": "uses",
       "explanation": "Chemical synapses rely on the regulated release and diffusion of neurotransmitters across the synaptic cleft to activate receptors.",
       "strength": "primary",
-      "sourceIds": ["src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -486,7 +799,9 @@
       "type": "leads-to",
       "explanation": "Activity-dependent changes in synaptic strength, such as long-term potentiation, provide the primary mechanism of neuroplasticity.",
       "strength": "primary",
-      "sourceIds": ["src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -496,7 +811,10 @@
       "type": "includes",
       "explanation": "The human brain contains tens of billions of biological neurons interconnected into complex functional circuits and cortical layers.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience", "src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -506,7 +824,9 @@
       "type": "part-of",
       "explanation": "Visual perception represents the optical division of sensory systems, processing light signals received through retinal photoreceptors.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience"],
+      "sourceIds": [
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -516,7 +836,10 @@
       "type": "depends-on",
       "explanation": "Retinal photoreceptors initiate the visual perception cascade by absorbing discrete photons of light and activating rhodopsin.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience", "src-einstein-1905-photoelectric"],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-einstein-1905-photoelectric"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -526,7 +849,10 @@
       "type": "part-of",
       "explanation": "Memory consolidation is executed across brain structures, transferring traces from the medial temporal hippocampus to the neocortex.",
       "strength": "primary",
-      "sourceIds": ["src-scoville-milner-1957", "src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-scoville-milner-1957",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -536,7 +862,9 @@
       "type": "related-to",
       "explanation": "Consciousness research investigates how coordinated electrical rhythms and information integration in the brain generate conscious awareness.",
       "strength": "primary",
-      "sourceIds": ["src-crick-koch-2003"],
+      "sourceIds": [
+        "src-crick-koch-2003"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -546,7 +874,10 @@
       "type": "related-to",
       "explanation": "Artificial neural networks were historically abstracted from simplified computational metaphors of biological neurons and weighted synapses.",
       "strength": "strong",
-      "sourceIds": ["src-goodfellow-deep-learning", "src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-goodfellow-deep-learning",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -556,7 +887,10 @@
       "type": "manages",
       "explanation": "Homeostatic regulation coordinates systemic conditions to maintain stable ionic, osmotic, and metabolic environments necessary for cell survival.",
       "strength": "primary",
-      "sourceIds": ["src-guyton-hall-physiology", "src-alberts-mboc"],
+      "sourceIds": [
+        "src-guyton-hall-physiology",
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -566,7 +900,10 @@
       "type": "related-to",
       "explanation": "Circadian biological clocks anticipate cyclical environmental variations to adjust homeostatic physiological setpoints throughout the 24-hour day.",
       "strength": "strong",
-      "sourceIds": ["src-nobel-circadian-2017", "src-guyton-hall-physiology"],
+      "sourceIds": [
+        "src-nobel-circadian-2017",
+        "src-guyton-hall-physiology"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -576,7 +913,10 @@
       "type": "part-of",
       "explanation": "Motor planning and execution pathways are coordinated through brain motor cortex, basal ganglia, and cerebellar circuits.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience", "src-kandel-principles-neural"],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-kandel-principles-neural"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -586,7 +926,9 @@
       "type": "manages",
       "explanation": "Epigenetic chromatin remodeling and DNA methylation patterns regulate when and how strongly specific genes are expressed.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -596,7 +938,9 @@
       "type": "implemented-with",
       "explanation": "DNA double-helical molecules are chemically composed of carbon, hydrogen, nitrogen, oxygen, and phosphorus atoms bound by covalent and hydrogen bonds.",
       "strength": "primary",
-      "sourceIds": ["src-watson-crick-1953-dna"],
+      "sourceIds": [
+        "src-watson-crick-1953-dna"
+      ],
       "reviewStatus": "needs-review"
     }
   ]

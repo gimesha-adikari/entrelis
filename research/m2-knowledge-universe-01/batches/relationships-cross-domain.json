@@ -9,7 +9,10 @@
       "type": "depends-on",
       "explanation": "Modern asymmetric cryptography relies on computational complexity theory and hardness assumptions, such as the presumed intractability of factoring and discrete logarithms in polynomial time.",
       "strength": "primary",
-      "sourceIds": ["src-katz-lindell-crypto", "src-sipser-computation"],
+      "sourceIds": [
+        "src-katz-lindell-crypto",
+        "src-sipser-computation"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -19,7 +22,10 @@
       "type": "implemented-with",
       "explanation": "Machine code binary bit patterns directly implement the instruction formats, opcodes, and addressing modes defined by the processor's instruction set architecture.",
       "strength": "primary",
-      "sourceIds": ["src-patterson-hennessy-cod", "src-intel-sdm"],
+      "sourceIds": [
+        "src-patterson-hennessy-cod",
+        "src-intel-sdm"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -29,7 +35,10 @@
       "type": "depends-on",
       "explanation": "Computer graphics pipelines rely on 4x4 affine transformation matrices, homogeneous coordinates, and vector dot products from linear algebra to transform and project 3D vertices onto 2D screens.",
       "strength": "primary",
-      "sourceIds": ["src-foley-graphics", "src-strang-linear-algebra"],
+      "sourceIds": [
+        "src-foley-graphics",
+        "src-strang-linear-algebra"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -39,7 +48,10 @@
       "type": "related-to",
       "explanation": "Computer vision algorithms, particularly hierarchical convolutional neural networks, were conceptually inspired by the receptive field organization of mammalian primary visual cortex.",
       "strength": "strong",
-      "sourceIds": ["src-szeliski-computer-vision", "src-purves-neuroscience"],
+      "sourceIds": [
+        "src-szeliski-computer-vision",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -49,7 +61,10 @@
       "type": "depends-on",
       "explanation": "The theoretical existence, formal definition, and ultimate limits of mechanical algorithms are established by computability theory and Turing machines.",
       "strength": "primary",
-      "sourceIds": ["src-cormen-clrs", "src-turing-1936-computable"],
+      "sourceIds": [
+        "src-cormen-clrs",
+        "src-turing-1936-computable"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -59,7 +74,10 @@
       "type": "depends-on",
       "explanation": "Data structures organize logical relationships between data items within physical and virtual addressable memory layouts.",
       "strength": "primary",
-      "sourceIds": ["src-cormen-clrs", "src-bryant-csapp"],
+      "sourceIds": [
+        "src-cormen-clrs",
+        "src-bryant-csapp"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -69,7 +87,10 @@
       "type": "related-to",
       "explanation": "Garbage collectors specifically manage and reclaim dynamic allocations residing in heap memory, contrasting with automatically scoped call stack frames.",
       "strength": "primary",
-      "sourceIds": ["src-bryant-csapp", "src-jones-gc-handbook"],
+      "sourceIds": [
+        "src-bryant-csapp",
+        "src-jones-gc-handbook"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -79,7 +100,10 @@
       "type": "part-of",
       "explanation": "Virtual memory subsystems operate as an essential architectural component within modern operating system kernels.",
       "strength": "primary",
-      "sourceIds": ["src-denning-virtual-memory", "src-arpaci-ostep"],
+      "sourceIds": [
+        "src-denning-virtual-memory",
+        "src-arpaci-ostep"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -89,7 +113,10 @@
       "type": "depends-on",
       "explanation": "Fast virtual-to-physical address translation relies on dedicated hardware memory management units (MMUs) and translation lookaside buffers (TLBs) integrated within CPUs.",
       "strength": "primary",
-      "sourceIds": ["src-denning-virtual-memory", "src-patterson-hennessy-cod"],
+      "sourceIds": [
+        "src-denning-virtual-memory",
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -99,7 +126,10 @@
       "type": "uses",
       "explanation": "File system implementations organize storage blocks and directory trees using specialized data structures, including B-trees, hash tables, and inode extents.",
       "strength": "primary",
-      "sourceIds": ["src-arpaci-ostep", "src-cormen-clrs"],
+      "sourceIds": [
+        "src-arpaci-ostep",
+        "src-cormen-clrs"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -109,7 +139,10 @@
       "type": "implemented-with",
       "explanation": "Asynchronous I/O implements single-threaded or thread-pool concurrency by demultiplexing readiness events, avoiding blocking overhead across concurrent connections.",
       "strength": "primary",
-      "sourceIds": ["src-posix-base-spec", "src-herlihy-multiprocessor"],
+      "sourceIds": [
+        "src-posix-base-spec",
+        "src-herlihy-multiprocessor"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -119,7 +152,10 @@
       "type": "includes",
       "explanation": "Distributed systems coordinate concurrent execution across independent processor nodes without shared physical memory or a centralized hardware clock.",
       "strength": "primary",
-      "sourceIds": ["src-tanenbaum-distributed", "src-lamport-clocks-1978"],
+      "sourceIds": [
+        "src-tanenbaum-distributed",
+        "src-lamport-clocks-1978"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -129,7 +165,10 @@
       "type": "related-to",
       "explanation": "Claude Shannon's information theory provided the foundational mathematical proof of perfect secrecy (the one-time pad) via unconditional entropy equivalence.",
       "strength": "primary",
-      "sourceIds": ["src-shannon-1948-communication", "src-katz-lindell-crypto"],
+      "sourceIds": [
+        "src-shannon-1948-communication",
+        "src-katz-lindell-crypto"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -139,7 +178,10 @@
       "type": "manages",
       "explanation": "Information theory establishes the fundamental physical channel capacity and compression limits governing telecommunications systems.",
       "strength": "primary",
-      "sourceIds": ["src-shannon-1948-communication", "src-kurose-ross"],
+      "sourceIds": [
+        "src-shannon-1948-communication",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -149,7 +191,10 @@
       "type": "contrasts-with",
       "explanation": "Normative Bayesian inference dictates rational belief revision under evidence, contrasting sharply with human cognitive biases such as base-rate neglect.",
       "strength": "strong",
-      "sourceIds": ["src-gelman-bda3", "src-tversky-kahneman-1974"],
+      "sourceIds": [
+        "src-gelman-bda3",
+        "src-tversky-kahneman-1974"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -159,7 +204,10 @@
       "type": "related-to",
       "explanation": "Reinforcement learning formalizes sequential decision-making algorithms under uncertainty, optimizing cumulative expected reward across states.",
       "strength": "primary",
-      "sourceIds": ["src-sutton-barto-rl", "src-simon-1955-rational-choice"],
+      "sourceIds": [
+        "src-sutton-barto-rl",
+        "src-simon-1955-rational-choice"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -169,7 +217,9 @@
       "type": "related-to",
       "explanation": "Reinforcement learning algorithms mathematically formalized psychological principles of operant conditioning, trial-and-error learning, and Thorndike's Law of Effect.",
       "strength": "primary",
-      "sourceIds": ["src-sutton-barto-rl"],
+      "sourceIds": [
+        "src-sutton-barto-rl"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -179,7 +229,10 @@
       "type": "depends-on",
       "explanation": "Computational natural language processing confronts the foundational philosophical problems of semantic reference, truth conditions, and symbolic meaning.",
       "strength": "strong",
-      "sourceIds": ["src-jurafsky-slp3", "src-sep-logic-classical"],
+      "sourceIds": [
+        "src-jurafsky-slp3",
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -189,7 +242,10 @@
       "type": "manages",
       "explanation": "Quantum mechanics explains atomic stability, discrete spectral emission lines, and electron shell configurations that classical electromagnetism could not explain.",
       "strength": "primary",
-      "sourceIds": ["src-griffiths-quantum", "src-pdg-standard-model"],
+      "sourceIds": [
+        "src-griffiths-quantum",
+        "src-pdg-standard-model"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -199,7 +255,10 @@
       "type": "includes",
       "explanation": "Quantum theory emerged from Planck and Einstein's discovery that electromagnetic radiation is emitted, absorbed, and quantized into discrete photons.",
       "strength": "primary",
-      "sourceIds": ["src-griffiths-quantum", "src-einstein-1905-photoelectric"],
+      "sourceIds": [
+        "src-griffiths-quantum",
+        "src-einstein-1905-photoelectric"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -209,7 +268,9 @@
       "type": "depends-on",
       "explanation": "Solid-state physical properties arise from the periodic spatial lattice arrangement and inter-atomic electrostatic potentials of constituent atoms.",
       "strength": "primary",
-      "sourceIds": ["src-ashcroft-mermin-solid-state"],
+      "sourceIds": [
+        "src-ashcroft-mermin-solid-state"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -219,7 +280,10 @@
       "type": "leads-to",
       "explanation": "Einstein generalized special relativity to non-inertial accelerating reference frames via the equivalence principle, formulating general relativity.",
       "strength": "primary",
-      "sourceIds": ["src-einstein-1905-relativity", "src-einstein-1916-gr"],
+      "sourceIds": [
+        "src-einstein-1905-relativity",
+        "src-einstein-1916-gr"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -229,7 +293,10 @@
       "type": "depends-on",
       "explanation": "In modern physics, gravitational interactions cannot propagate instantaneously without violating special relativity's upper speed limit of light, requiring relativistic gravitational field theories.",
       "strength": "primary",
-      "sourceIds": ["src-einstein-1905-relativity", "src-einstein-1916-gr"],
+      "sourceIds": [
+        "src-einstein-1905-relativity",
+        "src-einstein-1916-gr"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -239,7 +306,10 @@
       "type": "uses",
       "explanation": "Nuclear fusion combines light atomic nuclei (such as hydrogen and helium) under high kinetic temperatures to synthesize heavier chemical elements.",
       "strength": "primary",
-      "sourceIds": ["src-carroll-ostlie-astrophysics", "src-pdg-standard-model"],
+      "sourceIds": [
+        "src-carroll-ostlie-astrophysics",
+        "src-pdg-standard-model"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -249,7 +319,10 @@
       "type": "depends-on",
       "explanation": "Energy released during nuclear fusion is precisely governed by mass-energy conservation, where missing rest mass defect is converted to kinetic and radiative energy.",
       "strength": "primary",
-      "sourceIds": ["src-carroll-ostlie-astrophysics", "src-callen-thermodynamics"],
+      "sourceIds": [
+        "src-carroll-ostlie-astrophysics",
+        "src-callen-thermodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -259,7 +332,10 @@
       "type": "implemented-with",
       "explanation": "Black holes are regions of extreme gravitational field curvature where spacetime becomes asymptotically steep at the event horizon.",
       "strength": "primary",
-      "sourceIds": ["src-eht-m87-2019", "src-einstein-1916-gr"],
+      "sourceIds": [
+        "src-eht-m87-2019",
+        "src-einstein-1916-gr"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -269,7 +345,10 @@
       "type": "includes",
       "explanation": "Cosmological structural evolution models the emergence of stars and galaxies from primordial hydrogen and helium density perturbations following the Big Bang.",
       "strength": "primary",
-      "sourceIds": ["src-nasa-wmap-cosmology", "src-carroll-ostlie-astrophysics"],
+      "sourceIds": [
+        "src-nasa-wmap-cosmology",
+        "src-carroll-ostlie-astrophysics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -279,7 +358,10 @@
       "type": "leads-to",
       "explanation": "Space exploration rocket launch capabilities enabled the deployment and maintenance of orbital satellite constellations around Earth.",
       "strength": "primary",
-      "sourceIds": ["src-curtis-orbital-mechanics", "src-smithsonian-apollo-history"],
+      "sourceIds": [
+        "src-curtis-orbital-mechanics",
+        "src-smithsonian-apollo-history"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -289,7 +371,9 @@
       "type": "part-of",
       "explanation": "Proteins and enzymes form the structural cytoskeleton, membrane transporters, and enzymatic metabolic machinery of biological cells.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -299,7 +383,9 @@
       "type": "implemented-with",
       "explanation": "Proteins are macromolecules folded into stereochemical 3D structures held together by atomic covalent bonds, hydrogen bonds, and van der Waals interactions.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -309,7 +395,10 @@
       "type": "part-of",
       "explanation": "Biological neurons are specialized eukaryotic animal cells featuring polarized lipid membranes, dendritic branches, and long axonal projections.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc", "src-purves-neuroscience"],
+      "sourceIds": [
+        "src-alberts-mboc",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -319,7 +408,10 @@
       "type": "depends-on",
       "explanation": "Action potential membrane voltages and currents are generated by the movement of charged ions (sodium, potassium) possessing net elementary electron charges.",
       "strength": "primary",
-      "sourceIds": ["src-hodgkin-huxley-1952", "src-pdg-standard-model"],
+      "sourceIds": [
+        "src-hodgkin-huxley-1952",
+        "src-pdg-standard-model"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -329,17 +421,23 @@
       "type": "leads-to",
       "explanation": "Synaptic plasticity and structural circuit rewiring provide the physical biological substrate that manifests behaviorally as psychological learning.",
       "strength": "primary",
-      "sourceIds": ["src-kandel-principles-neural", "src-baddeley-2012-working-memory"],
+      "sourceIds": [
+        "src-kandel-principles-neural",
+        "src-baddeley-2012-working-memory"
+      ],
       "reviewStatus": "needs-review"
     },
     {
       "id": "rel-consciousness-studies-philosophy-of-mind",
       "sourceConceptId": "concept-consciousness-studies",
       "targetConceptId": "concept-philosophy-of-mind",
-      "type": "related-to",
-      "explanation": "Empirical consciousness research addresses theoretical questions framed by philosophy of mind, such as the hard problem of qualia and subjective experience.",
+      "type": "uses",
+      "explanation": "Empirical consciousness studies utilize theoretical concepts and distinctions from philosophy of mind (such as phenomenal qualia and the hard problem) to formulate experimental paradigms.",
       "strength": "primary",
-      "sourceIds": ["src-crick-koch-2003", "src-sep-epistemology"],
+      "sourceIds": [
+        "src-crick-koch-2003",
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -349,7 +447,10 @@
       "type": "manages",
       "explanation": "Attentional control mechanisms gate sensory transduction pathways, amplifying relevant inputs and attenuating background sensory noise.",
       "strength": "primary",
-      "sourceIds": ["src-posner-petersen-1990", "src-purves-neuroscience"],
+      "sourceIds": [
+        "src-posner-petersen-1990",
+        "src-purves-neuroscience"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -359,7 +460,10 @@
       "type": "related-to",
       "explanation": "Ethical frameworks provide the normative criteria and moral principles that guide human agents when evaluating high-stakes decisions.",
       "strength": "primary",
-      "sourceIds": ["src-sep-epistemology", "src-simon-1955-rational-choice"],
+      "sourceIds": [
+        "src-sep-epistemology",
+        "src-simon-1955-rational-choice"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -369,7 +473,10 @@
       "type": "depends-on",
       "explanation": "The scientific method embodies empiricist epistemological commitments, demanding that theoretical assertions be validated against observational and experimental data.",
       "strength": "primary",
-      "sourceIds": ["src-sep-scientific-method", "src-sep-rationalism-empiricism"],
+      "sourceIds": [
+        "src-sep-scientific-method",
+        "src-sep-rationalism-empiricism"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -379,7 +486,10 @@
       "type": "uses",
       "explanation": "Hypothesis testing uses deductive logic to derive necessary empirical predictions (modus tollens in falsification) from theoretical models.",
       "strength": "primary",
-      "sourceIds": ["src-popper-1959-logic-discovery", "src-sep-logic-classical"],
+      "sourceIds": [
+        "src-popper-1959-logic-discovery",
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -389,7 +499,10 @@
       "type": "leads-to",
       "explanation": "Investigating the decidability of formal logical systems (Hilbert's Entscheidungsproblem) led directly to Alan Turing's mathematical formulation of computability theory.",
       "strength": "primary",
-      "sourceIds": ["src-turing-1936-computable", "src-sep-logic-classical"],
+      "sourceIds": [
+        "src-turing-1936-computable",
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -399,7 +512,10 @@
       "type": "part-of",
       "explanation": "Philosophy of science operates as a specialized branch of epistemology focused on the validity, justification, and progress of scientific knowledge.",
       "strength": "primary",
-      "sourceIds": ["src-sep-scientific-method", "src-kuhn-1962-revolutions"],
+      "sourceIds": [
+        "src-sep-scientific-method",
+        "src-kuhn-1962-revolutions"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -409,7 +525,10 @@
       "type": "related-to",
       "explanation": "Movable metal type printing served as the historical mechanical precursor to the digital information age, democratizing access to recorded knowledge.",
       "strength": "supporting",
-      "sourceIds": ["src-loc-gutenberg-bible", "src-raymond-cathedral"],
+      "sourceIds": [
+        "src-loc-gutenberg-bible",
+        "src-raymond-cathedral"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -419,7 +538,10 @@
       "type": "related-to",
       "explanation": "Telescopic observation of celestial bodies during the Scientific Revolution dismantled the Aristotelian celestial-terrestrial dichotomy, founding modern astrophysics.",
       "strength": "primary",
-      "sourceIds": ["src-sep-scientific-method", "src-carroll-ostlie-astrophysics"],
+      "sourceIds": [
+        "src-sep-scientific-method",
+        "src-carroll-ostlie-astrophysics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -429,7 +551,10 @@
       "type": "depends-on",
       "explanation": "Industrial manufacturing mechanization depended fundamentally on the rotary steam engine for continuous mechanical motive power.",
       "strength": "primary",
-      "sourceIds": ["src-callen-thermodynamics", "src-smithsonian-lighting-revolution"],
+      "sourceIds": [
+        "src-callen-thermodynamics",
+        "src-smithsonian-lighting-revolution"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -439,7 +564,10 @@
       "type": "depends-on",
       "explanation": "Industrial electrical dynamos, motors, transformers, and distribution grids operate entirely on Maxwellian electromagnetic induction.",
       "strength": "primary",
-      "sourceIds": ["src-smithsonian-lighting-revolution", "src-jackson-electrodynamics"],
+      "sourceIds": [
+        "src-smithsonian-lighting-revolution",
+        "src-jackson-electrodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -449,7 +577,10 @@
       "type": "leads-to",
       "explanation": "Long-distance telecommunication lines and switching exchanges provided the physical transmission infrastructure that computer networks leveraged for data packets.",
       "strength": "primary",
-      "sourceIds": ["src-loc-morse-telegraph", "src-kurose-ross"],
+      "sourceIds": [
+        "src-loc-morse-telegraph",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -459,7 +590,10 @@
       "type": "includes",
       "explanation": "Integrated circuits combine microscopic planar transistors to physically instantiate arrays of logic gates on a single silicon chip.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-integrated-circuit", "src-shannon-1938-relay"],
+      "sourceIds": [
+        "src-ethw-integrated-circuit",
+        "src-shannon-1938-relay"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -469,7 +603,10 @@
       "type": "includes",
       "explanation": "The history of computing counts Alan Turing as a foundational theoretical pioneer who formulated the universal computing machine concept.",
       "strength": "primary",
-      "sourceIds": ["src-turing-1936-computable", "src-von-neumann-1945-edvac"],
+      "sourceIds": [
+        "src-turing-1936-computable",
+        "src-von-neumann-1945-edvac"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -479,7 +616,9 @@
       "type": "includes",
       "explanation": "The stored-program Von Neumann architecture formalized in 1945 became the standard structural blueprint for electronic digital computers.",
       "strength": "primary",
-      "sourceIds": ["src-von-neumann-1945-edvac"],
+      "sourceIds": [
+        "src-von-neumann-1945-edvac"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -489,7 +628,10 @@
       "type": "leads-to",
       "explanation": "Turing's 1936 formulation of the universal machine established computability theory by demonstrating the non-existence of a general halting algorithm.",
       "strength": "primary",
-      "sourceIds": ["src-turing-1936-computable", "src-sipser-computation"],
+      "sourceIds": [
+        "src-turing-1936-computable",
+        "src-sipser-computation"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -499,7 +641,10 @@
       "type": "part-of",
       "explanation": "The history of the Internet constitutes the defining historical evolution of global packet-switched computer networks.",
       "strength": "primary",
-      "sourceIds": ["src-cerf-kahn-1974-tcp", "src-kurose-ross"],
+      "sourceIds": [
+        "src-cerf-kahn-1974-tcp",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -509,7 +654,9 @@
       "type": "leads-to",
       "explanation": "U.S. Department of Defense DARPA funding during the Cold War directly commissioned the creation and deployment of the ARPANET in 1969.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-arpanet-1969"],
+      "sourceIds": [
+        "src-ethw-arpanet-1969"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -519,7 +666,9 @@
       "type": "part-of",
       "explanation": "The Space Race functioned as a high-visibility technological and propaganda arena of the broader Cold War geopolitical conflict.",
       "strength": "primary",
-      "sourceIds": ["src-smithsonian-apollo-history"],
+      "sourceIds": [
+        "src-smithsonian-apollo-history"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -529,7 +678,10 @@
       "type": "part-of",
       "explanation": "Communications satellites serve as orbital microwave transponders that relay high-bandwidth telecommunications signals across continents and oceans.",
       "strength": "primary",
-      "sourceIds": ["src-curtis-orbital-mechanics", "src-kurose-ross"],
+      "sourceIds": [
+        "src-curtis-orbital-mechanics",
+        "src-kurose-ross"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -539,7 +691,9 @@
       "type": "related-to",
       "explanation": "Classical thermodynamics was developed primarily by analyzing maximum work conversion limits in steam and external combustion heat engines.",
       "strength": "primary",
-      "sourceIds": ["src-callen-thermodynamics"],
+      "sourceIds": [
+        "src-callen-thermodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -549,7 +703,10 @@
       "type": "depends-on",
       "explanation": "The rapid economic and societal expansion of the Information Age was driven by mass personal computing enabled by the microprocessor revolution.",
       "strength": "primary",
-      "sourceIds": ["src-patterson-hennessy-cod", "src-raymond-cathedral"],
+      "sourceIds": [
+        "src-patterson-hennessy-cod",
+        "src-raymond-cathedral"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -559,7 +716,10 @@
       "type": "related-to",
       "explanation": "Writing systems provide the physical symbolic notations whose meaning, reference, and syntax are studied by semantics and semiotics.",
       "strength": "strong",
-      "sourceIds": ["src-loc-gutenberg-bible", "src-sep-logic-classical"],
+      "sourceIds": [
+        "src-loc-gutenberg-bible",
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -569,7 +729,10 @@
       "type": "uses",
       "explanation": "Digital logic gates evaluate physical electrical inputs according to the truth tables and algebraic laws of Boolean logic.",
       "strength": "primary",
-      "sourceIds": ["src-shannon-1938-relay", "src-boole-1854-laws"],
+      "sourceIds": [
+        "src-shannon-1938-relay",
+        "src-boole-1854-laws"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -579,7 +742,10 @@
       "type": "uses",
       "explanation": "Compilers execute complex algorithms for parsing (LR/LL tables), data-flow analysis, register allocation (graph coloring), and instruction scheduling.",
       "strength": "primary",
-      "sourceIds": ["src-dragon-book", "src-cormen-clrs"],
+      "sourceIds": [
+        "src-dragon-book",
+        "src-cormen-clrs"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -589,7 +755,10 @@
       "type": "uses",
       "explanation": "Compilers rely on core data structures, such as abstract syntax trees (ASTs), symbol tables, and control-flow graphs (CFGs), during code transformation.",
       "strength": "primary",
-      "sourceIds": ["src-dragon-book", "src-cormen-clrs"],
+      "sourceIds": [
+        "src-dragon-book",
+        "src-cormen-clrs"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -599,7 +768,10 @@
       "type": "depends-on",
       "explanation": "Type systems use formal deductive proof rules and inference mechanisms to prove that well-typed programs satisfy soundness theorems.",
       "strength": "primary",
-      "sourceIds": ["src-pierce-tapl", "src-sep-logic-classical"],
+      "sourceIds": [
+        "src-pierce-tapl",
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -609,7 +781,10 @@
       "type": "uses",
       "explanation": "Relational database query engines employ sorting, hash join, and query optimization algorithms to execute declarative SQL requests efficiently.",
       "strength": "primary",
-      "sourceIds": ["src-silberschatz-db", "src-cormen-clrs"],
+      "sourceIds": [
+        "src-silberschatz-db",
+        "src-cormen-clrs"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -619,7 +794,10 @@
       "type": "related-to",
       "explanation": "Artificial intelligence confronts foundational philosophical questions concerning intentionality, functionalism, and whether synthetic computational symbols can possess genuine mental states.",
       "strength": "strong",
-      "sourceIds": ["src-russell-norvig-aima", "src-sep-epistemology"],
+      "sourceIds": [
+        "src-russell-norvig-aima",
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -629,7 +807,10 @@
       "type": "uses",
       "explanation": "Classical symbolic artificial intelligence uses formal logic and automated theorem proving for knowledge representation, ontology engineering, and deductive reasoning.",
       "strength": "primary",
-      "sourceIds": ["src-russell-norvig-aima", "src-sep-logic-classical"],
+      "sourceIds": [
+        "src-russell-norvig-aima",
+        "src-sep-logic-classical"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -639,7 +820,10 @@
       "type": "depends-on",
       "explanation": "Deep learning models express high-dimensional tensor operations and multi-head attention through matrix multiplications optimized on GPUs.",
       "strength": "primary",
-      "sourceIds": ["src-goodfellow-deep-learning", "src-strang-linear-algebra"],
+      "sourceIds": [
+        "src-goodfellow-deep-learning",
+        "src-strang-linear-algebra"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -649,7 +833,10 @@
       "type": "uses",
       "explanation": "Gradient descent algorithms calculate the gradient vector of a specific scalar loss function to guide parameter updates.",
       "strength": "primary",
-      "sourceIds": ["src-goodfellow-deep-learning", "src-boyd-convex-optimization"],
+      "sourceIds": [
+        "src-goodfellow-deep-learning",
+        "src-boyd-convex-optimization"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -659,7 +846,10 @@
       "type": "leads-to",
       "explanation": "Probability theory establishes the mathematical calculus that provides statistical inference with rigorous estimation and hypothesis testing frameworks.",
       "strength": "primary",
-      "sourceIds": ["src-bertsekas-probability", "src-gelman-bda3"],
+      "sourceIds": [
+        "src-bertsekas-probability",
+        "src-gelman-bda3"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -669,7 +859,10 @@
       "type": "depends-on",
       "explanation": "Computational complexity theory classifies problems that are known to be computable, measuring resource bounds required by universal Turing machines.",
       "strength": "primary",
-      "sourceIds": ["src-sipser-computation", "src-arora-barak-complexity"],
+      "sourceIds": [
+        "src-sipser-computation",
+        "src-arora-barak-complexity"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -679,7 +872,10 @@
       "type": "uses",
       "explanation": "Mathematical optimization algorithms represent multidimensional constraint surfaces and quadratic objective forms using vectors, matrices, and Hessians.",
       "strength": "primary",
-      "sourceIds": ["src-boyd-convex-optimization", "src-strang-linear-algebra"],
+      "sourceIds": [
+        "src-boyd-convex-optimization",
+        "src-strang-linear-algebra"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -689,7 +885,10 @@
       "type": "leads-to",
       "explanation": "When atoms condense into periodic crystal lattices, their discrete electronic orbitals interact and broaden into continuous energy bands studied by solid-state physics.",
       "strength": "primary",
-      "sourceIds": ["src-ashcroft-mermin-solid-state", "src-pdg-standard-model"],
+      "sourceIds": [
+        "src-ashcroft-mermin-solid-state",
+        "src-pdg-standard-model"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -699,7 +898,10 @@
       "type": "depends-on",
       "explanation": "Stars form when interstellar gas clouds undergo gravitational collapse, maintaining ongoing hydrostatic equilibrium between inward gravity and outward thermal pressure.",
       "strength": "primary",
-      "sourceIds": ["src-carroll-ostlie-astrophysics", "src-curtis-orbital-mechanics"],
+      "sourceIds": [
+        "src-carroll-ostlie-astrophysics",
+        "src-curtis-orbital-mechanics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -709,7 +911,10 @@
       "type": "part-of",
       "explanation": "Photons are the physical quanta constituting electromagnetic radiation, propagating through space at the fundamental speed of light.",
       "strength": "primary",
-      "sourceIds": ["src-einstein-1905-photoelectric", "src-jackson-electrodynamics"],
+      "sourceIds": [
+        "src-einstein-1905-photoelectric",
+        "src-jackson-electrodynamics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -719,7 +924,10 @@
       "type": "part-of",
       "explanation": "Conduction electrons and valence holes act as mobile charge carriers whose concentrations in semiconductors are modulated to create diodes and transistors.",
       "strength": "primary",
-      "sourceIds": ["src-sze-semiconductor", "src-streetman-solid-state"],
+      "sourceIds": [
+        "src-sze-semiconductor",
+        "src-streetman-solid-state"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -729,7 +937,10 @@
       "type": "part-of",
       "explanation": "Quantum entanglement represents an intrinsic non-classical property of quantum state vectors in tensor-product Hilbert spaces.",
       "strength": "primary",
-      "sourceIds": ["src-bell-1964-epr", "src-griffiths-quantum"],
+      "sourceIds": [
+        "src-bell-1964-epr",
+        "src-griffiths-quantum"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -739,7 +950,10 @@
       "type": "depends-on",
       "explanation": "The Standard Model of particle physics is formulated mathematically as a relativistic quantum field theory adhering to quantum mechanical principles.",
       "strength": "primary",
-      "sourceIds": ["src-pdg-standard-model", "src-griffiths-quantum"],
+      "sourceIds": [
+        "src-pdg-standard-model",
+        "src-griffiths-quantum"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -749,7 +963,9 @@
       "type": "includes",
       "explanation": "Living cells synthesize and contain thousands of distinct proteins and enzymes that execute structural, catalytic, and regulatory biological functions.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -759,7 +975,10 @@
       "type": "part-of",
       "explanation": "Genes are physically situated as contiguous segments along chromosomal double-stranded DNA molecules.",
       "strength": "primary",
-      "sourceIds": ["src-watson-crick-1953-dna", "src-alberts-mboc"],
+      "sourceIds": [
+        "src-watson-crick-1953-dna",
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -769,7 +988,9 @@
       "type": "manages",
       "explanation": "Epigenetic gene regulation enables a single fertilized egg to develop into diverse, stably differentiated somatic cell types.",
       "strength": "primary",
-      "sourceIds": ["src-alberts-mboc"],
+      "sourceIds": [
+        "src-alberts-mboc"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -779,7 +1000,10 @@
       "type": "leads-to",
       "explanation": "Sensory receptor potentials exceed threshold to generate frequency-coded action potentials transmitted to the central nervous system.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience", "src-hodgkin-huxley-1952"],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-hodgkin-huxley-1952"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -789,7 +1013,10 @@
       "type": "uses",
       "explanation": "Motor commands travel via rapid action potentials along alpha motor neuron axons to trigger acetylcholine release at neuromuscular junctions.",
       "strength": "primary",
-      "sourceIds": ["src-purves-neuroscience", "src-hodgkin-huxley-1952"],
+      "sourceIds": [
+        "src-purves-neuroscience",
+        "src-hodgkin-huxley-1952"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -799,7 +1026,10 @@
       "type": "manages",
       "explanation": "Attentional control mechanisms actively select which environmental stimuli enter working memory and protect them from interference.",
       "strength": "primary",
-      "sourceIds": ["src-posner-petersen-1990", "src-baddeley-2012-working-memory"],
+      "sourceIds": [
+        "src-posner-petersen-1990",
+        "src-baddeley-2012-working-memory"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -809,7 +1039,10 @@
       "type": "manages",
       "explanation": "Metacognitive self-regulation improves learning efficiency by actively monitoring comprehension, diagnosing errors, and adjusting study strategies.",
       "strength": "primary",
-      "sourceIds": ["src-baddeley-2012-working-memory", "src-sweller-1988-cognitive-load"],
+      "sourceIds": [
+        "src-baddeley-2012-working-memory",
+        "src-sweller-1988-cognitive-load"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -819,7 +1052,10 @@
       "type": "includes",
       "explanation": "Epistemology includes empiricism as one of its major historical and contemporary theories regarding the experiential origin of knowledge.",
       "strength": "primary",
-      "sourceIds": ["src-sep-epistemology", "src-sep-rationalism-empiricism"],
+      "sourceIds": [
+        "src-sep-epistemology",
+        "src-sep-rationalism-empiricism"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -829,7 +1065,10 @@
       "type": "includes",
       "explanation": "Epistemology includes rationalism as a foundational school of thought asserting that substantive knowledge can be derived through reason alone.",
       "strength": "primary",
-      "sourceIds": ["src-sep-epistemology", "src-sep-rationalism-empiricism"],
+      "sourceIds": [
+        "src-sep-epistemology",
+        "src-sep-rationalism-empiricism"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -839,7 +1078,10 @@
       "type": "related-to",
       "explanation": "Debates in philosophy of mind regarding physicalism and mental causation directly inform whether human consciousness can exert free will.",
       "strength": "primary",
-      "sourceIds": ["src-sep-freewill", "src-sep-epistemology"],
+      "sourceIds": [
+        "src-sep-freewill",
+        "src-sep-epistemology"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -849,7 +1091,10 @@
       "type": "uses",
       "explanation": "The invention of the transistor required high-purity semiconductor materials (initially germanium, then silicon) to demonstrate solid-state amplification.",
       "strength": "primary",
-      "sourceIds": ["src-ieee-transistor-milestone", "src-sze-semiconductor"],
+      "sourceIds": [
+        "src-ieee-transistor-milestone",
+        "src-sze-semiconductor"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -859,7 +1104,10 @@
       "type": "implemented-with",
       "explanation": "Integrated circuits are fabricated directly onto single-crystal semiconductor silicon wafers using photolithography and chemical doping.",
       "strength": "primary",
-      "sourceIds": ["src-ethw-integrated-circuit", "src-streetman-solid-state"],
+      "sourceIds": [
+        "src-ethw-integrated-circuit",
+        "src-streetman-solid-state"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -869,7 +1117,9 @@
       "type": "part-of",
       "explanation": "The invention of the single-chip microprocessor in 1971 marks the defining architectural transition in the modern history of computing.",
       "strength": "primary",
-      "sourceIds": ["src-patterson-hennessy-cod"],
+      "sourceIds": [
+        "src-patterson-hennessy-cod"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -879,7 +1129,10 @@
       "type": "related-to",
       "explanation": "Open Request for Comments (RFC) standards, BSD UNIX networking stacks, and open server implementations enabled the rapid global scaling of the Internet.",
       "strength": "strong",
-      "sourceIds": ["src-osi-definition", "src-cerf-kahn-1974-tcp"],
+      "sourceIds": [
+        "src-osi-definition",
+        "src-cerf-kahn-1974-tcp"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -889,7 +1142,10 @@
       "type": "leads-to",
       "explanation": "Superpower competition during the Space Race created the rocket launch technologies, spacecraft systems, and tracking stations that opened space exploration.",
       "strength": "primary",
-      "sourceIds": ["src-smithsonian-apollo-history", "src-curtis-orbital-mechanics"],
+      "sourceIds": [
+        "src-smithsonian-apollo-history",
+        "src-curtis-orbital-mechanics"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -899,7 +1155,10 @@
       "type": "leads-to",
       "explanation": "Cold War reconnaissance and secure communications requirements drove early government investment into orbital satellite launch and tracking networks.",
       "strength": "primary",
-      "sourceIds": ["src-curtis-orbital-mechanics", "src-smithsonian-apollo-history"],
+      "sourceIds": [
+        "src-curtis-orbital-mechanics",
+        "src-smithsonian-apollo-history"
+      ],
       "reviewStatus": "needs-review"
     },
     {
@@ -909,7 +1168,10 @@
       "type": "related-to",
       "explanation": "The external symbolic recording of numerical tallies and linguistic symbols in early writing systems was the first historical step toward symbolic data processing.",
       "strength": "supporting",
-      "sourceIds": ["src-loc-gutenberg-bible", "src-von-neumann-1945-edvac"],
+      "sourceIds": [
+        "src-loc-gutenberg-bible",
+        "src-von-neumann-1945-edvac"
+      ],
       "reviewStatus": "needs-review"
     }
   ]
