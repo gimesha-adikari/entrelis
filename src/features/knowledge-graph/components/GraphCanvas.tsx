@@ -377,15 +377,12 @@ export default function GraphCanvas({
       return;
     }
 
-    const isInterrupted =
-      (travelStateRef.current?.active ?? false) ||
-      (currentSceneRef.current !== null &&
-        (Math.abs(currentSceneRef.current.focus.x) > 0.5 ||
-          Math.abs(currentSceneRef.current.focus.y) > 0.5));
+    const activeTravel = travelStateRef.current;
+    const isInterrupted = activeTravel?.active === true;
 
     // Capture start offset before canceling any in-flight animation for seamless continuity
-    const startOffset = travelStateRef.current?.active
-      ? travelStateRef.current.currentOffset
+    const startOffset = isInterrupted && activeTravel
+      ? activeTravel.currentOffset
       : persistentCameraOffsetRef.current;
 
     // Cancel any in-flight animation
@@ -394,13 +391,11 @@ export default function GraphCanvas({
       animationFrameRef.current = null;
     }
 
-    // Derive travel step from navigation geometry
+    // Derive travel step from navigation geometry using consistent scene coordinates
     const step = calculateNavigationStep({
       fromSceneNodes: fromScene.allNodes,
       toSceneNodes: toScene.allNodes,
-      fromFocus: isInterrupted
-        ? { ...fromScene.focus, x: 0, y: 0 }
-        : fromScene.focus,
+      fromFocus: fromScene.focus,
       toFocus: toScene.focus,
     });
 

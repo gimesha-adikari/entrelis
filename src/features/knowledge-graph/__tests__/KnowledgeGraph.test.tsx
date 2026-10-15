@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import KnowledgeGraphExperience from "../components/KnowledgeGraphExperience";
 import { SEED_DATASET } from "@/data/seed";
@@ -266,5 +266,70 @@ describe("KnowledgeGraphExperience Production Integration", () => {
     expect(document.title).toBe("Memory — Entrelis");
 
     pushStateSpy.mockRestore();
+  });
+
+  it("retains correct previous-concept state tracking across repeated navigation, browser Back/Forward, and Home", () => {
+    const { container } = render(
+      <KnowledgeGraphExperience dataset={SEED_DATASET} initialSlug="rust" />
+    );
+
+    const getCanvasPreviousSlug = (currentSlug: string) => {
+      const canvas = container.querySelector("canvas")!;
+      const key = Object.keys(canvas).find((k) => k.startsWith("__reactFiber"))!;
+      let fiber = (canvas as unknown as Record<string, unknown>)[key] as
+        | {
+            memoizedProps?: { selectedConceptSlug?: string; previousConceptSlug?: string };
+            alternate?: { memoizedProps?: { selectedConceptSlug?: string; previousConceptSlug?: string } };
+            return?: unknown;
+          }
+        | undefined;
+      while (fiber) {
+        if (fiber.memoizedProps && "selectedConceptSlug" in fiber.memoizedProps) {
+          if (fiber.memoizedProps.selectedConceptSlug === currentSlug) {
+            return fiber.memoizedProps.previousConceptSlug;
+          }
+          if (fiber.alternate?.memoizedProps?.selectedConceptSlug === currentSlug) {
+            return fiber.alternate.memoizedProps.previousConceptSlug;
+          }
+          return fiber.memoizedProps.previousConceptSlug;
+        }
+        fiber = fiber.return as typeof fiber;
+      }
+      return undefined;
+    };
+
+    // 1. Initial mount: current is rust, previous is undefined
+    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+    expect(getCanvasPreviousSlug("rust")).toBeUndefined();
+
+    // 2. Navigate Rust -> Ownership
+    const ownershipBtn = screen.getByRole("button", {
+      name: /Explore connected concept: Ownership/i,
+    });
+    fireEvent.click(ownershipBtn);
+    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
+    expect(getCanvasPreviousSlug("ownership")).toBe("rust");
+
+    // 3. Navigate Ownership -> Memory
+    const memoryBtn = screen.getByRole("button", {
+      name: /Explore connected concept: Memory/i,
+    });
+    fireEvent.click(memoryBtn);
+    expect(screen.getByRole("heading", { name: "Memory" })).toBeDefined();
+    expect(getCanvasPreviousSlug("memory")).toBe("ownership");
+
+    // 4. Browser Back to /concept/ownership
+    window.history.replaceState({ slug: "ownership" }, "", "/concept/ownership");
+    act(() => {
+      fireEvent(window, new PopStateEvent("popstate"));
+    });
+    expect(screen.getByRole("heading", { name: "Ownership" })).toBeDefined();
+    expect(getCanvasPreviousSlug("ownership")).toBe("memory");
+
+    // 5. Click Return to Rust
+    const returnBtn = screen.getByRole("button", { name: /Return to Rust/i });
+    fireEvent.click(returnBtn);
+    expect(screen.getByRole("heading", { name: "Rust" })).toBeDefined();
+    expect(getCanvasPreviousSlug("rust")).toBe("ownership");
   });
 });

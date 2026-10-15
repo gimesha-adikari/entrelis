@@ -92,21 +92,30 @@ export default function KnowledgeGraphExperience({
   initialVariant = "anchored",
   navigationMode = "production",
 }: Props) {
-  const [selectedSlug, setSelectedSlug] = useState<string>(() => {
+  interface ConceptNavigationState {
+    readonly currentSlug: string;
+    readonly previousSlug?: string;
+  }
+
+  const [conceptNav, setConceptNav] = useState<ConceptNavigationState>(() => {
+    let initial = initialSlug;
     if (typeof window !== "undefined" && (navigationMode === "lab" || navigationMode === "wave1")) {
       const urlConcept = new URLSearchParams(window.location.search).get("concept");
-      if (urlConcept) return urlConcept;
+      if (urlConcept) initial = urlConcept;
     }
-    return initialSlug;
+    return { currentSlug: initial, previousSlug: undefined };
   });
 
-  const [previousSlug, setPreviousSlug] = useState<string | undefined>(undefined);
+  const selectedSlug = conceptNav.currentSlug;
+  const previousSlug = conceptNav.previousSlug;
 
   const [prevInitialSlug, setPrevInitialSlug] = useState(initialSlug);
   if (prevInitialSlug !== initialSlug) {
     setPrevInitialSlug(initialSlug);
-    setPreviousSlug(selectedSlug);
-    setSelectedSlug(initialSlug);
+    setConceptNav((prev) => ({
+      currentSlug: initialSlug,
+      previousSlug: prev.currentSlug !== initialSlug ? prev.currentSlug : prev.previousSlug,
+    }));
   }
 
   const [variantOverride, setVariantOverride] = useState<ProjectedVariant | null>(null);
@@ -188,17 +197,22 @@ export default function KnowledgeGraphExperience({
     return getConceptCelestialIdentity(selectedConcept.slug);
   }, [selectedConcept]);
 
+  const navigateToConcept = useCallback((slug: string) => {
+    setConceptNav((prev) => {
+      if (prev.currentSlug === slug) return prev;
+      return {
+        currentSlug: slug,
+        previousSlug: prev.currentSlug,
+      };
+    });
+  }, []);
+
   /**
    * Synchronize selection changes with browser history and URL.
    */
   const selectConcept = useCallback(
     (slug: string) => {
-      setSelectedSlug((prev) => {
-        if (prev !== slug) {
-          setPreviousSlug(prev);
-        }
-        return slug;
-      });
+      navigateToConcept(slug);
       if (typeof window !== "undefined") {
         if (navigationMode === "lab" || navigationMode === "wave1") {
           const url = new URL(window.location.href);
@@ -214,7 +228,7 @@ export default function KnowledgeGraphExperience({
         }
       }
     },
-    [navigationMode]
+    [navigateToConcept, navigationMode]
   );
 
   // Listen to popstate for seamless browser Back/Forward navigation
@@ -235,17 +249,12 @@ export default function KnowledgeGraphExperience({
           nextSlug = match[1];
         }
       }
-      setSelectedSlug((prev) => {
-        if (prev !== nextSlug) {
-          setPreviousSlug(prev);
-        }
-        return nextSlug;
-      });
+      navigateToConcept(nextSlug);
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [navigationMode]);
+  }, [navigateToConcept, navigationMode]);
 
   // Synchronize document title during client exploration without triggering route remounts
   useEffect(() => {
@@ -270,12 +279,7 @@ export default function KnowledgeGraphExperience({
 
   // Reset view to root / default Rust selection
   const handleResetCamera = useCallback(() => {
-    setSelectedSlug((prev) => {
-      if (prev !== "rust") {
-        setPreviousSlug(prev);
-      }
-      return "rust";
-    });
+    navigateToConcept("rust");
     if (typeof window !== "undefined") {
       if (navigationMode === "lab" || navigationMode === "wave1") {
         const url = new URL(window.location.href);
@@ -285,7 +289,7 @@ export default function KnowledgeGraphExperience({
         window.history.pushState({ slug: "rust" }, "", "/");
       }
     }
-  }, [navigationMode]);
+  }, [navigateToConcept, navigationMode]);
 
   return (
     <div className={styles.container}>
