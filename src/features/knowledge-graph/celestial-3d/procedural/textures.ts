@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { createNoise3D, fbm3D, ridgedFbm3D, createLcg, domainWarp3D } from "./noise3d";
 import type { GeometryLOD, RingConfig } from "../identity";
+import { celestialDiagnostics } from "../diagnostics";
 
 /**
  * Global cache for procedural CanvasTextures keyed by archetype + seed + lod + type.
@@ -17,6 +18,7 @@ export function getRingTextureAlphaData(source: HTMLCanvasElement): Uint8Array |
 
 function cacheTexture(key: string, texture: THREE.CanvasTexture): void {
   textureCache.set(key, texture);
+  celestialDiagnostics.setActiveCacheSize(textureCache.size);
   const keys = textureKeys.get(texture) ?? new Set<string>();
   keys.add(key);
   textureKeys.set(texture, keys);
@@ -45,6 +47,8 @@ export function releaseCelestialTextures(textures: readonly THREE.Texture[]): vo
     for (const key of keys) {
       if (textureCache.get(key) === texture) textureCache.delete(key);
     }
+    celestialDiagnostics.recordTextureEviction();
+    celestialDiagnostics.setActiveCacheSize(textureCache.size);
     textureReferenceCounts.delete(texture);
     textureKeys.delete(texture);
     texture.dispose();
@@ -76,6 +80,13 @@ function getResolution(lod: GeometryLOD = "focus"): { width: number; height: num
 
 function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
+}
+
+function wrapAngle(theta: number, centerTheta: number): number {
+  let diff = theta - centerTheta;
+  if (diff > Math.PI) diff -= Math.PI * 2;
+  else if (diff < -Math.PI) diff += Math.PI * 2;
+  return diff;
 }
 
 function lerp(a: number, b: number, t: number): number {
@@ -448,14 +459,14 @@ export function createBlueStarTextures(seed: number, lod: GeometryLOD = "focus")
 
           // Localized compact coronal energy plumes
           const f1Angle = 2.1;
-          const dAng1 = Math.atan2(Math.sin(angle - f1Angle), Math.cos(angle - f1Angle));
+          const dAng1 = wrapAngle(angle, f1Angle);
           const flare1 =
             0.38 *
             Math.exp(-Math.pow(dAng1 / 0.18, 2)) *
             Math.exp(-Math.pow(Math.max(0, alt) / 0.11, 2));
 
           const f2Angle = 5.45;
-          const dAng2 = Math.atan2(Math.sin(angle - f2Angle), Math.cos(angle - f2Angle));
+          const dAng2 = wrapAngle(angle, f2Angle);
           const flare2 =
             0.32 *
             Math.exp(-Math.pow(dAng2 / 0.15, 2)) *
@@ -1631,89 +1642,137 @@ export function createStormGiantTexture(
     const sec5A = 0.17;
     const sec5B = 0.085;
 
+    const cos_stormPy_over_stormA = Math.cos(stormPy) / stormA;
+    const cos_sec1_over_a = Math.cos(sec1Py) / sec1A;
+    const cos_sec2_over_a = Math.cos(sec2Py) / sec2A;
+    const cos_sec3_over_a = Math.cos(sec3Py) / sec3A;
+    const cos_sec4_over_a = Math.cos(sec4Py) / sec4A;
+    const cos_sec5_over_a = Math.cos(sec5Py) / sec5A;
+
+    const pre_macro = new Float64Array(width);
+    for (let x = 0; x < width; x++) {
+      const theta = (x / width) * 2 * Math.PI;
+      pre_macro[x] =
+        Math.sin(theta * 2.0 + 1.15) * 0.08 +
+        Math.cos(theta * 3.0 - 0.75) * 0.05 +
+        Math.sin(theta * 1.0 + 2.8) * 0.055;
+    }
+
     for (let y = 0; y < height; y++) {
       const phi = (y / height) * Math.PI;
       const cosPhi = Math.cos(phi);
+      const py = cosPhi;
+
+      const dy0 = py - stormPy;
+      const latSplitSign = Math.tanh(dy0 / 0.07);
+      const dy0_over_b_sq = (dy0 * dy0) / (stormB * stormB);
+      const dy0_x_2_2 = dy0 * 2.2;
+      const wakeEnvelopeY = Math.exp(-Math.pow(dy0 / 0.14, 2));
+
+      const dy1 = py - sec1Py;
+      const check1 = Math.abs(dy1) <= 0.30;
+      const tanh1 = check1 ? Math.tanh(dy1 / 0.06) * 0.08 : 0;
+      const dy1_sq = check1 ? (dy1 * dy1) / (sec1B * sec1B) : 0;
+
+      const dy2 = py - sec2Py;
+      const check2 = Math.abs(dy2) <= 0.30;
+      const tanh2 = check2 ? Math.tanh(dy2 / 0.06) * 0.07 : 0;
+      const dy2_sq = check2 ? (dy2 * dy2) / (sec2B * sec2B) : 0;
+
+      const dy3 = py - sec3Py;
+      const check3 = Math.abs(dy3) <= 0.30;
+      const tanh3 = check3 ? Math.tanh(dy3 / 0.06) * 0.06 : 0;
+      const dy3_sq = check3 ? (dy3 * dy3) / (sec3B * sec3B) : 0;
+
+      const dy4 = py - sec4Py;
+      const check4 = Math.abs(dy4) <= 0.30;
+      const tanh4 = check4 ? Math.tanh(dy4 / 0.06) * 0.07 : 0;
+      const dy4_sq = check4 ? (dy4 * dy4) / (sec4B * sec4B) : 0;
+
+      const dy5 = py - sec5Py;
+      const check5 = Math.abs(dy5) <= 0.30;
+      const tanh5 = check5 ? Math.tanh(dy5 / 0.06) * 0.065 : 0;
+      const dy5_sq = check5 ? (dy5 * dy5) / (sec5B * sec5B) : 0;
 
       for (let x = 0; x < width; x++) {
         const theta = (x / width) * 2 * Math.PI;
-        const py = cosPhi;
 
         // -------------------------------------------------------------
         // FLOW-FIELD STREAMLINE DEFLECTION (EMBEDDED VORTEX DYNAMICS)
         // -------------------------------------------------------------
 
         // 1. Great Storm Flow Field
-        const dTheta0 = Math.atan2(Math.sin(theta - stormTheta), Math.cos(theta - stormTheta));
-        const dy0 = py - stormPy;
-        const stormDist = Math.sqrt(
-          Math.pow((dTheta0 * Math.cos(stormPy)) / stormA, 2) + Math.pow(dy0 / stormB, 2)
-        );
+        const dTheta0 = wrapAngle(theta, stormTheta);
+        const term0 = dTheta0 * cos_stormPy_over_stormA;
+        const stormDist = Math.sqrt(term0 * term0 + dy0_over_b_sq);
 
         // Vector streamline deflection: jets divert smoothly around the storm perimeter
         const stormInfluence = Math.exp(-Math.pow(stormDist / 1.45, 1.8));
-        const latSplitSign = Math.tanh(dy0 / 0.07);
         const deflectionY0 = latSplitSign * stormInfluence * 0.22;
 
         // Cyclonic azimuthal curling around storm core
-        const stormAngle = Math.atan2(dy0 * 2.2, dTheta0);
+        const stormAngle = Math.atan2(dy0_x_2_2, dTheta0);
         const curlTheta0 = -Math.sin(stormAngle) * stormInfluence * 0.32;
         const curlY0 = Math.cos(stormAngle) * stormInfluence * 0.14;
 
         // Trailing turbulent wake downstream of the storm (positive dTheta0)
         let stormWake = 0;
         if (dTheta0 > 0 && dTheta0 < 1.6) {
-          const wakeEnvelope =
-            Math.exp(-Math.pow(dy0 / 0.14, 2)) * Math.exp(-Math.pow((dTheta0 - 0.6) / 0.8, 2));
-          stormWake = Math.sin(dTheta0 * 12.0) * wakeEnvelope * 0.11;
+          stormWake =
+            Math.sin(dTheta0 * 12.0) *
+            wakeEnvelopeY *
+            Math.exp(-Math.pow((dTheta0 - 0.6) / 0.8, 2)) *
+            0.11;
         }
 
         // 2. Secondary Vortex Streamline Deflections
-        // Eddy 1
-        const dTheta1 = Math.atan2(Math.sin(theta - sec1Theta), Math.cos(theta - sec1Theta));
-        const dy1 = py - sec1Py;
-        const dist1 = Math.sqrt(
-          Math.pow((dTheta1 * Math.cos(sec1Py)) / sec1A, 2) + Math.pow(dy1 / sec1B, 2)
-        );
-        const defY1 = Math.tanh(dy1 / 0.06) * Math.exp(-Math.pow(dist1 / 1.3, 2)) * 0.08;
+        let defY1 = 0;
+        let dist1 = 999;
+        if (check1) {
+          const dTheta1 = wrapAngle(theta, sec1Theta);
+          const t1 = dTheta1 * cos_sec1_over_a;
+          dist1 = Math.sqrt(t1 * t1 + dy1_sq);
+          defY1 = tanh1 * Math.exp(-(dist1 * dist1) / 1.69);
+        }
 
-        // Eddy 2
-        const dTheta2 = Math.atan2(Math.sin(theta - sec2Theta), Math.cos(theta - sec2Theta));
-        const dy2 = py - sec2Py;
-        const dist2 = Math.sqrt(
-          Math.pow((dTheta2 * Math.cos(sec2Py)) / sec2A, 2) + Math.pow(dy2 / sec2B, 2)
-        );
-        const defY2 = Math.tanh(dy2 / 0.06) * Math.exp(-Math.pow(dist2 / 1.3, 2)) * 0.07;
+        let defY2 = 0;
+        let dist2 = 999;
+        if (check2) {
+          const dTheta2 = wrapAngle(theta, sec2Theta);
+          const t2 = dTheta2 * cos_sec2_over_a;
+          dist2 = Math.sqrt(t2 * t2 + dy2_sq);
+          defY2 = tanh2 * Math.exp(-(dist2 * dist2) / 1.69);
+        }
 
-        // Eddy 3
-        const dTheta3 = Math.atan2(Math.sin(theta - sec3Theta), Math.cos(theta - sec3Theta));
-        const dy3 = py - sec3Py;
-        const dist3 = Math.sqrt(
-          Math.pow((dTheta3 * Math.cos(sec3Py)) / sec3A, 2) + Math.pow(dy3 / sec3B, 2)
-        );
-        const defY3 = Math.tanh(dy3 / 0.06) * Math.exp(-Math.pow(dist3 / 1.3, 2)) * 0.06;
+        let defY3 = 0;
+        let dist3 = 999;
+        if (check3) {
+          const dTheta3 = wrapAngle(theta, sec3Theta);
+          const t3 = dTheta3 * cos_sec3_over_a;
+          dist3 = Math.sqrt(t3 * t3 + dy3_sq);
+          defY3 = tanh3 * Math.exp(-(dist3 * dist3) / 1.69);
+        }
 
-        // Eddy 4
-        const dTheta4 = Math.atan2(Math.sin(theta - sec4Theta), Math.cos(theta - sec4Theta));
-        const dy4 = py - sec4Py;
-        const dist4 = Math.sqrt(
-          Math.pow((dTheta4 * Math.cos(sec4Py)) / sec4A, 2) + Math.pow(dy4 / sec4B, 2)
-        );
-        const defY4 = Math.tanh(dy4 / 0.06) * Math.exp(-Math.pow(dist4 / 1.3, 2)) * 0.07;
+        let defY4 = 0;
+        let dist4 = 999;
+        if (check4) {
+          const dTheta4 = wrapAngle(theta, sec4Theta);
+          const t4 = dTheta4 * cos_sec4_over_a;
+          dist4 = Math.sqrt(t4 * t4 + dy4_sq);
+          defY4 = tanh4 * Math.exp(-(dist4 * dist4) / 1.69);
+        }
 
-        // Eddy 5
-        const dTheta5 = Math.atan2(Math.sin(theta - sec5Theta), Math.cos(theta - sec5Theta));
-        const dy5 = py - sec5Py;
-        const dist5 = Math.sqrt(
-          Math.pow((dTheta5 * Math.cos(sec5Py)) / sec5A, 2) + Math.pow(dy5 / sec5B, 2)
-        );
-        const defY5 = Math.tanh(dy5 / 0.06) * Math.exp(-Math.pow(dist5 / 1.3, 2)) * 0.065;
+        let defY5 = 0;
+        let dist5 = 999;
+        if (check5) {
+          const dTheta5 = wrapAngle(theta, sec5Theta);
+          const t5 = dTheta5 * cos_sec5_over_a;
+          dist5 = Math.sqrt(t5 * t5 + dy5_sq);
+          defY5 = tanh5 * Math.exp(-(dist5 * dist5) / 1.69);
+        }
 
         // 3. Planetary Macro Longitudinal Meanders
-        const macroMeander =
-          Math.sin(theta * 2.0 + 1.15) * 0.08 +
-          Math.cos(theta * 3.0 - 0.75) * 0.05 +
-          Math.sin(theta * 1.0 + 2.8) * 0.055;
+        const macroMeander = pre_macro[x] ?? 0;
 
         // Deformed coordinates: streamlines wrap and curl organically
         const rawPy =

@@ -66,7 +66,7 @@ const ProductionCelestialLayer = forwardRef<
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const controller = new Controller(canvas, { onRingOcclusionChange });
+    const controller = new Controller(canvas, { onRingOcclusionChange, maxWarmEntries: 24 });
     controllerRef.current = controller;
     onRendererAvailabilityChange(controller.isAvailable);
     if (latestUpdateRef.current) controller.update(...latestUpdateRef.current);

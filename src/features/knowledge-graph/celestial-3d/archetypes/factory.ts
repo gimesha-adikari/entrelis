@@ -22,6 +22,7 @@ import { createDebrisGroup, type DebrisInstance } from "../attachments/debris";
 import { deformAsteroidGeometry } from "./asteroid";
 import { createLcg } from "../procedural/noise3d";
 import { releaseCelestialTextures, retainCelestialTextures } from "../procedural/textures";
+import { celestialDiagnostics } from "../diagnostics";
 
 export interface CelestialBodyInstance {
   readonly group: THREE.Group;
@@ -76,6 +77,7 @@ export function createCelestialObject(
   lod: GeometryLOD = "focus",
   radius = 50
 ): CelestialBodyInstance {
+  const createStart = performance.now();
   const group = new THREE.Group();
   const archetype = identity.archetype;
   const seed = identity.seed;
@@ -119,7 +121,9 @@ export function createCelestialObject(
     let coronaScale = 2.45;
 
     if (archetype === "golden-star") {
+      const texStart = performance.now();
       starTex = createGoldenStarTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("golden-star", performance.now() - texStart);
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
@@ -135,7 +139,9 @@ export function createCelestialObject(
       coronaPeriodY = 11.5;
       coronaVarAmp = 0.025;
     } else if (archetype === "blue-star") {
+      const texStart = performance.now();
       starTex = createBlueStarTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("blue-star", performance.now() - texStart);
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffffff,
@@ -153,7 +159,9 @@ export function createCelestialObject(
       coronaVarAmp = 0.018;
     } else {
       // ember-star (Ownership)
+      const texStart = performance.now();
       starTex = createEmberStarTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("ember-star", performance.now() - texStart);
       shaderParams = {
         surfaceTexture: starTex.surface,
         coreColor: 0xffedd5,
@@ -199,7 +207,9 @@ export function createCelestialObject(
     geometriesToDispose.push(geo);
 
     if (archetype === "volcanic-rocky") {
+      const texStart = performance.now();
       const tex = createVolcanicRockyTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("volcanic-rocky", performance.now() - texStart);
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         bumpMap: tex.bump,
@@ -216,7 +226,9 @@ export function createCelestialObject(
       baseRotationSpeed = (2 * Math.PI) / 60;
     } else {
       // mineral-rocky
+      const texStart = performance.now();
       const tex = createMineralDesertTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("mineral-rocky", performance.now() - texStart);
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         bumpMap: tex.bump,
@@ -238,7 +250,9 @@ export function createCelestialObject(
     const geo = new THREE.SphereGeometry(radius, sphereSegments.w, sphereSegments.h);
     geometriesToDispose.push(geo);
 
+    const texStart = performance.now();
     const tex = createLifeWorldTextures(seed, lod);
+    celestialDiagnostics.recordTextureGeneration("life-world", performance.now() - texStart);
     const mat = new THREE.MeshStandardMaterial({
       map: tex.surface,
       bumpMap: tex.bump,
@@ -287,7 +301,10 @@ export function createCelestialObject(
     geometriesToDispose.push(geo);
 
     if (archetype === "blue-atmospheric") {
+      const texStart = performance.now();
       const tex = createBlueAtmosphericTexture(seed, lod);
+      const cloudTex = createBlueAtmosphericCloudTexture(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("blue-atmospheric", performance.now() - texStart);
       const mat = new THREE.MeshStandardMaterial({
         map: tex,
         roughness: 0.88,
@@ -301,7 +318,6 @@ export function createCelestialObject(
       // Upper Cloud Shell (differential rotation ~1.14x speed)
       const cloudGeo = new THREE.SphereGeometry(radius * 1.012, sphereSegments.w, sphereSegments.h);
       geometriesToDispose.push(cloudGeo);
-      const cloudTex = createBlueAtmosphericCloudTexture(seed, lod);
       const cloudMat = new THREE.MeshStandardMaterial({
         map: cloudTex,
         transparent: true,
@@ -328,7 +344,9 @@ export function createCelestialObject(
       atmosphereRotationSpeed = (2 * Math.PI) / 50;
     } else {
       // storm-giant
+      const texStart = performance.now();
       const tex = createStormGiantTexture(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("storm-giant", performance.now() - texStart);
       const mat = new THREE.MeshStandardMaterial({
         map: tex,
         roughness: 0.82,
@@ -364,7 +382,9 @@ export function createCelestialObject(
     geometriesToDispose.push(geo);
 
     if (archetype === "metallic-world") {
+      const texStart = performance.now();
       const tex = createMetallicWorldTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("metallic-world", performance.now() - texStart);
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         metalnessMap: tex.metalness,
@@ -382,7 +402,9 @@ export function createCelestialObject(
       baseRotationSpeed = (2 * Math.PI) / 75;
     } else {
       // crystal-world
+      const texStart = performance.now();
       const tex = createCrystalWorldTextures(seed, lod);
+      celestialDiagnostics.recordTextureGeneration("crystal-world", performance.now() - texStart);
       const mat = new THREE.MeshStandardMaterial({
         map: tex.diffuse,
         roughnessMap: tex.roughness,
@@ -421,7 +443,9 @@ export function createCelestialObject(
     const geo = deformAsteroidGeometry(radius, seed, detail, variant);
     geometriesToDispose.push(geo);
 
+    const texStart = performance.now();
     const tex = createAsteroidTextures(seed, lod, variant);
+    celestialDiagnostics.recordTextureGeneration("asteroid", performance.now() - texStart);
     const mat = new THREE.MeshStandardMaterial({
       map: tex.diffuse,
       roughnessMap: tex.roughness,
@@ -440,7 +464,9 @@ export function createCelestialObject(
 
   // ATTACHMENT: RINGS
   if (identity.rings) {
+    const ringStart = performance.now();
     ringMesh = createRingMesh(identity.rings, lod);
+    celestialDiagnostics.recordTextureGeneration("ring", performance.now() - ringStart);
     geometriesToDispose.push(ringMesh.geometry);
     materialsToDispose.push(ringMesh.material as THREE.Material);
     for (const child of ringMesh.children) {
@@ -472,6 +498,7 @@ export function createCelestialObject(
   const cachedTextures = collectMaterialTextures(materialsToDispose);
   retainCelestialTextures(cachedTextures);
   let isDisposed = false;
+  celestialDiagnostics.recordBodyConstruction(performance.now() - createStart);
 
   return {
     group,

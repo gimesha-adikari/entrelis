@@ -44,8 +44,11 @@ interface ProductionEntry {
 }
 
 interface PendingPreparation {
-  readonly entry: ProductionEntry;
+  entry: ProductionEntry | null;
   node: UniverseNode;
+  identity: ReturnType<typeof getConceptCelestialIdentity>;
+  identityKey: string;
+  constructionLod: GeometryLOD;
   transform: ViewportTransform;
   hovered: boolean;
   ready: boolean;
@@ -75,6 +78,7 @@ export interface ProductionCelestialControllerDependencies {
     radius: number
   ) => CelestialBodyInstance;
   readonly createUniverseScene?: (options: Universe3DSceneOptions) => Universe3DScene;
+  readonly maxWarmEntries?: number;
 }
 
 export interface ProductionCelestialLifecycleStats {
@@ -251,6 +255,7 @@ export class ProductionCelestialController {
   private readonly warmEntries = new Map<string, ProductionEntry>();
   /** Cold bodies kept off-scene until shared-renderer shader preparation completes. */
   private readonly pendingEntries = new Map<string, PendingPreparation>();
+  private readonly maxWarmEntries: number;
   private readonly ringMaskPreparations = new Map<THREE.Mesh, RingMaskPreparation>();
   private readonly unavailableRingMasks = new WeakSet<THREE.Mesh>();
   private readonly targetFps = DEFAULT_TARGET_FPS;
@@ -347,6 +352,7 @@ export class ProductionCelestialController {
   ) {
     this.canvas = canvas;
     this.onRingOcclusionChange = dependencies.onRingOcclusionChange;
+    this.maxWarmEntries = dependencies.maxWarmEntries ?? MAX_WARM_ENTRIES;
     this.createRenderer =
       dependencies.createRenderer ??
       ((targetCanvas) =>
@@ -425,7 +431,7 @@ export class ProductionCelestialController {
     return {
       activeEntries: this.activeEntries.size,
       warmEntries: this.warmEntries.size,
-      warmCapacity: MAX_WARM_ENTRIES,
+      warmCapacity: this.maxWarmEntries,
       pendingEntries: this.pendingEntries.size,
       pendingCapacity: MAX_PENDING_ENTRIES,
       preparingEntries: this.preparingPendingEntry ? 1 : 0,
@@ -571,10 +577,13 @@ export class ProductionCelestialController {
     if (!entry) {
       const pending = this.pendingEntries.get(node.id);
       if (pending) {
-        if (pending.entry.identityKey === identityKey) {
+        if (pending.identityKey === identityKey) {
           pending.node = node;
           pending.transform = transform;
           pending.hovered = isHovered;
+          if (pending.entry) {
+            this.applyNodeToEntry(pending.entry, node, transform, isHovered);
+          }
           return;
         }
         this.cancelPendingEntry(node.id, pending);
@@ -690,6 +699,7 @@ export class ProductionCelestialController {
       if (pendingEntry.node.opacity <= 0.001) continue;
       pending = true;
       this.bodyNotReadyNodeIds.add(pendingEntry.node.id);
+      if (!pendingEntry.entry) continue;
       this.applyNodeToEntry(
         pendingEntry.entry,
         pendingEntry.node,
@@ -960,8 +970,11 @@ export class ProductionCelestialController {
   ): void {
     if (this.pendingEntries.size >= MAX_PENDING_ENTRIES) return;
     const pending: PendingPreparation = {
-      entry: this.createEntry(node.id, identity, identityKey, constructionLod),
+      entry: null,
       node,
+      identity,
+      identityKey,
+      constructionLod,
       transform,
       hovered,
       ready: false,
@@ -1016,6 +1029,16 @@ export class ProductionCelestialController {
     const renderer = this.renderer;
     if (!renderer || this.isDisposed || this.isTabHidden) return;
 
+    if (!pending.entry) {
+      pending.entry = this.createEntry(
+        pending.node.id,
+        pending.identity,
+        pending.identityKey,
+        pending.constructionLod
+      );
+    }
+    const entry = pending.entry;
+
     this.preparingPendingEntry = pending;
     pending.startedAt = performance.now();
     this.shaderPreparationsStarted += 1;
@@ -1023,7 +1046,7 @@ export class ProductionCelestialController {
     const setupStartedAt = performance.now();
     let preparation: Promise<THREE.Object3D>;
     try {
-      preparation = renderer.compileAsync(pending.entry.body.group, this.camera, this.scene);
+      preparation = renderer.compileAsync(entry.body.group, this.camera, this.scene);
     } catch {
       const setupDuration = performance.now() - setupStartedAt;
       this.shaderPreparationSetupTotalMs += setupDuration;
@@ -1048,7 +1071,7 @@ export class ProductionCelestialController {
     if (!succeeded) this.shaderPreparationFailures += 1;
     if (this.isDisposed) return;
 
-    if (this.pendingEntries.get(pending.entry.id) === pending) {
+    if (this.pendingEntries.get(pending.node.id) === pending) {
       pending.ready = true;
       this.shaderPreparationsCompleted += 1;
       if (!this.isTabHidden) this.activatePendingEntry(pending);
@@ -1064,19 +1087,27 @@ export class ProductionCelestialController {
   }
 
   private activatePendingEntry(pending: PendingPreparation): void {
-    const id = pending.entry.id;
-    if (this.isDisposed || this.isTabHidden || this.pendingEntries.get(id) !== pending) return;
+    const id = pending.node.id;
     if (
-      getIdentityKey(getConceptCelestialIdentity(pending.node.slug)) !== pending.entry.identityKey
+      this.isDisposed ||
+      this.isTabHidden ||
+      this.pendingEntries.get(id) !== pending ||
+      !pending.entry
+    ) {
+      return;
+    }
+    if (
+      getIdentityKey(getConceptCelestialIdentity(pending.node.slug)) !== pending.identityKey
     ) {
       this.cancelPendingEntry(id, pending);
       return;
     }
 
+    const entry = pending.entry;
     this.pendingEntries.delete(id);
-    this.activeEntries.set(id, pending.entry);
-    this.scene.add(pending.entry.body.group);
-    this.applyNodeToEntry(pending.entry, pending.node, pending.transform, pending.hovered);
+    this.activeEntries.set(id, entry);
+    this.scene.add(entry.body.group);
+    this.applyNodeToEntry(entry, pending.node, pending.transform, pending.hovered);
 
     if (this.prefersReducedMotion) this.stopLoop();
     this.renderFrame(0);
@@ -1093,7 +1124,9 @@ export class ProductionCelestialController {
     if (this.pendingEntries.get(id) !== pending) return;
     this.pendingEntries.delete(id);
     this.shaderPreparationCancellations += 1;
-    this.disposeEntry(pending.entry);
+    if (pending.entry) {
+      this.disposeEntry(pending.entry);
+    }
   }
 
   private cancelScheduledPreparation(): void {
@@ -1149,7 +1182,7 @@ export class ProductionCelestialController {
 
     this.warmEntries.set(id, entry);
     this.warmParks += 1;
-    while (this.warmEntries.size > MAX_WARM_ENTRIES) {
+    while (this.warmEntries.size > this.maxWarmEntries) {
       const oldestId = this.warmEntries.keys().next().value as string | undefined;
       if (oldestId === undefined) return;
       const oldest = this.warmEntries.get(oldestId);
@@ -1281,7 +1314,9 @@ export class ProductionCelestialController {
     }
     this.activeEntries.clear();
     for (const pending of this.pendingEntries.values()) {
-      this.disposeEntry(pending.entry);
+      if (pending.entry) {
+        this.disposeEntry(pending.entry);
+      }
     }
     this.pendingEntries.clear();
     this.preparingPendingEntry = null;

@@ -20,6 +20,7 @@ import { getConceptCelestialIdentity } from "../celestial-3d/identity";
 import ProductionCelestialLayer, {
   type ProductionCelestialLayerHandle,
 } from "../celestial-3d/ProductionCelestialLayer";
+import { celestialDiagnostics } from "../celestial-3d/diagnostics";
 import {
   calculateNavigationStep,
   getRememberedAnchor,
@@ -133,12 +134,15 @@ export default function GraphCanvas({
       previousFocusSlug: effectivePreviousSlug,
       isMobile,
     });
-    return layoutLocalUniverseScene(rawScene, {
+    const layoutStart = performance.now();
+    const scene = layoutLocalUniverseScene(rawScene, {
       viewportWidth: dimensions.width,
       viewportHeight: dimensions.height,
       isMobile,
       knowledgeFieldWidth,
     });
+    celestialDiagnostics.recordSceneLayout(performance.now() - layoutStart);
+    return scene;
   }, [
     dataset,
     index,
@@ -558,6 +562,18 @@ export default function GraphCanvas({
   useEffect(() => {
     draw();
   }, [draw]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as unknown as Record<string, unknown>).__ENTRELIS_DIAGNOSTICS__ = {
+        getLifecycleStats: () => productionCelestialLayerRef.current?.getLifecycleStats() ?? null,
+        getTextureStats: () => celestialDiagnostics.getTextureStats(),
+        getBodyConstructionStats: () => celestialDiagnostics.getBodyConstructionStats(),
+        getSceneLayoutStats: () => celestialDiagnostics.getSceneLayoutStats(),
+        reset: () => celestialDiagnostics.reset(),
+      };
+    }
+  }, []);
 
   // Hit test helper restricted strictly to visible universe scene
   const getNodeAtPoint = (clientX: number, clientY: number): UniverseNode | null => {
